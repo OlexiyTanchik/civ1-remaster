@@ -132,7 +132,9 @@ export class AiController {
     const count = (t: UnitTypeKey) => myUnits.filter((u) => u.type === t).length;
     const military = myUnits.filter((u) => UNIT_CONFIGS[u.type].attack > 0).length;
     const armyFull = military >= cities * 2 + 2;
-    const wonder = Object.values(BUILDING_CONFIGS).find((b) => b.isWonder && canBuild(b.key));
+    // «Аполлон» — першим: без нього космічна гонка не встигає до 2100
+    const wonder = canBuild(BuildingTypeKey.Apollo) ? BUILDING_CONFIGS[BuildingTypeKey.Apollo]
+      : Object.values(BUILDING_CONFIGS).find((b) => b.isWonder && canBuild(b.key));
     const garrison = this.garrisonAt(city);
     const threat = this.threatNear(city.x, city.y, player.id, 7);
     const defender = this.bestUnit(player, 'defense');
