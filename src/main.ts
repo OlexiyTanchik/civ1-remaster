@@ -10,6 +10,7 @@ import { SpaceDialog } from './ui/space-dialog';
 import { TurnManager } from './core/turn-manager';
 import { GameOverDialog } from './ui/game-over-dialog';
 import { GameMenuDialog } from './ui/game-menu-dialog';
+import { DiplomacyDialog, MeetingDialog, DiplomatDialog } from './ui/diplomacy-dialog';
 import { showMainMenu, MenuChoice } from './ui/main-menu';
 import { saveGame, loadSave, takePendingLoad } from './ui/save-store';
 import { MapRenderer } from './render/map-renderer';
@@ -58,6 +59,14 @@ async function bootstrap() {
   const spaceDialog = new SpaceDialog(appElement, world);
   const gameOverDialog = new GameOverDialog(appElement, world);
   const gameMenu = new GameMenuDialog(appElement, world);
+  const diplomacyDialog = new DiplomacyDialog(appElement, world, () => hud.update(selectedUnit));
+  const meetingDialog = new MeetingDialog(appElement, world);
+  const diplomatDialog = new DiplomatDialog(appElement, world);
+  /** Зустрічі з лідерами, що накопичились за хід */
+  const showMeetings = () => {
+    const meetings = world.diplomacy.takeMeetings();
+    if (meetings.length) meetingDialog.showAll(meetings, (text) => { hud.addLogMessage(text); hud.update(selectedUnit); });
+  };
   // Збережену завершену партію не оголошуємо вдруге
   let gameOverShown = !!world.gameOver;
 
@@ -109,6 +118,16 @@ async function bootstrap() {
   function moveSelected(tileX: number, tileY: number): void {
     if (!selectedUnit || selectedUnit.movesLeft <= 0) return;
     const res = world.moveUnit(selectedUnit.id, tileX, tileY);
+    if (res.diplomatCity) {
+      const unitId = selectedUnit.id;
+      diplomatDialog.show(unitId, res.diplomatCity, (text) => {
+        if (text) hud.addLogMessage(text);
+        renderer.refreshAll();
+        selectNextAvailableUnit();
+      });
+      return;
+    }
+    showMeetings();
     if (!res.success) return;
     if (res.combatLog) {
       SoundEffects.playCombat();
@@ -210,6 +229,7 @@ async function bootstrap() {
 
     renderer.refreshAll();
     selectNextAvailableUnit();
+    showMeetings();
     // Автозбереження щоходу
     const saveError = saveGame(world, 'auto');
     if (saveError) hud.addLogMessage(`⚠️ ${saveError}`);
@@ -221,6 +241,7 @@ async function bootstrap() {
   };
 
   hud.onOpenGameMenu = () => gameMenu.show();
+  hud.onOpenDiplomacy = () => diplomacyDialog.show();
 
   hud.onRehome = () => {
     if (!selectedUnit) return;

@@ -224,6 +224,10 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
     key: UnitTypeKey.Carrier, name: 'Carrier', nameUa: 'Авіаносець', attack: 1, defense: 12, moves: 5, cost: 160, domain: 'sea', airCapacity: 8,
     prereqTech: 'advanced_flight', descriptionUa: 'Плавучий аеродром: несе 8 літаків і заправляє їх.',
   },
+  [UnitTypeKey.Diplomat]: {
+    key: UnitTypeKey.Diplomat, name: 'Diplomat', nameUa: 'Дипломат', attack: 0, defense: 1, moves: 2, cost: 30, domain: 'land',
+    prereqTech: 'writing', descriptionUa: 'Зайдіть у чуже місто: відкрити посольство або викрасти технологію.',
+  },
   [UnitTypeKey.Nuclear]: {
     key: UnitTypeKey.Nuclear, name: 'Nuclear', nameUa: 'Ядерна ракета', attack: 99, defense: 0, moves: 16, cost: 160, domain: 'air', fuel: 1,
     prereqTech: 'rocketry', requiresWonder: BuildingTypeKey.Manhattan,
@@ -415,6 +419,10 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
   [BuildingTypeKey.CureForCancer]: {
     key: BuildingTypeKey.CureForCancer, nameUa: 'Ліки від раку', cost: 600, maintenance: 0, prereqTech: 'genetic_engineering', isWonder: true,
     descriptionUa: 'Чудо світу. +1 задоволений громадянин у кожному вашому місті.',
+  },
+  [BuildingTypeKey.MarcoPolo]: {
+    key: BuildingTypeKey.MarcoPolo, nameUa: 'Посольство Марко Поло', cost: 200, maintenance: 0, prereqTech: 'trade', isWonder: true,
+    descriptionUa: 'Чудо світу. Посольства в усіх цивілізаціях: ви знайомі з усіма й бачите їхні технології.',
   },
   [BuildingTypeKey.SpaceStructural]: {
     key: BuildingTypeKey.SpaceStructural, nameUa: '🚀 Каркас корабля', cost: 80, maintenance: 0, prereqTech: 'space_flight',

@@ -37,6 +37,7 @@ export class Hud {
   public onOpenSpace?: () => void;
   public onOpenGameMenu?: () => void;
   public onRehome?: () => void;
+  public onOpenDiplomacy?: () => void;
 
   constructor(
     private container: HTMLElement,
@@ -101,6 +102,7 @@ export class Hud {
           <button class="civ-btn" id="btn-fortify" title="Укріпитися: +50% захисту [F]">🛡️ Укріпити [F]</button>
           <button class="civ-btn" id="btn-wait" title="Чекати: наступний юніт [W]">⏳ Чекати [W]</button>
           <button class="civ-btn" id="btn-toggle-grid" title="Сітка клітинок [G]">📐 Сітка ✓ [G]</button>
+          <button class="civ-btn" id="btn-diplomacy" title="Мир, війна, обмін технологіями">🤝 Дипломатія</button>
           <button class="civ-btn" id="btn-game-menu" title="Зберегти, завантажити, головне меню">💾 Гра</button>
           <button class="civ-btn civ-btn-end-turn" id="btn-end-turn">КІНЕЦЬ ХОДУ ⌛</button>
         </div>
@@ -123,6 +125,7 @@ export class Hud {
     document.getElementById('hud-space')?.addEventListener('click', () => this.onOpenSpace?.());
     document.getElementById('btn-game-menu')?.addEventListener('click', () => this.onOpenGameMenu?.());
     document.getElementById('btn-rehome')?.addEventListener('click', () => this.onRehome?.());
+    document.getElementById('btn-diplomacy')?.addEventListener('click', () => this.onOpenDiplomacy?.());
     // Ставки: податки й розкіш ±10%, наука — решта (межа залежить від устрою)
     this.sidebarEl.querySelectorAll<HTMLButtonElement>('.rate-btn').forEach((btn) => {
       btn.addEventListener('click', () => {

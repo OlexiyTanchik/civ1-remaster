@@ -45,6 +45,7 @@ export class AiController {
 
   /** Повний хід одного AI-гравця: дослідження, виробництво, юніти. */
   public takeTurn(player: Player): void {
+    this.world.diplomacy.aiTurn(player);
     this.chooseResearch(player);
     this.maybeLaunch(player);
     this.chooseGovernment(player);
@@ -186,6 +187,10 @@ export class AiController {
     if (hostile && city.size >= 4 && canBuild(BuildingTypeKey.Barracks)) return set(true, BuildingTypeKey.Barracks);
     // Утримання: нові війська — лише там, де лишаються щити після утримання
     const canUpkeep = yields.shields >= 3;
+    // Дипломат — знайомитись і відкривати посольства
+    if (canUpkeep && city.size >= 3 && player.knownTechs.includes('writing') && count(UnitTypeKey.Diplomat) < 1 && this.needEmbassy(player).length) {
+      return set(false, UnitTypeKey.Diplomat);
+    }
     if (hostile && !armyFull && canUpkeep && count(attacker as UnitTypeKey) < Math.ceil(cities / 2)) return set(false, attacker);
     // Флот і авіація для войовничих і тих, кому загрожують
     const ships = myUnits.filter((u) => this.isWarship(u.type)).length;
@@ -296,6 +301,7 @@ export class AiController {
     if (unit.type === UnitTypeKey.Settlers) return this.settle(unit);
     if (unit.type === UnitTypeKey.Workers) return this.work(unit);
     if (unit.type === UnitTypeKey.Caravan) return this.caravan(unit);
+    if (unit.type === UnitTypeKey.Diplomat) return this.diplomat(unit);
     if (cfg.domain === 'air') return this.fleet.moveAir(unit);
     if (cfg.domain === 'sea') return this.fleet.moveShip(unit);
     if (cfg.attack > cfg.defense) return this.attack(unit);
@@ -419,6 +425,33 @@ export class AiController {
   }
 
   /** Караван несе щити до міста, що будує чудо. */
+  /** Знайомі цивілізації, з якими ще нема посольства. */
+  private needEmbassy(player: Player): number[] {
+    const d = this.world.diplomacy;
+    return this.world.players
+      .filter((p) => p.id !== player.id && p.alive && !p.isBarbarian && d.hasContact(player.id, p.id) && !d.hasEmbassy(player.id, p.id))
+      .map((p) => p.id);
+  }
+
+  /** Дипломат: до найближчого міста цивілізації без посольства; на війні — красти технології. */
+  private diplomat(unit: Unit): void {
+    const w = this.world;
+    const player = w.players[unit.playerId];
+    const want = new Set(this.needEmbassy(player));
+    const targets = [...w.cities.values()].filter((c) => c.playerId !== unit.playerId
+      && (want.has(c.playerId) || (w.diplomacy.atWar(unit.playerId, c.playerId) && !w.players[c.playerId].isBarbarian && !(c.stolenBy ?? []).includes(unit.playerId))))
+      .sort((a, b) => w.distance(a.x, a.y, unit.x, unit.y) - w.distance(b.x, b.y, unit.x, unit.y));
+    const target = targets.find((c) => w.distance(c.x, c.y, unit.x, unit.y) <= 20 && this.pathStep(unit, c, true) !== null);
+    if (!target) {
+      unit.aiWait = (unit.aiWait ?? 0) + 1;
+      if (unit.aiWait > 20 && unit.homeCityId) w.removeUnit(unit.id);
+      else this.defend(unit);
+      return;
+    }
+    unit.aiWait = 0;
+    this.walkTo(unit, target, true);
+  }
+
   private caravan(unit: Unit): void {
     const w = this.world;
     const target = this.citiesOf(unit.playerId).find(
@@ -661,7 +694,7 @@ export class AiController {
       if (u.playerId === playerId || UNIT_CONFIGS[u.type].attack === 0) continue;
       if (this.world.distance(u.x, u.y, x, y) > radius) continue;
       const other = this.world.players[u.playerId];
-      if (other.isBarbarian || !other.isAi || this.isHostilePhase(other)) return true;
+      if (this.world.diplomacy.atWar(other.id, playerId)) return true;
     }
     return false;
   }
@@ -675,6 +708,7 @@ export class AiController {
     if (this.world.players[targetId].isBarbarian) return true;
     // Рада безпеки ООН: власника не чіпають, поки він сам не напав
     if (this.world.ownerWonders(targetId).has(BuildingTypeKey.UnitedNations) && !this.world.attackedRecently(targetId, player.id)) return false;
-    return this.isHostilePhase(player);
+    // Нападаємо лише на тих, з ким оголошено війну (дипломатія)
+    return this.world.diplomacy.atWar(player.id, targetId);
   }
 }

@@ -84,6 +84,7 @@ export enum UnitTypeKey {
   Bomber = 'bomber',
   Carrier = 'carrier',
   Nuclear = 'nuclear',
+  Diplomat = 'diplomat',
 }
 
 export interface UnitConfig {
@@ -186,6 +187,7 @@ export enum BuildingTypeKey {
   Apollo = 'apollo',
   Seti = 'seti',
   CureForCancer = 'cure_for_cancer',
+  MarcoPolo = 'marco_polo',
   SpaceStructural = 'space_structural',
   SpaceComponent = 'space_component',
   SpaceModule = 'space_module',
@@ -278,6 +280,8 @@ export interface City {
   };
   buildings: BuildingTypeKey[];
   workedTiles: { x: number; y: number }[];
+  /** Хто вже крав тут технологію дипломатом (кожен — лише раз) */
+  stolenBy?: number[];
 }
 
 export interface Tech {
@@ -309,6 +313,10 @@ export interface Player {
   civ?: CivKey;
   /** Складність: у скільки разів дорожча наука (лише людині) */
   researchFactor?: number;
+  /** З ким є посольство (бачимо їхні технології, золото, міста) */
+  embassies?: number[];
+  /** Скільки разів порушував мирні угоди (AI таких не люблять) */
+  brokenTreaties?: number;
   nameUa: string;
   leaderUa: string;
   color: string;

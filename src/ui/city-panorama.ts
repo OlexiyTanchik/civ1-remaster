@@ -62,6 +62,7 @@ const BUILDING_SLOTS: Partial<Record<BuildingTypeKey, { x: number; y: number; sc
   [BuildingTypeKey.Apollo]: { x: 352, y: 92, scale: 0.55 },
   [BuildingTypeKey.Seti]: { x: 132, y: 92, scale: 0.5 },
   [BuildingTypeKey.CureForCancer]: { x: 290, y: 176, scale: 0.5 },
+  [BuildingTypeKey.MarcoPolo]: { x: 266, y: 130, scale: 0.5 },
 };
 
 const hash = (a: number, b: number) => {

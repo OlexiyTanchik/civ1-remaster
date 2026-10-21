@@ -622,3 +622,17 @@ body, html {
 .save-slots { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
 .save-slot { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid #1a528e; background: #0a1a33; font-size: 12px; flex-wrap: wrap; }
 .save-slot-buttons { display: flex; gap: 6px; }
+
+/* Дипломатія */
+.diplo-modal { max-height: 90vh; overflow-y: auto; }
+.diplo-row { border: 1px solid #1a528e; background: #0a1a33; padding: 8px; margin: 6px 0; font-size: 12px; }
+.diplo-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.diplo-state { margin-left: auto; padding: 1px 6px; border: 1px solid; }
+.diplo-state.war { color: #ff6b6b; border-color: #ff6b6b; }
+.diplo-state.peace { color: #7fe08a; border-color: #7fe08a; }
+.diplo-actions, .diplo-trade { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
+.diplo-trade select { max-width: 180px; background: #050811; color: #e2e8f0; border: 1px solid #1a528e; }
+.diplo-meeting { display: flex; gap: 12px; align-items: flex-start; margin: 8px 0; }
+.diplo-meeting p { margin-top: 6px; font-style: italic; }
+.diplo-crest { flex: none; width: 56px; height: 56px; border: 3px solid #f1c40f; display: flex; align-items: center; justify-content: center;
+  font-size: 28px; font-weight: bold; color: #050811; }

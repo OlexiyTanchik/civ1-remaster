@@ -17,6 +17,8 @@
 | `src/core/city.ts` | `CityLogic`: видобуток міста (`calculateYields` → артисти → `yieldsWith`), щастя, корупція, множники будівель, ріст, виробництво, `autoAssignWorkers` |
 | `src/core/terraform.ts` | Роботи на землі (road/railroad, irrigation, mine, clean), `tileYield` (бонуси, щитові луки, залізниця, забруднення) |
 | `src/core/unit.ts` | `UnitLogic`: вартість руху (дорога 1/3, залізниця 0), `canMoveTo`, бій (`resolveCombat`: ветерани, мури, пікінери проти `MOUNTED`) |
+| `src/core/diplomacy.ts` | `Diplomacy` (`world.diplomacy`): стосунки пар (`relation`: контакт, війна), ставлення (`attitude`), `onAggression` (напад у мирі = зрада), `detectContacts`, рішення AI (`aiTurn`), зустрічі для людини (`takeMeetings`/`answer`), обмін, `diplomatAct` |
+| `src/ui/diplomacy-dialog.ts` | Вікна: «🤝 Дипломатія», зустрічі з лідерами, дія дипломата |
 | `src/core/ai-fleet.ts` | `FleetAi`: континенти (`continentOf`), морський BFS (`seaSearch`/`sail`), пороми (`ferry`, `awaitFerry`, `overseasSite`, `overseasTarget`), бойові кораблі (`strike`), літаки (`moveAir`) |
 | `src/core/ai.ts` | `AiController`: дослідження, устрій, розкіш/податки, виробництво за пріоритетами, ролі юнітів, BFS-шлях |
 | `src/core/turn-manager.ts` | Календар (`year` числом, `formatYear`), `researchCost` = (відомих+майбутніх+1)×10, `processPlayerEconomy`, `getAvailableTechs` (порожньо → технологія майбутнього), `learnTech`/`techById` — **завжди через них** |
@@ -42,6 +44,7 @@
 ## Модель даних і координати
 - Мапа `world.tiles[y][x]`, 80×50 типово (64×40 / 112×70), **зациклена по X** (завжди `(x + W) % W`), по Y — ні. Відстань: `world.distance()` (Чебишов із зацикленням).
 - Світові пікселі = клітинка × `TILE_SIZE` (64). Рельєф запечений у полотна по 1024 px.
+- Війна лише за дипломатією: `ai.mayAttack` → `diplomacy.atWar` (варвари — завжди). Усі напади йдуть через `World.noteAggression` → `diplomacy.onAggression`.
 - Гравці: `0` — людина, `1..N` — суперники (`player.civ`, `hostileFromTurn` з характеру: 45/80/110), останній — варвари (`world.barbarianId`, `isBarbarian`). `new World()` без опцій — Русь проти Риму й Єгипту.
 - Складність: `cityEnv` дає `baseContent` (людині) і `costFactor` (AI); `player.researchFactor` (людині).
 - `Unit`: `task` (робота R/I/M/P), `veteran`, `carriedBy` (id корабля чи авіаносця), `fuel` (літаки), `aiTarget`. Пасажири стоять на клітинці корабля, але сховані.

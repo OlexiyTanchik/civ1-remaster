@@ -16,6 +16,7 @@ import { TurnManager } from './turn-manager';
 import { TerraformKind, TerraformCheck, checkTerraform, applyTerraform, canTerraform, TERRAFORM_INFO } from './terraform';
 import { CityEnv, CityYields } from './city';
 import { AiController } from './ai';
+import { Diplomacy, DiplomacyData } from './diplomacy';
 
 export class World {
   public tiles: TileData[][];
@@ -30,6 +31,8 @@ export class World {
   private ai = new AiController(this);
   /** Події чужих ходів (захоплення міст), які треба показати людині в кінці ходу */
   private news: string[] = [];
+  /** Мир, війна, ставлення лідерів, зустрічі з людиною */
+  public diplomacy = new Diplomacy(this);
   /** Налаштування партії (цивілізація, суперники, мапа, складність) */
   public options: GameOptions;
   /** Індекс гравця-варварів — завжди останній */
@@ -178,7 +181,12 @@ export class World {
     return city;
   }
 
-  public moveUnit(unitId: string, targetX: number, targetY: number): { success: boolean; combatLog?: string; event?: string } {
+  /** Новина для людини наприкінці ходу (події чужих ходів). */
+  public pushNews(text: string): void {
+    this.news.push(text);
+  }
+
+  public moveUnit(unitId: string, targetX: number, targetY: number): { success: boolean; combatLog?: string; event?: string; diplomatCity?: string } {
     const unit = this.units.get(unitId);
     if (!unit || unit.movesLeft <= 0) return { success: false };
 
@@ -192,6 +200,16 @@ export class World {
     const fromTile = this.tiles[unit.y][unit.x];
     const toTile = this.tiles[destY][destX];
     const air = UNIT_CONFIGS[unit.type].domain === 'air';
+
+    // Дипломат у чужому місті: людина обирає дію у вікні, AI — одразу (посольство, а як є — крадіжка)
+    if (unit.type === UnitTypeKey.Diplomat && toTile.cityId) {
+      const target = this.cities.get(toTile.cityId)!;
+      if (target.playerId !== unit.playerId) {
+        if (!this.players[unit.playerId].isAi) return { success: false, diplomatCity: target.id };
+        const action = this.diplomacy.hasEmbassy(unit.playerId, target.playerId) ? 'steal' : 'embassy';
+        return { success: true, event: this.diplomacy.diplomatAct(unit.id, target.id, action) };
+      }
+    }
 
     // Ядерна ракета вибухає над ворожим загоном чи містом
     if (unit.type === UnitTypeKey.Nuclear) {
@@ -299,7 +317,9 @@ export class World {
   private aggression = new Map<string, number>();
 
   private noteAggression(attacker: number, victim: number): void {
-    if (attacker !== victim) this.aggression.set(`${attacker}>${victim}`, this.turnManager.turnNumber);
+    if (attacker === victim) return;
+    this.aggression.set(`${attacker}>${victim}`, this.turnManager.turnNumber);
+    this.diplomacy.onAggression(attacker, victim);
   }
 
   /** Чи нападав гравець на іншого за останні `turns` ходів. */
@@ -701,6 +721,7 @@ export class World {
         }
         if (cfg.isWonder) {
           if (cfg.key === BuildingTypeKey.Apollo) this.revealAllCities(city.playerId);
+          if (cfg.key === BuildingTypeKey.MarcoPolo) this.diplomacy.meetEveryone(city.playerId);
           // Чудо — новина для всього світу
           completedItems.push(`🌟 ${this.players[city.playerId].nameUa} завершили чудо світу «${cfg.nameUa}» у місті ${city.name}!`);
           if (cfg.key === BuildingTypeKey.Darwin) {
@@ -787,11 +808,8 @@ export class World {
     }
 
     // 4. Хід AI і навала варварів
-    for (const p of this.players) {
-      if (p.isAi && !p.isBarbarian && p.hostileFromTurn === this.turnManager.turnNumber) {
-        completedItems.push(`⚔️ ${p.leaderUa} (${p.nameUa}) більше не шукає миру: його війська рушають на сусідів!`);
-      }
-    }
+    // Знайомства (юніти й міста поруч), потім дипломатія й ходи AI
+    this.diplomacy.detectContacts();
     this.processAiTurns();
     const raid = this.spawnBarbarians();
     if (raid) completedItems.push(raid);
@@ -1069,6 +1087,7 @@ export class World {
       cityNameIndex: [...this.cityNameIndex.entries()],
       news: this.news,
       aggression: [...this.aggression.entries()],
+      diplomacy: this.diplomacy.serialize(),
       barbarianId: this.barbarianId,
       gameOver: this.gameOver,
     };
@@ -1100,6 +1119,7 @@ export class World {
     this.cityNameIndex = new Map(s.cityNameIndex);
     this.news = s.news;
     this.aggression = new Map(s.aggression);
+    this.diplomacy.restore(s.diplomacy);
     this.gameOver = s.gameOver;
   }
 
@@ -1249,6 +1269,7 @@ export interface SaveData {
   aggression: [string, number][];
   barbarianId: number;
   gameOver?: GameOver;
+  diplomacy?: DiplomacyData;
 }
 
 const TERRAINS = Object.values(TerrainType);
