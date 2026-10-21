@@ -403,6 +403,10 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
     key: BuildingTypeKey.Manhattan, nameUa: 'Мангеттенський проєкт', cost: 600, maintenance: 0, prereqTech: 'nuclear_fission', isWonder: true,
     descriptionUa: 'Чудо світу. Відкриває ядерну зброю ВСІМ, хто знає Ракетобудування.',
   },
+  [BuildingTypeKey.SdiDefense]: {
+    key: BuildingTypeKey.SdiDefense, nameUa: 'Протиракетна оборона (SDI)', cost: 200, maintenance: 4, prereqTech: 'superconductor',
+    descriptionUa: 'Збиває ядерні ракети, що летять на місто чи на клітинки за 3 від нього.',
+  },
   [BuildingTypeKey.UnitedNations]: {
     key: BuildingTypeKey.UnitedNations, nameUa: 'Організація Об\'єднаних Націй', cost: 600, maintenance: 0, prereqTech: 'nuclear_fission', isWonder: true,
     descriptionUa: 'Чудо світу. Рада безпеки: суперники не нападають на вас, якщо ви самі не нападали на них останні 10 ходів.',

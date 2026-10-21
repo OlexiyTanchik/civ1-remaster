@@ -161,6 +161,11 @@ export class AiController {
     if (cities >= 2 && count(UnitTypeKey.Workers) < Math.ceil(cities / 2)) return set(false, UnitTypeKey.Workers);
     if (garrison < this.garrisonNeed(city)) return set(false, defender);
     if (threat && canBuild(BuildingTypeKey.CityWalls)) return set(true, BuildingTypeKey.CityWalls);
+    // Ворог має ядерні ракети — великі міста ставлять протиракетну оборону
+    if (city.size >= 8 && canBuild(BuildingTypeKey.SdiDefense)
+      && [...w.units.values()].some((u) => u.type === UnitTypeKey.Nuclear && w.diplomacy.atWar(player.id, u.playerId))) {
+      return set(true, BuildingTypeKey.SdiDefense);
+    }
     if (city.size >= 5 && garrison < 2) return set(false, defender);
     if (city.size >= 9 && canBuild(BuildingTypeKey.Aqueduct)) return set(true, BuildingTypeKey.Aqueduct);
     if (city.size >= 15 && canBuild(BuildingTypeKey.Sewer)) return set(true, BuildingTypeKey.Sewer);

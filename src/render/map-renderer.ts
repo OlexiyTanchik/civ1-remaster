@@ -282,7 +282,8 @@ export class MapRenderer {
       letter.text = unit.task ? TERRAFORM_INFO[unit.task.kind].letter : cargo ? `+${cargo}` : unit.isFortified ? 'F' : '';
 
       cont.position.set(unit.x * TILE_SIZE, unit.y * TILE_SIZE);
-      cont.visible = isVisible && !unit.carriedBy; // пасажири сховані в кораблі
+      // Пасажири сховані в кораблі; чужий підводний човен — лише поруч зі своїми
+      cont.visible = isVisible && !unit.carriedBy && !this.world.hiddenFrom(unit, 0);
     }
 
     // Видалення юнітів, яких більше немає

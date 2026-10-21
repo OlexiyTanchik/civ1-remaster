@@ -191,6 +191,7 @@ export enum BuildingTypeKey {
   SpaceStructural = 'space_structural',
   SpaceComponent = 'space_component',
   SpaceModule = 'space_module',
+  SdiDefense = 'sdi_defense',
 }
 
 /** Частина космічного корабля: каркас тримає двигуни й модулі. */

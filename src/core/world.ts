@@ -214,7 +214,16 @@ export class World {
     if (unit.type === UnitTypeKey.Nuclear) {
       const enemyCity = toTile.cityId && this.cities.get(toTile.cityId)!.playerId !== unit.playerId;
       const enemyUnits = toTile.unitIds.some((id) => this.units.get(id)?.playerId !== unit.playerId);
-      if (enemyCity || enemyUnits) return { success: true, combatLog: this.detonate(unit, destX, destY) };
+      if (enemyCity || enemyUnits) {
+        const sdi = this.sdiCover(destX, destY, unit.playerId);
+        if (!sdi) return { success: true, combatLog: this.detonate(unit, destX, destY) };
+        // Протиракетна оборона збиває ракету — та все одно напад
+        this.noteAggression(unit.playerId, sdi.playerId);
+        this.removeUnit(unit.id);
+        const msg = `🛡️ Протиракетна оборона міста ${sdi.name} (${this.players[sdi.playerId].nameUa}) збила ядерну ракету!`;
+        if (unit.playerId !== 0) this.news.push(msg);
+        return { success: true, combatLog: msg };
+      }
     }
 
     // Перевірка ворожих юнітів на клітинці (Бій)
@@ -331,6 +340,12 @@ export class World {
    * Ядерний вибух (Civ 1): гинуть усі юніти на 3×3 клітинки (і свої теж),
    * міста втрачають половину жителів, земля вкривається радіоактивним смогом.
    */
+  /** Чуже місто з SDI за 3 клітинки від цілі — воно збиває ракету (Civ 1). */
+  private sdiCover(x: number, y: number, attacker: number): City | undefined {
+    return [...this.cities.values()].find((c) => c.playerId !== attacker
+      && c.buildings.includes(BuildingTypeKey.SdiDefense) && this.distance(c.x, c.y, x, y) <= 3);
+  }
+
   private detonate(nuke: Unit, cx: number, cy: number): string {
     nuke.movesLeft = 0;
     this.removeUnit(nuke.id);
@@ -447,6 +462,21 @@ export class World {
       boarded++;
     }
     return boarded;
+  }
+
+  /** Чужий підводний човен видно лише з сусідньої клітинки — від свого юніта чи міста (Civ 1). */
+  public hiddenFrom(unit: Unit, viewer: number): boolean {
+    if (unit.type !== UnitTypeKey.Submarine || unit.playerId === viewer) return false;
+    for (let dy = -1; dy <= 1; dy++) {
+      const t = this.tiles[unit.y + dy];
+      if (!t) continue;
+      for (let dx = -1; dx <= 1; dx++) {
+        const n = t[(unit.x + dx + MAP_WIDTH) % MAP_WIDTH];
+        if (n.cityId && this.cities.get(n.cityId)!.playerId === viewer) return false;
+        if (n.unitIds.some((id) => this.units.get(id)!.playerId === viewer)) return false;
+      }
+    }
+    return true;
   }
 
   /** Пасажири корабля. */
