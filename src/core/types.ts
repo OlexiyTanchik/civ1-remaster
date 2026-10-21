@@ -236,6 +236,8 @@ export interface GovernmentConfig {
   freeUnits: number;
   /** Скільки їжі з'їдають поселенці міста */
   settlerFood: number;
+  /** Скільки невдоволених дає кожен військовий юніт за кордоном (Республіка 1, Демократія 2) */
+  abroadUnhappy?: number;
   descriptionUa: string;
 }
 

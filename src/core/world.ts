@@ -378,15 +378,21 @@ export class World {
   // ---------- Утримання армії ----------
 
   /** Скільки юнітів утримує місто (і скільки з них поселенців). */
-  public supportOf(cityId: string): { units: number; settlers: number } {
+  public supportOf(cityId: string): { units: number; settlers: number; abroad: number } {
+    const home = this.cities.get(cityId);
     let units = 0;
     let settlers = 0;
+    let abroad = 0;
     for (const u of this.units.values()) {
       if (u.homeCityId !== cityId) continue;
       units++;
       if (u.type === UnitTypeKey.Settlers) settlers++;
+      // За кордоном (Civ 1): військовий поза своїми містами й далі за 3 клітинки від рідного
+      const at = this.tiles[u.y][u.x].cityId;
+      if (home && UNIT_CONFIGS[u.type].attack > 0 && !(at && this.cities.get(at)!.playerId === u.playerId)
+        && this.distance(u.x, u.y, home.x, home.y) > 3) abroad++;
     }
-    return { units, settlers };
+    return { units, settlers, abroad };
   }
 
   /** Юніти, яких утримує місто, — найдальші першими (їх розпускають першими, як у Civ 1). */

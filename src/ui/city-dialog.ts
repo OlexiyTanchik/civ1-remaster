@@ -143,6 +143,7 @@ export class CityDialog {
             </div>
             <div class="city-stat">
               <span class="citizens" title="Щасливі / задоволені / невдоволені / артисти (+2 розкоші, не працюють на землі)">${'😊'.repeat(yields.happy)}${'🙂'.repeat(yields.content)}${'😠'.repeat(yields.unhappy)}${'🎭'.repeat(yields.entertainers)}</span>
+              ${yields.abroadUnhappy ? `<span class="dim">армія за кордоном: ${yields.abroadUnhappy} 😠</span>` : ''}
               ${yields.disorder ? '<span class="stat-val bad">Безлад: потрібен храм, колізей або розкіш</span>' : ''}
             </div>
           </div>

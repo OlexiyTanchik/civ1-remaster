@@ -554,11 +554,11 @@ export const GOVERNMENTS: Record<GovernmentKey, GovernmentConfig> = {
     descriptionUa: 'Без штрафу до клітинок. Військові в місті заспокоюють до 3 невдоволених. Ставки до 70%.',
   },
   democracy: {
-    key: 'democracy', nameUa: 'Демократія', prereqTech: 'democracy', maxRate: 9, corruptionPerTile: 0, tilePenalty: false, tradeBonus: true, martialLaw: 0, freeUnits: 0, settlerFood: 2,
-    descriptionUa: '+1 торгівлі на клітинках, що вже її дають. Корупції немає. Ставки до 90%.',
+    key: 'democracy', nameUa: 'Демократія', prereqTech: 'democracy', maxRate: 9, corruptionPerTile: 0, tilePenalty: false, tradeBonus: true, martialLaw: 0, freeUnits: 0, settlerFood: 2, abroadUnhappy: 2,
+    descriptionUa: '+1 торгівлі на клітинках, що вже її дають. Корупції немає. Ставки до 90%. Кожен військовий за кордоном — 2 невдоволених.',
   },
   republic: {
-    key: 'republic', nameUa: 'Республіка', prereqTech: 'the_republic', maxRate: 8, corruptionPerTile: 0.01, tilePenalty: false, tradeBonus: true, martialLaw: 0, freeUnits: 0, settlerFood: 2,
-    descriptionUa: '+1 торгівлі на клітинках, що вже її дають. Найменша корупція. Ставки до 80%. Військовий стан не діє.',
+    key: 'republic', nameUa: 'Республіка', prereqTech: 'the_republic', maxRate: 8, corruptionPerTile: 0.01, tilePenalty: false, tradeBonus: true, martialLaw: 0, freeUnits: 0, settlerFood: 2, abroadUnhappy: 1,
+    descriptionUa: '+1 торгівлі на клітинках, що вже її дають. Найменша корупція. Ставки до 80%. Військовий стан не діє. Кожен військовий за кордоном — 1 невдоволений.',
   },
 };
