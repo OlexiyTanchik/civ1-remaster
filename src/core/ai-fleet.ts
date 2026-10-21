@@ -229,7 +229,44 @@ export class FleetAi {
     const cargo = this.world.cargoOf(unit.id);
     if (cfg.capacity && (cargo.length || this.waiting(unit.playerId).length)) return this.ferry(unit, cargo);
     if (cfg.attack >= 2 && this.strike(unit)) return;
+    if (!cargo.length && this.isScout(unit) && this.scout(unit)) return;
     this.toPort(unit);
+  }
+
+  // ---------- Розвідка ----------
+
+  /** Живі цивілізації, з якими гравець ще не знайомий. */
+  private unmet(playerId: number): Set<number> {
+    const w = this.world;
+    return new Set(w.players
+      .filter((p) => p.id !== playerId && p.alive && !p.isBarbarian && !w.diplomacy.hasContact(playerId, p.id))
+      .map((p) => p.id));
+  }
+
+  /** Розвідник — перший корабель гравця, поки є незнайомі цивілізації. */
+  private isScout(unit: Unit): boolean {
+    if (!this.unmet(unit.playerId).size) return false;
+    for (const u of this.world.units.values()) {
+      if (u.playerId === unit.playerId && UNIT_CONFIGS[u.type].domain === 'sea') return u.id === unit.id;
+    }
+    return false;
+  }
+
+  /** Чи треба збудувати корабель-розвідник: є незнайомі, а кораблів нема зовсім. */
+  public needsScout(playerId: number): boolean {
+    const player = this.world.players[playerId];
+    if (!player.knownTechs.includes('map_making') || !this.unmet(playerId).size) return false;
+    return ![...this.world.units.values()].some((u) => u.playerId === playerId && UNIT_CONFIGS[u.type].domain === 'sea');
+  }
+
+  /** Розвідка: до найближчої нерозвіданої води або до міст незнайомців (знайомство — за 2 клітинки). */
+  private scout(unit: Unit): boolean {
+    const w = this.world;
+    const fog = w.playerFogs.get(unit.playerId);
+    const unmet = this.unmet(unit.playerId);
+    const strangers = [...w.cities.values()].filter((c) => unmet.has(c.playerId));
+    return this.sail(unit, (x, y) => (w.tiles[y][x].terrain === TerrainType.Ocean && !!fog && !fog.explored[y][x])
+      || strangers.some((c) => w.distance(c.x, c.y, x, y) <= 2));
   }
 
   /** Порожній корабель — до найближчого свого порту; там чекає. */

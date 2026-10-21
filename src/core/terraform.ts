@@ -60,11 +60,15 @@ function neighbors4(tiles: TileData[][], x: number, y: number): TileData[] {
   return out;
 }
 
-/** Іригація можлива, якщо клітинка на річці або поруч є океан, річка чи зрошене поле. */
+/** Рельєф, на якому клітинка міста зрошена автоматично (Civ 1). */
+export const CITY_IRRIGABLE: TerrainType[] = [TerrainType.Grassland, TerrainType.Plains, TerrainType.Desert, TerrainType.Hills];
+
+/** Іригація можлива, якщо клітинка на річці або поруч є океан, річка чи зрошене поле (місто теж зрошене). */
 function hasWaterAccess(tiles: TileData[][], tile: TileData): boolean {
   if (tile.hasRiver) return true;
+  // Без міста-джерела місто серед сухих рівнин навіки застрягало на розмірі 2
   return neighbors4(tiles, tile.x, tile.y).some(
-    (n) => n.terrain === TerrainType.Ocean || n.hasRiver || n.hasIrrigation
+    (n) => n.terrain === TerrainType.Ocean || n.hasRiver || n.hasIrrigation || (!!n.cityId && CITY_IRRIGABLE.includes(n.terrain))
   );
 }
 

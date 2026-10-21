@@ -374,13 +374,13 @@ export class Diplomacy {
         }
       }
 
-      // Обмін технологіями
-      if (this.attitude(ai.id, other.id) < 0) continue;
+      // Обмін технологіями: досить стриманого ставлення (войовничі стартують з −1 і інакше не мінялись десятиліттями)
+      if (this.attitude(ai.id, other.id) <= -2) continue;
       const give = this.tradeable(ai.id, other.id);
       const want = this.tradeable(other.id, ai.id);
       if (!give.length || !want.length) continue;
       if (other.isAi) {
-        if (this.attitude(other.id, ai.id) >= 0 && Math.random() < 0.03) {
+        if (this.attitude(other.id, ai.id) > -2 && Math.random() < 0.03) {
           this.exchange(ai.id, give[0], other.id, want[0]);
           this.mood(ai.id, other.id, 0.5);
           this.mood(other.id, ai.id, 0.5);

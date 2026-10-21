@@ -65,7 +65,7 @@ async function bootstrap() {
   /** Зустрічі з лідерами, що накопичились за хід */
   const showMeetings = () => {
     const meetings = world.diplomacy.takeMeetings();
-    if (meetings.length) meetingDialog.showAll(meetings, (text) => { hud.addLogMessage(text); hud.update(selectedUnit); });
+    if (meetings.length) meetingDialog.showAll(meetings, (text) => { SoundEffects.playForMessages([text]); hud.addLogMessage(text); hud.update(selectedUnit); });
   };
   // Збережену завершену партію не оголошуємо вдруге
   let gameOverShown = !!world.gameOver;
@@ -130,7 +130,8 @@ async function bootstrap() {
     showMeetings();
     if (!res.success) return;
     if (res.combatLog) {
-      SoundEffects.playCombat();
+      if (res.combatLog.includes('захопили')) SoundEffects.playCapture();
+      else SoundEffects.playCombat();
       hud.addLogMessage(`⚔️ ${res.combatLog}`);
     } else if (res.event) {
       SoundEffects.playFoundCity();
@@ -219,6 +220,10 @@ async function bootstrap() {
       hud.addLogMessage(`⚙️ ${item}`);
     }
 
+    const news = [...result.completedItems];
+    if (result.techDiscovered) news.push('💡');
+    SoundEffects.playForMessages(news);
+
     if (result.techDiscovered) {
       hud.addLogMessage(`💡 Вчені відкрили технологію: ${result.techDiscovered}!`);
       techDialog.show(world.players[0], (tech) => {
@@ -252,6 +257,7 @@ async function bootstrap() {
 
   hud.onOpenSpace = () => {
     spaceDialog.show(() => {
+      SoundEffects.playLaunch();
       hud.addLogMessage(`🚀 Космічний корабель стартував до Альфи Центавра! Прибуття — ${TurnManager.formatYear(world.players[0].spaceship?.arrivalYear ?? 0)}`);
       hud.update(selectedUnit);
     });
@@ -271,6 +277,19 @@ async function bootstrap() {
       hud.update(selectedUnit);
     });
   };
+
+  // Музика: браузер дає звук лише після жесту гравця, тож збережене «увімкнено» стартує з першим кліком чи клавішею
+  hud.onToggleMusic = () => hud.updateMusicButton(SoundEffects.toggleMusic());
+  if (SoundEffects.musicWanted()) {
+    hud.updateMusicButton(true);
+    const resume = () => {
+      if (SoundEffects.musicWanted()) SoundEffects.startMusic();
+      window.removeEventListener('pointerdown', resume);
+      window.removeEventListener('keydown', resume);
+    };
+    window.addEventListener('pointerdown', resume);
+    window.addEventListener('keydown', resume);
+  }
 
   hud.onToggleGrid = () => {
     const isVisible = renderer.toggleGrid();

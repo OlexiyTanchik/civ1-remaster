@@ -643,3 +643,32 @@ body, html {
 .journal-list { font-size: 12px; }
 .journal-row { padding: 3px 0; border-bottom: 1px solid #13284a; }
 .journal-row .dim { color: #9fb3d9; margin-right: 6px; }
+
+/* Порада радника — плашка над мапою внизу ліворуч */
+.advisor-tip {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  max-width: min(460px, calc(100% - 20px));
+  z-index: 20;
+  background: rgba(6, 13, 26, 0.92);
+  border: 2px solid #f1c40f;
+  color: #e2e8f0;
+  font-size: 12px;
+  line-height: 1.35;
+  padding: 6px 28px 6px 8px;
+  text-shadow: 1px 1px 0 #000;
+}
+.advisor-tip.hidden { display: none; }
+.advisor-tip b { color: #f1c40f; }
+.advisor-close {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 12px;
+}
+.advisor-close:hover { color: #fff; }

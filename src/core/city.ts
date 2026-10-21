@@ -4,7 +4,7 @@
  * корупція від відстані до столиці, множники будівель, межа росту без акведука.
  */
 import { BUILDING_CONFIGS, UNIT_CONFIGS, FAT_CROSS_OFFSETS, MAP_WIDTH, MAP_HEIGHT, GOVERNMENTS } from './constants';
-import { tileYield } from './terraform';
+import { tileYield, CITY_IRRIGABLE } from './terraform';
 import { City, TileData, BuildingTypeKey, UnitTypeKey, TerrainType, GovernmentKey } from './types';
 
 /** Скільки громадян задоволені «від природи» (Деспотизм, Civ 1). */
@@ -195,7 +195,7 @@ export class CityLogic {
 
   /** Клітинка міста отримує дорогу й (де можна) іригацію автоматично, як у Civ 1. */
   private static centerYield(tile: TileData, env: CityEnv = DEFAULT_ENV): { food: number; shields: number; trade: number } {
-    const irrigable = [TerrainType.Grassland, TerrainType.Plains, TerrainType.Desert, TerrainType.Hills].includes(tile.terrain);
+    const irrigable = CITY_IRRIGABLE.includes(tile.terrain);
     return this.applyGovernment(tileYield({ ...tile, hasRoad: true, hasIrrigation: tile.hasIrrigation || irrigable }), env);
   }
 

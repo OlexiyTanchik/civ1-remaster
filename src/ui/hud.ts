@@ -11,6 +11,10 @@ import { MapRenderer } from '../render/map-renderer';
 import { SpriteAtlas } from '../render/sprite-atlas';
 import { TerraformKind, TERRAFORM_INFO, canTerraform, terraformName } from '../core/terraform';
 
+const TIPS_KEY = 'civ1-remaster-tips';
+/** Поради радника — лише на початку партії, далі гравець уже освоївся */
+const TIPS_UNTIL_TURN = 120;
+
 const TERRAFORM_KINDS: TerraformKind[] = ['road', 'irrigation', 'mine', 'clean'];
 const TERRAFORM_ICONS: Record<TerraformKind, string> = { road: '🛤️', irrigation: '💧', mine: '⛏️', clean: '🧹' };
 
@@ -38,6 +42,9 @@ export class Hud {
   public onOpenGameMenu?: () => void;
   public onRehome?: () => void;
   public onOpenDiplomacy?: () => void;
+  public onToggleMusic?: () => void;
+  private tipsOn = true;
+  private tipEl?: HTMLElement;
 
   constructor(
     private container: HTMLElement,
@@ -60,21 +67,21 @@ export class Hud {
 
       <!-- Статус Цивілізації -->
       <div class="civ-panel-box status-box-container">
-        <div class="civ-name-badge" id="hud-civ-name">🇺🇦 Київська Русь</div>
+        <div class="civ-name-badge" id="hud-civ-name" title="Ваша цивілізація">🇺🇦 Київська Русь</div>
         <div class="status-rows">
-          <div class="status-row highlight-gold" id="hud-year">4000 до н.е.</div>
+          <div class="status-row highlight-gold" id="hud-year" title="Поточний рік. Гра триває до 2100 н.е.">4000 до н.е.</div>
           <div class="status-row" id="hud-gold">Скарбниця: 50 зл.</div>
           <div class="status-row rates-row">
-            <span>💰 <b id="rate-tax">50%</b></span>
+            <span title="Податки: частка торгівлі, що йде в золото">💰 <b id="rate-tax">50%</b></span>
             <button class="rate-btn" data-rate="tax" data-d="-1" title="Податки −10%">−</button><button class="rate-btn" data-rate="tax" data-d="1" title="Податки +10%">+</button>
-            <span>🎉 <b id="rate-lux">0%</b></span>
+            <span title="Розкіш: кожні 2 перетворюють задоволеного жителя на щасливого">🎉 <b id="rate-lux">0%</b></span>
             <button class="rate-btn" data-rate="lux" data-d="-1" title="Розкіш −10%">−</button><button class="rate-btn" data-rate="lux" data-d="1" title="Розкіш +10%">+</button>
-            <span>🧪 <b id="rate-sci">50%</b></span>
+            <span title="Наука: решта торгівлі йде в колби дослідження">🧪 <b id="rate-sci">50%</b></span>
           </div>
-          <div class="status-row tech-link" id="hud-tech">🧪 Обрати дослідження</div>
-          <div class="status-row" id="hud-pop">Населення: 10,000</div>
+          <div class="status-row tech-link" id="hud-tech" title="Поточне дослідження (колби / ціна). Клік — обрати інше">🧪 Обрати дослідження</div>
+          <div class="status-row" id="hud-pop" title="Населення всіх ваших міст">Населення: 10,000</div>
           <div class="status-row tech-link" id="hud-gov" title="Змінити державний устрій">🏛️ Лад: Деспотизм</div>
-          <div class="status-row" id="hud-score">🏆 Рахунок: 0</div>
+          <div class="status-row" id="hud-score" title="Рахунок: задоволений житель +1, щасливий +2, чудо +20, технологія майбутнього +5, смог −5">🏆 Рахунок: 0</div>
           <div class="status-row tech-link hidden" id="hud-space" title="Космічний корабель до Альфи Центавра">🚀 Космічна гонка</div>
         </div>
       </div>
@@ -97,17 +104,29 @@ export class Hud {
         <div class="action-buttons-list">
           <button class="civ-btn" id="btn-build-city" title="Заснувати місто [B]">🏛️ Місто [B]</button>
           ${TERRAFORM_KINDS.map((k) => `<button class="civ-btn" id="btn-tf-${k}"></button>`).join('')}
-          <button class="civ-btn" id="btn-help-wonder">🌟 На чудо [H]</button>
+          <button class="civ-btn" id="btn-help-wonder" title="Віддати 50 щитів на чудо світу [H]">🌟 На чудо [H]</button>
           <button class="civ-btn" id="btn-rehome" title="Переписати юніт на це місто: воно його утримуватиме">🏠 Дім</button>
           <button class="civ-btn" id="btn-fortify" title="Укріпитися: +50% захисту [F]">🛡️ Укріпити [F]</button>
           <button class="civ-btn" id="btn-wait" title="Чекати: наступний юніт [W]">⏳ Чекати [W]</button>
           <button class="civ-btn" id="btn-toggle-grid" title="Сітка клітинок [G]">📐 Сітка ✓ [G]</button>
           <button class="civ-btn" id="btn-diplomacy" title="Мир, війна, обмін технологіями">🤝 Дипломатія</button>
           <button class="civ-btn" id="btn-game-menu" title="Зберегти, завантажити, головне меню">💾 Гра</button>
-          <button class="civ-btn civ-btn-end-turn" id="btn-end-turn">КІНЕЦЬ ХОДУ ⌛</button>
+          <button class="civ-btn" id="btn-music" title="Фонова мелодія (вибір запам'ятовується)">🎵 Музика ✗</button>
+          <button class="civ-btn" id="btn-tips" title="Поради радника для перших ходів">💡 Поради ✓</button>
+          <button class="civ-btn civ-btn-end-turn" id="btn-end-turn" title="Завершити хід [Enter / Пробіл]">КІНЕЦЬ ХОДУ ⌛</button>
         </div>
       </div>
     `;
+
+    // Порада радника — плашка поверх мапи, щоб не тіснити бічну панель
+    try {
+      this.tipsOn = localStorage.getItem(TIPS_KEY) !== '0';
+    } catch {
+      // без сховища поради просто типово увімкнені
+    }
+    this.tipEl = document.createElement('div');
+    this.tipEl.className = 'advisor-tip hidden';
+    (document.getElementById('game-main') ?? this.container).appendChild(this.tipEl);
 
     const miniMapBox = document.getElementById('minimap-box')!;
     this.minimap = new MiniMap(miniMapBox, this.world, renderer);
@@ -126,6 +145,8 @@ export class Hud {
     document.getElementById('btn-game-menu')?.addEventListener('click', () => this.onOpenGameMenu?.());
     document.getElementById('btn-rehome')?.addEventListener('click', () => this.onRehome?.());
     document.getElementById('btn-diplomacy')?.addEventListener('click', () => this.onOpenDiplomacy?.());
+    document.getElementById('btn-music')?.addEventListener('click', () => this.onToggleMusic?.());
+    document.getElementById('btn-tips')?.addEventListener('click', () => this.setTips(!this.tipsOn));
     // Ставки: податки й розкіш ±10%, наука — решта (межа залежить від устрою)
     this.sidebarEl.querySelectorAll<HTMLButtonElement>('.rate-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -153,14 +174,85 @@ export class Hud {
     }
   }
 
+  public updateMusicButton(on: boolean): void {
+    const btn = document.getElementById('btn-music');
+    if (btn) btn.textContent = on ? '🎵 Музика ✓' : '🎵 Музика ✗';
+  }
+
+  private setTips(on: boolean): void {
+    this.tipsOn = on;
+    try {
+      localStorage.setItem(TIPS_KEY, on ? '1' : '0');
+    } catch {
+      // приватний режим: вибір діє до перезавантаження
+    }
+    this.updateAdvice();
+  }
+
+  /** Одна найважливіша порада новачкові: місто → дослідження → дорога → храм → оборона → нові міста. */
+  private adviceText(): string | undefined {
+    const w = this.world;
+    if (w.turnManager.turnNumber > TIPS_UNTIL_TURN) return undefined;
+    const human = w.players[0];
+    const cities = [...w.cities.values()].filter((c) => c.playerId === 0);
+    const units = [...w.units.values()].filter((u) => u.playerId === 0);
+    const settlers = units.filter((u) => u.type === UnitTypeKey.Settlers);
+    if (!cities.length) {
+      return settlers.length
+        ? 'Заснуйте перше місто: оберіть поселенців і натисніть [B]. Найкраще — на траві чи рівнині біля річки або моря.'
+        : undefined;
+    }
+    if (!human.currentTechId) return 'Оберіть дослідження: клік на «🧪» у панелі. Обробка бронзи, Алфавіт і Гончарство — добрий початок.';
+    const roads = cities.some((c) => [[0, 1], [1, 0], [0, -1], [-1, 0]].some(([dx, dy]) => {
+      const t = w.tiles[c.y + dy]?.[(c.x + dx + w.tiles[0].length) % w.tiles[0].length];
+      return t?.hasRoad && !t.cityId;
+    }));
+    if (!roads && (settlers.length || units.some((u) => u.type === UnitTypeKey.Workers))) {
+      return 'Прокладіть дорогу [R] поселенцями біля міста: рух по ній утричі швидший, а на траві й рівнині вона дає +1 торгівлі.';
+    }
+    const undefended = cities.find((c) => !w.tiles[c.y][c.x].unitIds.some((id) => {
+      const u = w.units.get(id);
+      return u && UNIT_CONFIGS[u.type].defense > 0 && UNIT_CONFIGS[u.type].domain === 'land' && u.type !== UnitTypeKey.Settlers && u.type !== UnitTypeKey.Workers;
+    }));
+    if (undefended && w.turnManager.turnNumber > 15) {
+      return `Місто ${undefended.name} без захисту — варвари чи сусіди візьмуть його голими руками. Збудуйте Ополчення чи Фалангу й укріпіть [F].`;
+    }
+    const noTemple = cities.find((c) => c.size >= 4 && !c.buildings.includes(BuildingTypeKey.Temple));
+    if (noTemple) {
+      return human.knownTechs.includes('ceremonial_burial')
+        ? `${noTemple.name} росте: збудуйте Храм, інакше невдоволені жителі влаштують безлад.`
+        : `${noTemple.name} росте, а невдоволених більшає. Дослідіть Поховальний обряд, щоб будувати Храми.`;
+    }
+    if (cities.length < 4 && w.turnManager.turnNumber > 10) {
+      return 'Більше міст — більше їжі, щитів і науки. Будуйте поселенців у містах розміру 2+ і засновуйте нові міста за 3–4 клітинки.';
+    }
+    return undefined;
+  }
+
+  private updateAdvice(): void {
+    const btn = document.getElementById('btn-tips');
+    if (btn) btn.textContent = this.tipsOn ? '💡 Поради ✓' : '💡 Поради ✗';
+    const el = this.tipEl;
+    if (!el) return;
+    const text = this.tipsOn ? this.adviceText() : undefined;
+    el.classList.toggle('hidden', !text);
+    if (!text) return;
+    el.innerHTML = `<b>💡 Порада радника:</b> ${text} <button class="advisor-close" title="Вимкнути поради (увімкнути — «💡 Поради» в панелі)">✖</button>`;
+    el.querySelector('.advisor-close')?.addEventListener('click', () => this.setTips(false));
+  }
+
   public update(selectedUnit?: Unit): void {
     const human = this.world.players[0];
+    this.updateAdvice();
 
     const civNameEl = document.getElementById('hud-civ-name');
     if (civNameEl) civNameEl.textContent = `👑 ${human.nameUa}`;
 
     const yearEl = document.getElementById('hud-year');
-    if (yearEl) yearEl.textContent = this.world.turnManager.getYearString();
+    if (yearEl) {
+      yearEl.textContent = this.world.turnManager.getYearString();
+      yearEl.title = `Поточний рік, хід ${this.world.turnManager.turnNumber}. Гра триває до 2100 н.е.`;
+    }
 
     for (const [id, v] of [['rate-tax', human.taxRate], ['rate-lux', human.luxuryRate], ['rate-sci', human.scienceRate]] as const) {
       const el = document.getElementById(id);

@@ -6,7 +6,7 @@
  */
 import type { World } from './world';
 import { City, Unit, UnitTypeKey, BuildingTypeKey, TerrainType, Player, GovernmentKey } from './types';
-import { UNIT_CONFIGS, BUILDING_CONFIGS, TERRAIN_DATA, FAT_CROSS_OFFSETS, MAP_WIDTH, MAP_HEIGHT } from './constants';
+import { UNIT_CONFIGS, BUILDING_CONFIGS, TERRAIN_DATA, FAT_CROSS_OFFSETS, MAP_WIDTH, MAP_HEIGHT, GOVERNMENTS } from './constants';
 import { tileYield, TerraformKind, checkTerraform } from './terraform';
 import { TurnManager } from './turn-manager';
 import { FleetAi } from './ai-fleet';
@@ -14,8 +14,8 @@ import { FleetAi } from './ai-fleet';
 /** Черга досліджень: спершу оборона, їжа й порядок, далі гроші, знання, будівництво. */
 const RESEARCH_ORDER = [
   'bronze_working', 'alphabet', 'ceremonial_burial', 'pottery', 'masonry', 'horseback_riding',
-  'writing', 'currency', 'code_of_laws', 'iron_working', 'the_wheel', 'mathematics', 'mysticism',
-  'literacy', 'construction', 'monarchy', 'warrior_code', 'trade', 'philosophy', 'map_making', 'astronomy',
+  'writing', 'map_making', 'currency', 'code_of_laws', 'iron_working', 'the_wheel', 'mathematics', 'mysticism',
+  'literacy', 'construction', 'monarchy', 'warrior_code', 'trade', 'philosophy', 'astronomy',
   'feudalism', 'the_republic', 'monotheism', 'university', 'bridge_building', 'banking', 'chivalry',
   'navigation', 'invention', 'gunpowder',
   'physics', 'medicine', 'economics', 'theory_of_gravity', 'democracy', 'metallurgy', 'magnetism',
@@ -143,7 +143,8 @@ export class AiController {
     // Палац втрачено — відбудовуємо в найбільшому місті (як у Civ 1)
     const allCities = this.citiesOf(player.id);
     const hasPalace = allCities.some((c) => c.buildings.includes(BuildingTypeKey.Palace));
-    if (!hasPalace && city === allCities.reduce((a, b) => (b.size > a.size ? b : a))) return set(true, BuildingTypeKey.Palace);
+    // Єдине бідне місто будувало б палац (200 щитів) століттями замість оборони
+    if (!hasPalace && (allCities.length >= 2 || yields.shields >= 4) && city === allCities.reduce((a, b) => (b.size > a.size ? b : a))) return set(true, BuildingTypeKey.Palace);
     if ((yields.disorder || city.size >= 4) && canBuild(BuildingTypeKey.Temple)) return set(true, BuildingTypeKey.Temple);
     if (threat && garrison < 2) return set(false, defender);
     // Пасажири чекають на пором — будуємо, якщо поромів бракує
@@ -154,11 +155,19 @@ export class AiController {
     if ((yields.unhappy > 0 || yields.entertainers > 1) && canBuild(BuildingTypeKey.Colosseum)) return set(true, BuildingTypeKey.Colosseum);
     if ((yields.unhappy > 0 || yields.entertainers > 1) && canBuild(BuildingTypeKey.Cathedral)) return set(true, BuildingTypeKey.Cathedral);
     if (city.size >= 3 && canBuild(BuildingTypeKey.Harbour)) return set(true, BuildingTypeKey.Harbour);
+    // Розвідка морем: без неї цивілізації з різних континентів знайомились лише ~1800 н.е.
+    if (this.isCoastal(city) && yields.shields >= 2 && cities >= 2 && this.fleet.needsScout(player.id)) {
+      const scout = this.bestShip(player, 'ferry');
+      if (scout) return set(false, scout);
+    }
+    // Поселенці їдять: місто без надлишку їжі одразу їх розпустить (60 щитів у нікуди)
+    const fedSettlers = yields.foodSurplus >= GOVERNMENTS[player.government].settlerFood;
     const capitalOnWonders = has(BuildingTypeKey.Palace) && cities >= 3 && !!wonder;
-    if (cities + count(UnitTypeKey.Settlers) < MAX_CITIES && count(UnitTypeKey.Settlers) < 2 && city.size >= 2 && !threat && !capitalOnWonders) {
+    if (cities + count(UnitTypeKey.Settlers) < MAX_CITIES && count(UnitTypeKey.Settlers) < 2 && city.size >= 2 && !threat && !capitalOnWonders && fedSettlers) {
       return set(false, UnitTypeKey.Settlers);
     }
-    if (cities >= 2 && count(UnitTypeKey.Workers) < Math.ceil(cities / 2)) return set(false, UnitTypeKey.Workers);
+    // Робітники: від двох міст, а єдиному місту, що не росте, — одразу (зрошення)
+    if ((cities >= 2 || yields.foodSurplus <= 0) && count(UnitTypeKey.Workers) < Math.ceil(cities / 2)) return set(false, UnitTypeKey.Workers);
     if (garrison < this.garrisonNeed(city)) return set(false, defender);
     if (threat && canBuild(BuildingTypeKey.CityWalls)) return set(true, BuildingTypeKey.CityWalls);
     if (city.size >= 5 && garrison < 2) return set(false, defender);
@@ -205,7 +214,7 @@ export class AiController {
     if (hostile && canUpkeep && city.size >= 8 && player.knownTechs.includes('advanced_flight') && count(UnitTypeKey.Bomber) < Math.ceil(cities / 4)) {
       return set(false, UnitTypeKey.Bomber);
     }
-    if (cities < MAX_CITIES && city.size >= 2) return set(false, UnitTypeKey.Settlers);
+    if (cities < MAX_CITIES && city.size >= 2 && fedSettlers) return set(false, UnitTypeKey.Settlers);
     // Армії досить — будуємо місто: решта доступних споруд
     for (const b of [BuildingTypeKey.CityWalls, BuildingTypeKey.Colosseum, BuildingTypeKey.Aqueduct, BuildingTypeKey.Courthouse]) {
       if (canBuild(b) && (b !== BuildingTypeKey.Aqueduct || city.size >= 7)) return set(true, b);
@@ -220,7 +229,7 @@ export class AiController {
     // Армії досить: щити — у чудеса (як любить AI Civ 1), інакше корисне без утримання
     if (wonder) return set(true, wonder.key);
     if (count(UnitTypeKey.Workers) < cities) return set(false, UnitTypeKey.Workers);
-    if (cities < 14 && city.size >= 3) return set(false, UnitTypeKey.Settlers);
+    if (cities < 14 && city.size >= 3 && fedSettlers) return set(false, UnitTypeKey.Settlers);
     // Юніти коштують утримання — тож наостанок краще будь-яка ще не збудована споруда
     const leftover = Object.values(BUILDING_CONFIGS)
       .filter((b) => !b.isWonder && !b.spacePart && b.key !== BuildingTypeKey.Palace && !has(b.key)
@@ -383,21 +392,30 @@ export class AiController {
     return score;
   }
 
-  /** Робітники: іригація, шахти, дороги на клітинках, які обробляють свої міста. */
+  /**
+   * Робітники: іригація, шахти, дороги на клітинках, які обробляють свої міста.
+   * Необроблювані клітинки міста — лише під іригацію: зрошена рівнина сама приверне жителя
+   * (інакше місто серед лісів і сухих рівнин століттями стояло на розмірі 2).
+   */
   private work(unit: Unit): void {
     const w = this.world;
     const here = this.bestTaskAt(unit, unit.x, unit.y);
-    if (here && this.isWorkedByOwn(unit.playerId, unit.x, unit.y)) {
+    if (here && (this.isWorkedByOwn(unit.playerId, unit.x, unit.y) || (here === 'irrigation' && this.inOwnRadius(unit.playerId, unit.x, unit.y)))) {
       w.startTask(unit.id, here);
       return;
     }
     let best: Step | undefined;
     let bestD = Infinity;
     for (const city of this.citiesOf(unit.playerId)) {
-      for (const pos of city.workedTiles) {
-        if (pos.x === city.x && pos.y === city.y) continue;
-        const d = w.distance(unit.x, unit.y, pos.x, pos.y);
-        if (d < bestD && this.bestTaskAt(unit, pos.x, pos.y) && w.tiles[pos.y][pos.x].unitIds.every((id) => w.units.get(id)?.playerId === unit.playerId)) {
+      for (const o of FAT_CROSS_OFFSETS) {
+        const y = city.y + o.dy;
+        if ((!o.dx && !o.dy) || y < 0 || y >= MAP_HEIGHT) continue;
+        const pos = { x: (city.x + o.dx + MAP_WIDTH) % MAP_WIDTH, y };
+        const worked = city.workedTiles.some((p) => p.x === pos.x && p.y === pos.y);
+        const d = w.distance(unit.x, unit.y, pos.x, pos.y) + (worked ? 0 : 3);
+        if (d >= bestD) continue;
+        const task = this.bestTaskAt(unit, pos.x, pos.y);
+        if (task && (worked || task === 'irrigation') && w.tiles[pos.y][pos.x].unitIds.every((id) => w.units.get(id)?.playerId === unit.playerId)) {
           bestD = d;
           best = pos;
         }
@@ -418,6 +436,10 @@ export class AiController {
     if (check('mine') && tile.terrain !== TerrainType.Desert) return 'mine';
     if (check('road') && player.knownTechs.length > 0) return 'road';
     return undefined;
+  }
+
+  private inOwnRadius(playerId: number, x: number, y: number): boolean {
+    return this.citiesOf(playerId).some((c) => FAT_CROSS_OFFSETS.some((o) => (c.x + o.dx + MAP_WIDTH) % MAP_WIDTH === x && c.y + o.dy === y));
   }
 
   private isWorkedByOwn(playerId: number, x: number, y: number): boolean {

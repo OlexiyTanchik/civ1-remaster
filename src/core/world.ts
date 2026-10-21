@@ -777,6 +777,11 @@ export class World {
         if (unit.task.turnsLeft <= 0) {
           const tile = this.tiles[unit.y][unit.x];
           applyTerraform(tile, unit.task.kind);
+          // Жителі переходять на покращену клітинку одразу: місто без надлишку їжі не росте, і без цього зрошення не діяло б ніколи
+          for (const c of this.cities.values()) {
+            const dx = Math.abs(c.x - tile.x);
+            if (Math.max(Math.min(dx, MAP_WIDTH - dx), Math.abs(c.y - tile.y)) <= 2) CityLogic.autoAssignWorkers(c, this.tiles, this.cityEnv(c));
+          }
           if (unit.playerId === 0) {
             completedItems.push(`${UNIT_CONFIGS[unit.type].nameUa} завершили: ${TERRAFORM_INFO[unit.task.kind].nameUa.toLowerCase()}`);
           }

@@ -70,7 +70,7 @@ export class TechDialog {
         const selected = available.find((t) => t.id === techId);
         if (selected) {
           player.currentTechId = selected.id;
-          SoundEffects.playTechDiscovered();
+          SoundEffects.playClick();
           this.overlay.classList.add('hidden');
           if (this.onTechSelected) this.onTechSelected(selected);
         }
