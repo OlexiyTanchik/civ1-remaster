@@ -201,13 +201,12 @@ export class World {
     const toTile = this.tiles[destY][destX];
     const air = UNIT_CONFIGS[unit.type].domain === 'air';
 
-    // Дипломат у чужому місті: людина обирає дію у вікні, AI — одразу (посольство, а як є — крадіжка)
+    // Дипломат у чужому місті: людина обирає дію у вікні, AI — одразу (`aiDiplomatChoice`)
     if (unit.type === UnitTypeKey.Diplomat && toTile.cityId) {
       const target = this.cities.get(toTile.cityId)!;
       if (target.playerId !== unit.playerId) {
         if (!this.players[unit.playerId].isAi) return { success: false, diplomatCity: target.id };
-        const action = this.diplomacy.hasEmbassy(unit.playerId, target.playerId) ? 'steal' : 'embassy';
-        return { success: true, event: this.diplomacy.diplomatAct(unit.id, target.id, action) };
+        return { success: true, event: this.diplomacy.diplomatAct(unit.id, target.id, this.diplomacy.aiDiplomatChoice(unit.playerId, target)) };
       }
     }
 
@@ -215,7 +214,16 @@ export class World {
     if (unit.type === UnitTypeKey.Nuclear) {
       const enemyCity = toTile.cityId && this.cities.get(toTile.cityId)!.playerId !== unit.playerId;
       const enemyUnits = toTile.unitIds.some((id) => this.units.get(id)?.playerId !== unit.playerId);
-      if (enemyCity || enemyUnits) return { success: true, combatLog: this.detonate(unit, destX, destY) };
+      if (enemyCity || enemyUnits) {
+        const sdi = this.sdiCover(destX, destY, unit.playerId);
+        if (!sdi) return { success: true, combatLog: this.detonate(unit, destX, destY) };
+        // Протиракетна оборона збиває ракету — та все одно напад
+        this.noteAggression(unit.playerId, sdi.playerId);
+        this.removeUnit(unit.id);
+        const msg = `🛡️ Протиракетна оборона міста ${sdi.name} (${this.players[sdi.playerId].nameUa}) збила ядерну ракету!`;
+        if (unit.playerId !== 0) this.news.push(msg);
+        return { success: true, combatLog: msg };
+      }
     }
 
     // Перевірка ворожих юнітів на клітинці (Бій)
@@ -316,7 +324,7 @@ export class World {
   /** Хто на кого нападав і коли (для Ради безпеки ООН): ключ «нападник>жертва» → хід. */
   private aggression = new Map<string, number>();
 
-  private noteAggression(attacker: number, victim: number): void {
+  public noteAggression(attacker: number, victim: number): void {
     if (attacker === victim) return;
     this.aggression.set(`${attacker}>${victim}`, this.turnManager.turnNumber);
     this.diplomacy.onAggression(attacker, victim);
@@ -332,6 +340,12 @@ export class World {
    * Ядерний вибух (Civ 1): гинуть усі юніти на 3×3 клітинки (і свої теж),
    * міста втрачають половину жителів, земля вкривається радіоактивним смогом.
    */
+  /** Чуже місто з SDI за 3 клітинки від цілі — воно збиває ракету (Civ 1). */
+  private sdiCover(x: number, y: number, attacker: number): City | undefined {
+    return [...this.cities.values()].find((c) => c.playerId !== attacker
+      && c.buildings.includes(BuildingTypeKey.SdiDefense) && this.distance(c.x, c.y, x, y) <= 3);
+  }
+
   private detonate(nuke: Unit, cx: number, cy: number): string {
     nuke.movesLeft = 0;
     this.removeUnit(nuke.id);
@@ -379,15 +393,21 @@ export class World {
   // ---------- Утримання армії ----------
 
   /** Скільки юнітів утримує місто (і скільки з них поселенців). */
-  public supportOf(cityId: string): { units: number; settlers: number } {
+  public supportOf(cityId: string): { units: number; settlers: number; abroad: number } {
+    const home = this.cities.get(cityId);
     let units = 0;
     let settlers = 0;
+    let abroad = 0;
     for (const u of this.units.values()) {
       if (u.homeCityId !== cityId) continue;
       units++;
       if (u.type === UnitTypeKey.Settlers) settlers++;
+      // За кордоном (Civ 1): військовий поза своїми містами й далі за 3 клітинки від рідного
+      const at = this.tiles[u.y][u.x].cityId;
+      if (home && UNIT_CONFIGS[u.type].attack > 0 && !(at && this.cities.get(at)!.playerId === u.playerId)
+        && this.distance(u.x, u.y, home.x, home.y) > 3) abroad++;
     }
-    return { units, settlers };
+    return { units, settlers, abroad };
   }
 
   /** Юніти, яких утримує місто, — найдальші першими (їх розпускають першими, як у Civ 1). */
@@ -442,6 +462,21 @@ export class World {
       boarded++;
     }
     return boarded;
+  }
+
+  /** Чужий підводний човен видно лише з сусідньої клітинки — від свого юніта чи міста (Civ 1). */
+  public hiddenFrom(unit: Unit, viewer: number): boolean {
+    if (unit.type !== UnitTypeKey.Submarine || unit.playerId === viewer) return false;
+    for (let dy = -1; dy <= 1; dy++) {
+      const t = this.tiles[unit.y + dy];
+      if (!t) continue;
+      for (let dx = -1; dx <= 1; dx++) {
+        const n = t[(unit.x + dx + MAP_WIDTH) % MAP_WIDTH];
+        if (n.cityId && this.cities.get(n.cityId)!.playerId === viewer) return false;
+        if (n.unitIds.some((id) => this.units.get(id)!.playerId === viewer)) return false;
+      }
+    }
+    return true;
   }
 
   /** Пасажири корабля. */
@@ -1128,9 +1163,22 @@ export class World {
     this.gameOver = s.gameOver;
   }
 
-  /** Захоплення міста: новий власник, населення −1, палац руйнується. */
-  private captureCity(city: City, newOwner: number): string {
+  /**
+   * Захоплення міста: новий власник, населення −1, палац руйнується.
+   * Підкуп дипломатом (`incited`): без втрати жителів, загони в місті переходять разом із ним.
+   */
+  public captureCity(city: City, newOwner: number, incited = false): string {
     const oldOwner = this.players[city.playerId];
+    if (incited) {
+      for (const id of this.tiles[city.y][city.x].unitIds) {
+        const u = this.units.get(id)!;
+        if (u.playerId !== oldOwner.id) continue;
+        u.playerId = newOwner;
+        u.homeCityId = city.id;
+        u.aiTarget = undefined;
+        u.aiMission = undefined;
+      }
+    }
     // Впала столиця — корабель (і в польоті теж) втрачено, як у Civ 1
     const ship = oldOwner.spaceship;
     if (city.buildings.includes(BuildingTypeKey.Palace) && ship && ship.structural + ship.component + ship.module > 0) {
@@ -1138,18 +1186,20 @@ export class World {
       this.news.push(`💥 ${oldOwner.nameUa} втратили столицю — а з нею й космічний корабель!`);
     }
     // Юніти, яких утримувало місто, лишаються без постачання й розходяться (Civ 1)
-    const orphans = this.supportedUnits(city);
+    const orphans = this.supportedUnits(city).filter((u) => u.playerId === oldOwner.id);
     orphans.forEach((u) => this.removeUnit(u.id));
     if (orphans.length && oldOwner.id === 0) this.news.push(`🪖 Разом із містом ${city.name} ви втратили військо, яке воно утримувало: ${orphans.length}`);
     city.playerId = newOwner;
-    city.size = Math.max(1, city.size - 1);
+    if (!incited) city.size = Math.max(1, city.size - 1);
     city.foodNeeded = city.size * 10;
     city.foodStored = 0;
     city.shieldsStored = 0;
     city.buildings = city.buildings.filter((b) => b !== BuildingTypeKey.Palace);
     city.currentProduction = { isBuilding: false, key: UnitTypeKey.Militia };
     CityLogic.autoAssignWorkers(city, this.tiles);
-    const msg = `🔥 ${this.players[newOwner].nameUa} захопили місто ${city.name} (${oldOwner.nameUa})!`;
+    const msg = incited
+      ? `💰 Місто ${city.name} (${oldOwner.nameUa}) повстало й перейшло до: ${this.players[newOwner].nameUa}!`
+      : `🔥 ${this.players[newOwner].nameUa} захопили місто ${city.name} (${oldOwner.nameUa})!`;
     if (newOwner !== 0) this.news.push(msg); // свої захоплення людина бачить одразу
     return msg;
   }

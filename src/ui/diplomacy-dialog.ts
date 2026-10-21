@@ -3,7 +3,7 @@
  * зустрічі, які пропонують AI-лідери, і вибір дії дипломата в чужому місті.
  */
 import { World } from '../core/world';
-import { Meeting, attitudeWord } from '../core/diplomacy';
+import { Meeting, DiplomatAction, attitudeWord } from '../core/diplomacy';
 import { GOVERNMENTS } from '../core/constants';
 
 abstract class Modal {
@@ -161,7 +161,7 @@ export class MeetingDialog extends Modal {
   }
 }
 
-/** Дипломат біля чужого міста: посольство чи крадіжка. */
+/** Дипломат біля чужого міста: посольство, крадіжка, підкуп чи саботаж. */
 export class DiplomatDialog extends Modal {
   constructor(container: HTMLElement, private world: World) {
     super(container);
@@ -173,22 +173,30 @@ export class DiplomatDialog extends Modal {
     const owner = w.players[city.playerId];
     const hasEmbassy = w.diplomacy.hasEmbassy(0, owner.id);
     const war = w.diplomacy.atWar(0, owner.id);
+    const cost = w.diplomacy.inciteCost(city);
+    const canIncite = cost <= w.players[0].gold;
+    const incite = cost === Infinity ? 'столицю не підкупити' : `${cost} 💰${canIncite ? '' : ', бракує золота'}`;
+    const warNote = war ? '' : ', це віроломний напад!';
     this.open(`
       <div class="city-header"><h2>🕵️ Дипломат біля міста ${city.name}</h2></div>
       <p class="modal-subtitle">${owner.nameUa} (${war ? 'війна' : 'мир'}). Дипломат виконає одне доручення і більше не повернеться.</p>
       <div class="hall-buttons">
         <button class="btn-primary" id="dip-embassy" ${hasEmbassy ? 'disabled' : ''}>🏛️ Відкрити посольство</button>
         <button class="btn-primary" id="dip-steal">🕵️ Викрасти технологію${war ? '' : ' (скандал!)'}</button>
+        <button class="btn-primary" id="dip-incite" ${canIncite ? '' : 'disabled'}>💰 Підкупити місто (${incite}${warNote})</button>
+        <button class="btn-primary" id="dip-sabotage">💣 Саботаж: виробництво чи будівля${war ? '' : ' (віроломний напад!)'}</button>
         <button class="civ-btn" id="dip-cancel">Повернутися</button>
       </div>
     `);
-    const act = (kind: 'embassy' | 'steal') => {
+    const act = (kind: DiplomatAction) => {
       const text = w.diplomacy.diplomatAct(unitId, cityId, kind);
       this.close();
       onDone(text);
     };
     this.overlay.querySelector('#dip-embassy')?.addEventListener('click', () => act('embassy'));
     this.overlay.querySelector('#dip-steal')?.addEventListener('click', () => act('steal'));
+    this.overlay.querySelector('#dip-incite')?.addEventListener('click', () => act('incite'));
+    this.overlay.querySelector('#dip-sabotage')?.addEventListener('click', () => act('sabotage'));
     this.overlay.querySelector('#dip-cancel')?.addEventListener('click', () => this.close());
   }
 }

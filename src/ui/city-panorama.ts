@@ -104,9 +104,12 @@ export function drawCityPanorama(canvas: HTMLCanvasElement, city: City): void {
   const seed = city.x * 131 + city.y;
   const items: Item[] = [];
 
-  for (const b of city.buildings) {
-    const slot = BUILDING_SLOTS[b];
-    if (slot) items.push({ frame: `${BUILDING_CONFIGS[b]?.isWonder ? 'w' : 'b'}_${b}`, ...slot });
+  // Багато споруд — менші спрайти (на тих самих місцях), щоб фасади не налазили один на одного
+  const placed = city.buildings.filter((b) => BUILDING_SLOTS[b]);
+  const shrink = placed.length > 30 ? 0.78 : placed.length > 20 ? 0.88 : 1;
+  for (const b of placed) {
+    const slot = BUILDING_SLOTS[b]!;
+    items.push({ frame: `${BUILDING_CONFIGS[b]?.isWonder ? 'w' : 'b'}_${b}`, ...slot, scale: slot.scale * shrink });
   }
 
   // 3 житла на кожен рівень населення; з ростом хатинки змінюються будинками
@@ -129,7 +132,32 @@ export function drawCityPanorama(canvas: HTMLCanvasElement, city: City): void {
     SpriteAtlas.draw(ctx, it.frame, Math.round(it.x - dw / 2), it.y - dh, dw, dh);
   }
 
+  if (city.buildings.includes(BuildingTypeKey.SdiDefense)) drawSdi(ctx);
   if (city.buildings.includes(BuildingTypeKey.CityWalls)) drawWalls(ctx);
+}
+
+/** Протиракетна оборона: прозорий піксельний купол над містом (спрайта нема — малюємо). */
+function drawSdi(ctx: CanvasRenderingContext2D): void {
+  const cx = PANORAMA_W / 2;
+  const base = PANORAMA_H - 6;
+  const rx = PANORAMA_W / 2 - 4;
+  const ry = PANORAMA_H - 70;
+  // Контур і вкладені «меридіани», що сходяться вгорі, — як геодезичний купол
+  for (const [k, alpha] of [[1, 0.6], [0.66, 0.3], [0.33, 0.3]] as const) {
+    ctx.fillStyle = `rgba(150, 220, 255, ${alpha})`;
+    for (let a = 0; a <= Math.PI; a += 0.01) {
+      const x = Math.round(cx + Math.cos(a) * rx * k);
+      const y = Math.round(base - Math.sin(a) * ry);
+      ctx.fillRect(x, y, k === 1 ? 2 : 1, k === 1 ? 2 : 1);
+    }
+  }
+  // Паралелі
+  ctx.fillStyle = 'rgba(150, 220, 255, 0.25)';
+  for (const h of [0.4, 0.75]) {
+    const y = Math.round(base - ry * h);
+    const half = rx * Math.sqrt(1 - h * h);
+    for (let x = Math.round(cx - half); x <= cx + half; x += 2) ctx.fillRect(x, y, 1, 1);
+  }
 }
 
 /** Мури: кам'яна стрічка з зубцями й брамою по центру, вежі по краях. */

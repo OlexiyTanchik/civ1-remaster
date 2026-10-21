@@ -28,8 +28,8 @@ export interface CityEnv {
   baseContent?: number;
   /** Складність: множник ціни виробництва (AI на високих рівнях будує дешевше) */
   costFactor?: number;
-  /** Юніти, яких утримує місто: усього й з них поселенців */
-  support?: { units: number; settlers: number };
+  /** Юніти, яких утримує місто: усього, з них поселенців і військових за кордоном */
+  support?: { units: number; settlers: number; abroad?: number };
 }
 
 export interface CityYields {
@@ -51,6 +51,8 @@ export interface CityYields {
   happy: number;
   content: number;
   unhappy: number;
+  /** Скільки невдоволених через армію за кордоном (Республіка/Демократія) */
+  abroadUnhappy: number;
   disorder: boolean;
 }
 
@@ -164,6 +166,11 @@ export class CityLogic {
     const calmed = Math.min(unhappy, calm);
     unhappy -= calmed;
     content += calmed;
+    // Армія за кордоном (Республіка 1, Демократія 2 за юніт); Жіноче виборче право — поліція, −1 за юніт
+    const perUnit = Math.max(0, (gov.abroadUnhappy ?? 0) - (env.ownerWonders.has(BuildingTypeKey.WomensSuffrage) ? 1 : 0));
+    const abroadUnhappy = Math.min(content, (support.abroad ?? 0) * perUnit);
+    content -= abroadUnhappy;
+    unhappy += abroadUnhappy;
     // Розкіш: кожні 2 — задоволений стає щасливим, а як задоволених нема — невдоволений задоволеним
     let happy = 0;
     for (let lux = luxury; lux >= 2; lux -= 2) {
@@ -188,6 +195,7 @@ export class CityLogic {
       happy,
       content,
       unhappy,
+      abroadUnhappy,
       entertainers,
       disorder,
     };

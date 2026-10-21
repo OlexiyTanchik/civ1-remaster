@@ -403,6 +403,10 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
     key: BuildingTypeKey.Manhattan, nameUa: 'Мангеттенський проєкт', cost: 600, maintenance: 0, prereqTech: 'nuclear_fission', isWonder: true,
     descriptionUa: 'Чудо світу. Відкриває ядерну зброю ВСІМ, хто знає Ракетобудування.',
   },
+  [BuildingTypeKey.SdiDefense]: {
+    key: BuildingTypeKey.SdiDefense, nameUa: 'Протиракетна оборона (SDI)', cost: 200, maintenance: 4, prereqTech: 'superconductor',
+    descriptionUa: 'Збиває ядерні ракети, що летять на місто чи на клітинки за 3 від нього.',
+  },
   [BuildingTypeKey.UnitedNations]: {
     key: BuildingTypeKey.UnitedNations, nameUa: 'Організація Об\'єднаних Націй', cost: 600, maintenance: 0, prereqTech: 'nuclear_fission', isWonder: true,
     descriptionUa: 'Чудо світу. Рада безпеки: суперники не нападають на вас, якщо ви самі не нападали на них останні 10 ходів.',
@@ -554,11 +558,11 @@ export const GOVERNMENTS: Record<GovernmentKey, GovernmentConfig> = {
     descriptionUa: 'Без штрафу до клітинок. Військові в місті заспокоюють до 3 невдоволених. Ставки до 70%.',
   },
   democracy: {
-    key: 'democracy', nameUa: 'Демократія', prereqTech: 'democracy', maxRate: 9, corruptionPerTile: 0, tilePenalty: false, tradeBonus: true, martialLaw: 0, freeUnits: 0, settlerFood: 2,
-    descriptionUa: '+1 торгівлі на клітинках, що вже її дають. Корупції немає. Ставки до 90%.',
+    key: 'democracy', nameUa: 'Демократія', prereqTech: 'democracy', maxRate: 9, corruptionPerTile: 0, tilePenalty: false, tradeBonus: true, martialLaw: 0, freeUnits: 0, settlerFood: 2, abroadUnhappy: 2,
+    descriptionUa: '+1 торгівлі на клітинках, що вже її дають. Корупції немає. Ставки до 90%. Кожен військовий за кордоном — 2 невдоволених.',
   },
   republic: {
-    key: 'republic', nameUa: 'Республіка', prereqTech: 'the_republic', maxRate: 8, corruptionPerTile: 0.01, tilePenalty: false, tradeBonus: true, martialLaw: 0, freeUnits: 0, settlerFood: 2,
-    descriptionUa: '+1 торгівлі на клітинках, що вже її дають. Найменша корупція. Ставки до 80%. Військовий стан не діє.',
+    key: 'republic', nameUa: 'Республіка', prereqTech: 'the_republic', maxRate: 8, corruptionPerTile: 0.01, tilePenalty: false, tradeBonus: true, martialLaw: 0, freeUnits: 0, settlerFood: 2, abroadUnhappy: 1,
+    descriptionUa: '+1 торгівлі на клітинках, що вже її дають. Найменша корупція. Ставки до 80%. Військовий стан не діє. Кожен військовий за кордоном — 1 невдоволений.',
   },
 };

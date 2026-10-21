@@ -191,6 +191,7 @@ export enum BuildingTypeKey {
   SpaceStructural = 'space_structural',
   SpaceComponent = 'space_component',
   SpaceModule = 'space_module',
+  SdiDefense = 'sdi_defense',
 }
 
 /** Частина космічного корабля: каркас тримає двигуни й модулі. */
@@ -236,6 +237,8 @@ export interface GovernmentConfig {
   freeUnits: number;
   /** Скільки їжі з'їдають поселенці міста */
   settlerFood: number;
+  /** Скільки невдоволених дає кожен військовий юніт за кордоном (Республіка 1, Демократія 2) */
+  abroadUnhappy?: number;
   descriptionUa: string;
 }
 

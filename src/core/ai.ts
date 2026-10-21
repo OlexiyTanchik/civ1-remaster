@@ -132,7 +132,9 @@ export class AiController {
     const count = (t: UnitTypeKey) => myUnits.filter((u) => u.type === t).length;
     const military = myUnits.filter((u) => UNIT_CONFIGS[u.type].attack > 0).length;
     const armyFull = military >= cities * 2 + 2;
-    const wonder = Object.values(BUILDING_CONFIGS).find((b) => b.isWonder && canBuild(b.key));
+    // «Аполлон» — першим: без нього космічна гонка не встигає до 2100
+    const wonder = canBuild(BuildingTypeKey.Apollo) ? BUILDING_CONFIGS[BuildingTypeKey.Apollo]
+      : Object.values(BUILDING_CONFIGS).find((b) => b.isWonder && canBuild(b.key));
     const garrison = this.garrisonAt(city);
     const threat = this.threatNear(city.x, city.y, player.id, 7);
     const defender = this.bestUnit(player, 'defense');
@@ -170,6 +172,11 @@ export class AiController {
     if ((cities >= 2 || yields.foodSurplus <= 0) && count(UnitTypeKey.Workers) < Math.ceil(cities / 2)) return set(false, UnitTypeKey.Workers);
     if (garrison < this.garrisonNeed(city)) return set(false, defender);
     if (threat && canBuild(BuildingTypeKey.CityWalls)) return set(true, BuildingTypeKey.CityWalls);
+    // Ворог має ядерні ракети — великі міста ставлять протиракетну оборону
+    if (city.size >= 8 && canBuild(BuildingTypeKey.SdiDefense)
+      && [...w.units.values()].some((u) => u.type === UnitTypeKey.Nuclear && w.diplomacy.atWar(player.id, u.playerId))) {
+      return set(true, BuildingTypeKey.SdiDefense);
+    }
     if (city.size >= 5 && garrison < 2) return set(false, defender);
     if (city.size >= 9 && canBuild(BuildingTypeKey.Aqueduct)) return set(true, BuildingTypeKey.Aqueduct);
     if (city.size >= 15 && canBuild(BuildingTypeKey.Sewer)) return set(true, BuildingTypeKey.Sewer);
@@ -196,8 +203,9 @@ export class AiController {
     if (hostile && city.size >= 4 && canBuild(BuildingTypeKey.Barracks)) return set(true, BuildingTypeKey.Barracks);
     // Утримання: нові війська — лише там, де лишаються щити після утримання
     const canUpkeep = yields.shields >= 3;
-    // Дипломат — знайомитись і відкривати посольства
-    if (canUpkeep && city.size >= 3 && player.knownTechs.includes('writing') && count(UnitTypeKey.Diplomat) < 1 && this.needEmbassy(player).length) {
+    // Дипломат — знайомитись і відкривати посольства; з повною скарбницею на війні — підкуповувати міста
+    const bribe = hostile && player.gold >= 600;
+    if (canUpkeep && city.size >= 3 && player.knownTechs.includes('writing') && count(UnitTypeKey.Diplomat) < 1 && (this.needEmbassy(player).length || bribe)) {
       return set(false, UnitTypeKey.Diplomat);
     }
     if (hostile && !armyFull && canUpkeep && count(attacker as UnitTypeKey) < Math.ceil(cities / 2)) return set(false, attacker);
@@ -455,13 +463,13 @@ export class AiController {
       .map((p) => p.id);
   }
 
-  /** Дипломат: до найближчого міста цивілізації без посольства; на війні — красти технології. */
+  /** Дипломат: до найближчого міста цивілізації без посольства; на війні — підкуп, крадіжка чи саботаж. */
   private diplomat(unit: Unit): void {
     const w = this.world;
     const player = w.players[unit.playerId];
     const want = new Set(this.needEmbassy(player));
     const targets = [...w.cities.values()].filter((c) => c.playerId !== unit.playerId
-      && (want.has(c.playerId) || (w.diplomacy.atWar(unit.playerId, c.playerId) && !w.players[c.playerId].isBarbarian && !(c.stolenBy ?? []).includes(unit.playerId))))
+      && (want.has(c.playerId) || (w.diplomacy.atWar(unit.playerId, c.playerId) && !w.players[c.playerId].isBarbarian && !c.buildings.includes(BuildingTypeKey.Palace))))
       .sort((a, b) => w.distance(a.x, a.y, unit.x, unit.y) - w.distance(b.x, b.y, unit.x, unit.y));
     const target = targets.find((c) => w.distance(c.x, c.y, unit.x, unit.y) <= 20 && this.pathStep(unit, c, true) !== null);
     if (!target) {

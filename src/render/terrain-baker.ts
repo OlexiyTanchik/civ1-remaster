@@ -153,7 +153,7 @@ export class TerrainBaker {
           SpriteAtlas.draw(ctx, overlay, 0, 0, T, T);
           ctx.restore();
         }
-        if (hasGrasslandShield(tile)) this.drawShieldMark(ctx, tx * T + 5, ty * T + T - 13);
+        if (hasGrasslandShield(tile)) this.drawShieldMark(ctx, tx * T + T / 2 - 8, ty * T + T / 2 - 9);
         const res = tile.resource !== ResourceType.None ? RESOURCE_FRAME[tile.resource] : undefined;
         if (res) {
           const r = SpriteAtlas.rect(res);
@@ -227,14 +227,14 @@ export class TerrainBaker {
     d[p + 2] = d[p + 2] * (1 - k) + b * k;
   }
 
-  /** Маленький піксельний щит (луки з бонусом щита, як у Civ 1). */
+  /** Піксельний щит 16×18 у центрі клітинки (луки з бонусом щита, як у Civ 1). */
   private static drawShieldMark(ctx: CanvasRenderingContext2D, x: number, y: number): void {
-    const rows = ['.####.', '#oooo#', '#oyyo#', '#oyyo#', '.#oo#.', '..##..'];
+    const rows = ['.######.', '#oooooo#', '#oyyyyo#', '#oyyyyo#', '#oyyyyo#', '.#oyyo#.', '.#oooo#.', '..#oo#..', '...##...'];
     const colors: Record<string, string> = { '#': '#2a1d10', o: '#b0782c', y: '#f0c850' };
     rows.forEach((row, ry) => [...row].forEach((c, rx) => {
       if (c === '.') return;
       ctx.fillStyle = colors[c];
-      ctx.fillRect(x + rx * 1.5, y + ry * 1.5, 1.5, 1.5);
+      ctx.fillRect(x + rx * 2, y + ry * 2, 2, 2);
     }));
   }
 
