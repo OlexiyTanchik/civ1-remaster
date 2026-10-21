@@ -4,7 +4,7 @@
  */
 import { World } from '../core/world';
 import { Unit, UnitTypeKey, BuildingTypeKey } from '../core/types';
-import { UNIT_CONFIGS, TECH_TREE, TERRAIN_DATA, BUILDING_CONFIGS, GOVERNMENTS } from '../core/constants';
+import { UNIT_CONFIGS, TERRAIN_DATA, BUILDING_CONFIGS, GOVERNMENTS } from '../core/constants';
 import { MiniMap } from './minimap';
 import { TurnManager } from '../core/turn-manager';
 import { MapRenderer } from '../render/map-renderer';
@@ -34,6 +34,7 @@ export class Hud {
   public onHelpWonder?: () => void;
   public onRatesChanged?: () => void;
   public onOpenGovernment?: () => void;
+  public onOpenSpace?: () => void;
 
   constructor(
     private container: HTMLElement,
@@ -70,6 +71,8 @@ export class Hud {
           <div class="status-row tech-link" id="hud-tech">🧪 Обрати дослідження</div>
           <div class="status-row" id="hud-pop">Населення: 10,000</div>
           <div class="status-row tech-link" id="hud-gov" title="Змінити державний устрій">🏛️ Лад: Деспотизм</div>
+          <div class="status-row" id="hud-score">🏆 Рахунок: 0</div>
+          <div class="status-row tech-link hidden" id="hud-space" title="Космічний корабель до Альфи Центавра">🚀 Космічна гонка</div>
         </div>
       </div>
 
@@ -113,6 +116,7 @@ export class Hud {
     }
     document.getElementById('btn-help-wonder')?.addEventListener('click', () => this.onHelpWonder?.());
     document.getElementById('hud-gov')?.addEventListener('click', () => this.onOpenGovernment?.());
+    document.getElementById('hud-space')?.addEventListener('click', () => this.onOpenSpace?.());
     // Ставки: податки й розкіш ±10%, наука — решта (межа залежить від устрою)
     this.sidebarEl.querySelectorAll<HTMLButtonElement>('.rate-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -172,7 +176,7 @@ export class Hud {
     const techEl = document.getElementById('hud-tech');
     if (techEl) {
       if (human.currentTechId) {
-        const t = TECH_TREE[human.currentTechId];
+        const t = TurnManager.techById(human.currentTechId)!;
         techEl.textContent = `🧪 ${t.nameUa} (${human.researchProgress}/${TurnManager.researchCost(human)})`;
       } else {
         techEl.textContent = '🧪 Обрати дослідження';
@@ -187,6 +191,17 @@ export class Hud {
       }
       if (totalPop === 0) totalPop = 10000;
       popEl.textContent = `Населення: ${totalPop.toLocaleString()} чол.`;
+    }
+
+    const scoreEl = document.getElementById('hud-score');
+    if (scoreEl) scoreEl.textContent = `🏆 Рахунок: ${this.world.score(0).total}`;
+    // Космічна гонка з'являється в панелі, щойно хтось збудував «Аполлон» або ми вміємо літати в космос
+    const spaceEl = document.getElementById('hud-space');
+    if (spaceEl) {
+      const open = this.world.isWonderBuilt(BuildingTypeKey.Apollo) || human.knownTechs.includes('space_flight');
+      spaceEl.classList.toggle('hidden', !open);
+      const ship = human.spaceship;
+      spaceEl.textContent = ship?.arrivalYear !== undefined ? `🚀 Корабель летить: прибуття ${TurnManager.formatYear(ship.arrivalYear)}` : '🚀 Космічна гонка';
     }
 
     const titleEl = document.getElementById('unit-title');

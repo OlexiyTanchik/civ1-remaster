@@ -12,13 +12,13 @@
 |---|---|
 | `src/main.ts` | Bootstrap: Pixi, атлас, світ, рендерер, HUD, діалоги; обробники кнопок і гарячих клавіш; `moveSelected` |
 | `src/core/types.ts` | Усі типи й енуми: `TileData`, `Unit`, `City`, `Player`, `UnitTypeKey`, `BuildingTypeKey`, `GovernmentKey/Config` |
-| `src/core/constants.ts` | Дані: `TERRAIN_DATA`, `UNIT_CONFIGS`, `BUILDING_CONFIGS` (чудеса — `isWonder`), `TECH_TREE` (64 техн., `era` 1–5), `GOVERNMENTS`, `FAT_CROSS_OFFSETS`, `TILE_SIZE=64`, мапа 80×50 |
+| `src/core/constants.ts` | Дані: `TERRAIN_DATA`, `UNIT_CONFIGS`, `BUILDING_CONFIGS` (чудеса — `isWonder`), `TECH_TREE` (69 техн., `era` 1–6; далі `FUTURE_TECH`), `SPACE_LIMITS`, `GOVERNMENTS`, `FAT_CROSS_OFFSETS`, `TILE_SIZE=64`, мапа 80×50 |
 | `src/core/world.ts` | Стан гри й правила між системами: рух/бій/посадка на кораблі й авіаносці, пальне літаків, ядерний вибух (`detonate`), агресія для ООН (`attackedRecently`), захоплення міст, хатки, варвари, кінець ходу, економіка, утримання, революції, чудеса (Леонардо, Дарвін), забруднення |
 | `src/core/city.ts` | `CityLogic`: видобуток міста (`calculateYields` → артисти → `yieldsWith`), щастя, корупція, множники будівель, ріст, виробництво, `autoAssignWorkers` |
 | `src/core/terraform.ts` | Роботи на землі (road/railroad, irrigation, mine, clean), `tileYield` (бонуси, щитові луки, залізниця, забруднення) |
 | `src/core/unit.ts` | `UnitLogic`: вартість руху (дорога 1/3, залізниця 0), `canMoveTo`, бій (`resolveCombat`: ветерани, мури, пікінери проти `MOUNTED`) |
 | `src/core/ai.ts` | `AiController`: дослідження, устрій, розкіш/податки, виробництво за пріоритетами, ролі юнітів, BFS-шлях |
-| `src/core/turn-manager.ts` | Календар, `researchCost` = (відомих+1)×10, `processPlayerEconomy`, `getAvailableTechs` |
+| `src/core/turn-manager.ts` | Календар (`year` числом, `formatYear`), `researchCost` = (відомих+майбутніх+1)×10, `processPlayerEconomy`, `getAvailableTechs` (порожньо → технологія майбутнього), `learnTech`/`techById` — **завжди через них** |
 | `src/core/map-generator.ts` | Генерація мапи (не чіпали) |
 | `src/render/sprite-atlas.ts` | Атлас: Pixi-текстури й `draw()` на 2D-полотно; мапи `TERRAIN_FRAME`, `OVERLAY_FRAME`, `RESOURCE_FRAME` |
 | `src/render/terrain-baker.ts` | Запікання рельєфу піксельно, шматками 16×16 тайлів: дизеринг біомів, берег, річки, накладки, ресурси, щит на луках |
@@ -27,6 +27,8 @@
 | `src/ui/hud.ts` | Бічна панель: ставки, лад, юніт, накази (сітка 2 колонки) |
 | `src/ui/city-dialog.ts` | Екран міста у 2 колонки; `productionOptions` (техи, `requires`, `coastal`, палац лише якщо втрачений) |
 | `src/ui/city-panorama.ts` | Панорама 384×216: `BUILDING_SLOTS` для кожної споруди/чуда, житла від центру назовні |
+| `src/ui/space-dialog.ts` | Вікно космічної гонки: частини (спрайти `sp_*`), час і шанс польоту, запуск, кораблі суперників |
+| `src/ui/game-over-dialog.ts` | Кінець гри: підсумок, рахунок усіх цивілізацій, «Зал слави» в localStorage (`civ1-remaster-hall-of-fame`) |
 | `src/ui/tech-dialog.ts`, `government-dialog.ts`, `minimap.ts`, `sound-fx.ts` | Радник (показує «що відкриває»), революція, мінікарта, звуки |
 | `src/style.css` | DOS-стиль; блок «Усе вміщається в екран» у кінці |
 | `assets_src/sprites.json` | Маніфест спрайтів: стилі за `kind`, розміри, промпти |
@@ -47,7 +49,13 @@
 2. Революції (анархія спливає) → економіка всіх гравців (золото/наука по містах) → утримання будівель, продаж при банкрутстві → Велика бібліотека.
 3. Роботи юнітів, відновлення руху (`unitMoves`: Маяк, Магеллан, Ядерна енергетика); пальне літаків (поза базою −1, нуль — падіння).
 4. Леонардо → забруднення → оголошення війни → `processAiTurns` (AI, потім варвари) → навала варварів.
-5. Календар; у стрічку додаються `news` (захоплення міст під час чужих ходів).
+5. Календар → `checkEliminations` (без міст і поселенців — загибель) → `checkArrivals` (кораблі) → `checkGameEnd` (`world.gameOver`: space / conquest / destroyed / time 2100); у стрічку додаються `news`.
+
+## Космос і кінець гри
+- Частини корабля — «будівлі» з `spacePart` і `requiresWonder: Apollo`: після завершення знімаються з міста й додаються до `player.spaceship`; місто будує ту саму частину далі (`canBuildSpacePart`).
+- `launchProblem` (двигун, модуль, каркасів ≥ двигуни+модулі, є палац) → `launchSpaceship` (рік прибуття, шанс). Захоплення столиці стирає корабель.
+- `world.score(id)` — рахунок; `main.ts` показує `GameOverDialog` один раз, коли з'явився `world.gameOver`.
+- AI: `nextSpacePart` / `maybeLaunch` в `ai.ts` (ціль `SHIP_GOAL` 6/3/3).
 
 ## Ключові правила (де шукати)
 - Видобуток міста: **завжди `world.cityYields(city)`** — вона передає `CityEnv` (устрій, столиця, чудеса, гарнізон). `CityLogic.calculateYields` без env рахує як Деспотизм.
@@ -74,6 +82,7 @@
 
 ## Як перевіряти
 - Логіку — у браузері (Vite dev): `const {World} = await import('/src/core/world.ts'); const w = new World(); …` — той самий код, що в грі. Можна створювати юніти/міста, примусово кидати `Math.random`.
+- Повна партія без людини: `w.players[0].isAi = true` (інакше бездіяльна людина гине й гра закінчується). Три AI — довше: ганяти шматками по 50–100 ходів, світ тримати в `window`.
 - Симуляції AI: `for (t…) w.processTurnEnd()`. **Ліміт виклику ~45 с** — 2 світи по 300 ходів ≈ 28 с.
 - Перевизначений у сторінці `Math.random` живе до перезавантаження — після тестів бою робити `location.reload()`.
 - Гра не виставляє `world` у `window`: щоб побачити тестові юніти на мапі, тимчасово обгорнути `World.prototype.processTurnEnd` (захопити `this`) і натиснути «Кінець ходу».

@@ -176,6 +176,35 @@ export enum BuildingTypeKey {
   NuclearPlant = 'nuclear_plant',
   Manhattan = 'manhattan',
   UnitedNations = 'united_nations',
+  // Космічна гонка
+  Apollo = 'apollo',
+  Seti = 'seti',
+  CureForCancer = 'cure_for_cancer',
+  SpaceStructural = 'space_structural',
+  SpaceComponent = 'space_component',
+  SpaceModule = 'space_module',
+}
+
+/** Частина космічного корабля: каркас тримає двигуни й модулі. */
+export type SpacePart = 'structural' | 'component' | 'module';
+
+/** Космічний корабель до Альфи Центавра (спрощено з Civ 1). */
+export interface Spaceship {
+  structural: number;
+  component: number;
+  module: number;
+  /** Рік прибуття (після запуску) */
+  arrivalYear?: number;
+  /** Шанс долетіти (0..1), фіксується при запуску */
+  success?: number;
+}
+
+/** Чим закінчилась гра. */
+export interface GameOver {
+  reason: 'space' | 'conquest' | 'time' | 'destroyed';
+  /** Переможець (для «destroyed» — хто лишився сильнішим не важливо) */
+  winner?: number;
+  year: string;
 }
 
 /** Державний устрій (Civ 1). Анархія — перехідний стан під час революції. */
@@ -210,6 +239,10 @@ export interface BuildingConfig {
   requires?: BuildingTypeKey;
   /** Лише в прибережному місті */
   coastal?: boolean;
+  /** Будується лише тоді, коли це чудо збудоване будь-де у світі */
+  requiresWonder?: BuildingTypeKey;
+  /** Частина космічного корабля: іде не в місто, а на корабель */
+  spacePart?: SpacePart;
   descriptionUa: string;
 }
 
@@ -266,6 +299,9 @@ export interface Player {
   currentTechId?: string;
   researchProgress: number;
   knownTechs: string[];
+  /** Технології майбутнього (після всього дерева): кожна +5 до рахунку */
+  futureTechs?: number;
+  spaceship?: Spaceship;
   alive: boolean;
 }
 

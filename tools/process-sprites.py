@@ -168,7 +168,8 @@ def _erase_grid_lines(rgb: Image.Image) -> Image.Image:
     """Flash-Lite інколи малює білі лінії між клітинками — фарбуємо їх фоном, інакше вони липнуть до спрайтів."""
     a = np.asarray(rgb).copy()
     v = a.astype(np.int16)
-    light = (v.min(axis=-1) > 170) & (v.max(axis=-1) - v.min(axis=-1) < 40)
+    # Лінія біла або рожевувата (змішана з фоном) — головне, що світла в усіх каналах
+    light = v.min(axis=-1) > 170
     a[light.mean(axis=1) > 0.5, :] = (255, 0, 255)
     a[:, light.mean(axis=0) > 0.5] = (255, 0, 255)
     return Image.fromarray(a, "RGB")

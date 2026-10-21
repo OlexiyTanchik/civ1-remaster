@@ -58,6 +58,10 @@ const BUILDING_SLOTS: Partial<Record<BuildingTypeKey, { x: number; y: number; sc
   [BuildingTypeKey.NuclearPlant]: { x: 316, y: 86, scale: 0.5 },
   [BuildingTypeKey.Manhattan]: { x: 206, y: 210, scale: 0.5 },
   [BuildingTypeKey.UnitedNations]: { x: 156, y: 160, scale: 0.55 },
+  // Космічна гонка: стартовий майданчик і антени — на горизонті
+  [BuildingTypeKey.Apollo]: { x: 352, y: 92, scale: 0.55 },
+  [BuildingTypeKey.Seti]: { x: 132, y: 92, scale: 0.5 },
+  [BuildingTypeKey.CureForCancer]: { x: 290, y: 176, scale: 0.5 },
 };
 
 const hash = (a: number, b: number) => {

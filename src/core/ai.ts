@@ -22,7 +22,11 @@ const RESEARCH_ORDER = [
   'the_corporation', 'steel', 'electronics', 'sanitation', 'explosives', 'refining', 'theology',
   'combustion', 'automobile', 'mass_production', 'machine_tools', 'mobile_warfare', 'labor_union',
   'atomic_theory', 'flight', 'nuclear_fission', 'nuclear_power', 'radio', 'advanced_flight', 'rocketry',
+  'computers', 'space_flight', 'plastics', 'superconductor', 'genetic_engineering',
 ];
+
+/** Корабель, який AI вважає готовим до старту: 3 двигуни, 3 модулі, 6 каркасів (політ 14 р., успіх 100%). */
+const SHIP_GOAL = { structural: 6, component: 3, module: 3 };
 
 /** Скільки міст AI хоче мати (далі поселенців не будує). */
 const MAX_CITIES = 10;
@@ -37,6 +41,7 @@ export class AiController {
   /** Повний хід одного AI-гравця: дослідження, виробництво, юніти. */
   public takeTurn(player: Player): void {
     this.chooseResearch(player);
+    this.maybeLaunch(player);
     this.chooseGovernment(player);
     this.manageLuxury(player);
     this.manageTaxes(player);
@@ -151,6 +156,11 @@ export class AiController {
     // З автомобілями великі міста димлять — метро й трамваї
     if (city.size >= 12 && player.knownTechs.includes('automobile') && canBuild(BuildingTypeKey.MassTransit)) return set(true, BuildingTypeKey.MassTransit);
     if (wonder && has(BuildingTypeKey.Palace) && !threat && garrison >= 2 && city.size >= 3 && cities >= 3) return set(true, wonder.key);
+    // Космічна гонка: столиця й продуктивні міста (від 10 щитів) будують частини корабля
+    if ((has(BuildingTypeKey.Palace) || yields.shields >= 10) && city.size >= 5 && !threat) {
+      const part = this.nextSpacePart(player, city);
+      if (part) return set(true, part);
+    }
     for (const b of [BuildingTypeKey.Granary, BuildingTypeKey.Library, BuildingTypeKey.Marketplace, BuildingTypeKey.University, BuildingTypeKey.Bank, BuildingTypeKey.StockExchange]) {
       if (city.size >= 3 && canBuild(b)) return set(true, b);
     }
@@ -183,6 +193,39 @@ export class AiController {
     if (cities < 14 && city.size >= 3) return set(false, UnitTypeKey.Settlers);
     if (player.knownTechs.includes('trade')) return set(false, UnitTypeKey.Caravan); // запас на чудеса наступних епох
     return set(false, UnitTypeKey.Workers);
+  }
+
+  /**
+   * Яку частину корабля будувати: спершу каркас під уже заплановане, далі модулі, двигуни, решта каркасів.
+   * Частини, що вже будуються в інших містах, рахуємо як готові — щоб не перебудувати.
+   */
+  private nextSpacePart(player: Player, city: City): BuildingTypeKey | undefined {
+    const w = this.world;
+    const ship = w.spaceship(player.id);
+    const plan = { structural: ship.structural, component: ship.component, module: ship.module };
+    const keyOf = { structural: BuildingTypeKey.SpaceStructural, component: BuildingTypeKey.SpaceComponent, module: BuildingTypeKey.SpaceModule };
+    for (const c of this.citiesOf(player.id)) {
+      if (c === city || !c.currentProduction.isBuilding) continue;
+      const part = BUILDING_CONFIGS[c.currentProduction.key as BuildingTypeKey]?.spacePart;
+      if (part) plan[part]++;
+    }
+    const can = (k: 'structural' | 'component' | 'module') => w.canBuildSpacePart(player.id, keyOf[k]);
+    if (plan.structural < Math.min(SHIP_GOAL.structural, plan.component + plan.module + 1) && can('structural')) return keyOf.structural;
+    if (plan.module < SHIP_GOAL.module && can('module')) return keyOf.module;
+    if (plan.component < SHIP_GOAL.component && can('component')) return keyOf.component;
+    if (plan.structural < SHIP_GOAL.structural && can('structural')) return keyOf.structural;
+    return undefined;
+  }
+
+  /** Старт: коли корабель зібраний за планом, або суперник уже летить, або час спливає. */
+  private maybeLaunch(player: Player): void {
+    const w = this.world;
+    if (w.launchProblem(player.id)) return;
+    const s = w.spaceship(player.id);
+    const ready = s.module >= SHIP_GOAL.module && s.component >= SHIP_GOAL.component;
+    const rivalFlying = w.players.some((p) => p.id !== player.id && p.spaceship?.arrivalYear !== undefined);
+    const late = w.turnManager.year >= 2050; // інакше не долетить до 2100
+    if (ready || (rivalFlying && s.module >= 2) || late) w.launchSpaceship(player.id);
   }
 
   /** Найкращий доступний сухопутний юніт за атакою або обороною. */

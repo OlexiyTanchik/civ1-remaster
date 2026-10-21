@@ -541,6 +541,36 @@
       "id": "w_united_nations",
       "kind": "building",
       "prompt": "the United Nations headquarters: a tall slim glass and concrete skyscraper slab with a row of colorful national flags on poles in front"
+    },
+    {
+      "id": "w_apollo",
+      "kind": "building",
+      "prompt": "the Apollo program launch site: a tall white Saturn V moon rocket standing on a launch pad next to a red steel launch tower"
+    },
+    {
+      "id": "w_seti",
+      "kind": "building",
+      "prompt": "the SETI program: a huge white radio telescope dish on a steel mount pointing at the sky, with a small control building beside it"
+    },
+    {
+      "id": "w_cure_for_cancer",
+      "kind": "building",
+      "prompt": "a modern white medical research institute building with glass walls and a big red and white DNA double helix sculpture in front"
+    },
+    {
+      "id": "sp_structural",
+      "kind": "improvement",
+      "prompt": "a spaceship structural truss segment: a square silver metal lattice frame cube"
+    },
+    {
+      "id": "sp_component",
+      "kind": "improvement",
+      "prompt": "a spaceship rocket engine component: a silver fuel tank cylinder with a big bell-shaped rocket nozzle"
+    },
+    {
+      "id": "sp_module",
+      "kind": "improvement",
+      "prompt": "a spaceship habitation module: a white cylinder with small round windows and blue solar panels on both sides"
     }
   ]
 }

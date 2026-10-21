@@ -122,6 +122,7 @@ export class CityLogic {
     if (has(BuildingTypeKey.Library)) sciBonus += has(BuildingTypeKey.University) ? 1 : 0.5;
     if (has(BuildingTypeKey.Copernicus)) sciBonus += 1;
     if (has(BuildingTypeKey.Newton)) sciBonus += 1;
+    if (env.ownerWonders.has(BuildingTypeKey.Seti)) sciBonus += 0.5;
     science = Math.floor(science * sciBonus);
 
     // Щастя: серед працюючих перші 4 задоволені, решта невдоволені (артисти не бунтують)
@@ -135,6 +136,7 @@ export class CityLogic {
     if (has(BuildingTypeKey.Cathedral) || env.ownerWonders.has(BuildingTypeKey.Michelangelo)) calm += 3;
     if (env.ownerWonders.has(BuildingTypeKey.HangingGardens)) calm += 1;
     if (env.ownerWonders.has(BuildingTypeKey.Bach)) calm += 2;
+    if (env.ownerWonders.has(BuildingTypeKey.CureForCancer)) calm += 1;
     // Воєнний стан (Монархія): кожен військовий у місті заспокоює одного;
     // Жіноче виборче право — поліція: до 2 за будь-якого устрою
     const police = env.ownerWonders.has(BuildingTypeKey.WomensSuffrage) ? 2 : 0;

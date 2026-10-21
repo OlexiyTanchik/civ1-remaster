@@ -1,5 +1,5 @@
 import {
-  TerrainType, TerrainYield, UnitTypeKey, UnitConfig, BuildingTypeKey, BuildingConfig, Tech, GovernmentKey, GovernmentConfig,
+  TerrainType, TerrainYield, UnitTypeKey, UnitConfig, BuildingTypeKey, BuildingConfig, Tech, GovernmentKey, GovernmentConfig, SpacePart,
 } from './types';
 
 export const MAP_WIDTH = 80;
@@ -324,6 +324,43 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
     key: BuildingTypeKey.UnitedNations, nameUa: 'Організація Об\'єднаних Націй', cost: 600, maintenance: 0, prereqTech: 'nuclear_fission', isWonder: true,
     descriptionUa: 'Чудо світу. Рада безпеки: суперники не нападають на вас, якщо ви самі не нападали на них останні 10 ходів.',
   },
+  // Космічна гонка
+  [BuildingTypeKey.Seti]: {
+    key: BuildingTypeKey.Seti, nameUa: 'Програма SETI', cost: 600, maintenance: 0, prereqTech: 'computers', isWonder: true,
+    descriptionUa: 'Чудо світу. +50% науки в усіх ваших містах.',
+  },
+  [BuildingTypeKey.Apollo]: {
+    key: BuildingTypeKey.Apollo, nameUa: 'Програма «Аполлон»', cost: 600, maintenance: 0, prereqTech: 'space_flight', isWonder: true,
+    descriptionUa: 'Чудо світу. Відкриває космічну гонку ВСІМ: частини кораблів до Альфи Центавра. Власник бачить усі міста світу.',
+  },
+  [BuildingTypeKey.CureForCancer]: {
+    key: BuildingTypeKey.CureForCancer, nameUa: 'Ліки від раку', cost: 600, maintenance: 0, prereqTech: 'genetic_engineering', isWonder: true,
+    descriptionUa: 'Чудо світу. +1 задоволений громадянин у кожному вашому місті.',
+  },
+  [BuildingTypeKey.SpaceStructural]: {
+    key: BuildingTypeKey.SpaceStructural, nameUa: '🚀 Каркас корабля', cost: 80, maintenance: 0, prereqTech: 'space_flight',
+    requiresWonder: BuildingTypeKey.Apollo, spacePart: 'structural',
+    descriptionUa: 'Частина космічного корабля. Кожен двигун і модуль потребує свого каркаса.',
+  },
+  [BuildingTypeKey.SpaceComponent]: {
+    key: BuildingTypeKey.SpaceComponent, nameUa: '🚀 Двигун корабля', cost: 160, maintenance: 0, prereqTech: 'plastics',
+    requiresWonder: BuildingTypeKey.Apollo, spacePart: 'component',
+    descriptionUa: 'Частина космічного корабля. Кожен двигун скорочує політ на 2 роки.',
+  },
+  [BuildingTypeKey.SpaceModule]: {
+    key: BuildingTypeKey.SpaceModule, nameUa: '🚀 Модуль корабля', cost: 320, maintenance: 0, prereqTech: 'superconductor',
+    requiresWonder: BuildingTypeKey.Apollo, spacePart: 'module',
+    descriptionUa: 'Частина космічного корабля: житло й життєзабезпечення колоністів. Кожен — +20% шансу долетіти.',
+  },
+};
+
+/** Найбільше частин одного виду на кораблі. */
+export const SPACE_LIMITS: Record<SpacePart, number> = { structural: 12, component: 8, module: 6 };
+
+/** Після всього дерева — нескінченні технології майбутнього (Civ 1). */
+export const FUTURE_TECH: Tech = {
+  id: 'future_tech', nameUa: 'Технологія майбутнього', era: 7, prereqs: [],
+  descriptionUa: 'Знання, яких ще не має людство. Кожна — +5 до рахунку цивілізації.',
 };
 
 // Дерево технологій стародавньої епохи (у дусі Civ 1). Ціна дослідження — TurnManager.researchCost.
@@ -396,6 +433,12 @@ export const TECH_TREE: Record<string, Tech> = {
   nuclear_fission: { id: 'nuclear_fission', nameUa: 'Ядерний розпад', era: 5, prereqs: ['atomic_theory', 'mass_production'], descriptionUa: 'Ланцюгова реакція: енергія — і загроза — небачені досі.' },
   nuclear_power: { id: 'nuclear_power', nameUa: 'Ядерна енергетика', era: 5, prereqs: ['nuclear_fission', 'electronics'], descriptionUa: 'Атом на службі міст і флоту: кораблі +1 рух.' },
   rocketry: { id: 'rocketry', nameUa: 'Ракетобудування', era: 5, prereqs: ['advanced_flight', 'nuclear_fission'], descriptionUa: 'Ракети далекого радіуса — з будь-якою боєголовкою.' },
+  // Космічна гонка
+  computers: { id: 'computers', nameUa: 'Комп\'ютери', era: 6, prereqs: ['radio', 'machine_tools'], descriptionUa: 'Машини, що рахують швидше за всіх математиків світу.' },
+  space_flight: { id: 'space_flight', nameUa: 'Космічні польоти', era: 6, prereqs: ['computers', 'rocketry'], descriptionUa: 'Людина на орбіті — і далі, до зірок.' },
+  plastics: { id: 'plastics', nameUa: 'Пластмаси', era: 6, prereqs: ['refining', 'space_flight'], descriptionUa: 'Легкі й міцні матеріали для ракетних двигунів.' },
+  superconductor: { id: 'superconductor', nameUa: 'Надпровідники', era: 6, prereqs: ['plastics', 'nuclear_power'], descriptionUa: 'Струм без втрат: системи життєзабезпечення для зорельота.' },
+  genetic_engineering: { id: 'genetic_engineering', nameUa: 'Генна інженерія', era: 6, prereqs: ['medicine', 'computers'], descriptionUa: 'Ключ до коду життя.' },
 };
 
 // 21 клітинка міста (Fat Cross Civ 1)

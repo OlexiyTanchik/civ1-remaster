@@ -6,6 +6,9 @@ import { Application } from 'pixi.js';
 import { World } from './core/world';
 import { UNIT_CONFIGS, GOVERNMENTS } from './core/constants';
 import { GovernmentDialog } from './ui/government-dialog';
+import { SpaceDialog } from './ui/space-dialog';
+import { TurnManager } from './core/turn-manager';
+import { GameOverDialog } from './ui/game-over-dialog';
 import { MapRenderer } from './render/map-renderer';
 import { Hud } from './ui/hud';
 import { CityDialog } from './ui/city-dialog';
@@ -44,6 +47,9 @@ async function bootstrap() {
   });
   const techDialog = new TechDialog(appElement);
   const govDialog = new GovernmentDialog(appElement, world);
+  const spaceDialog = new SpaceDialog(appElement, world);
+  const gameOverDialog = new GameOverDialog(appElement, world);
+  let gameOverShown = false;
 
   let selectedUnit: Unit | undefined;
 
@@ -194,6 +200,18 @@ async function bootstrap() {
 
     renderer.refreshAll();
     selectNextAvailableUnit();
+    // Кінець гри показуємо один раз; далі можна дивитися на світ
+    if (world.gameOver && !gameOverShown) {
+      gameOverShown = true;
+      gameOverDialog.show();
+    }
+  };
+
+  hud.onOpenSpace = () => {
+    spaceDialog.show(() => {
+      hud.addLogMessage(`🚀 Космічний корабель стартував до Альфи Центавра! Прибуття — ${TurnManager.formatYear(world.players[0].spaceship?.arrivalYear ?? 0)}`);
+      hud.update(selectedUnit);
+    });
   };
 
   hud.onOpenGovernment = () => {

@@ -588,3 +588,17 @@ body, html {
   .minimap-canvas { max-height: 110px; object-fit: contain; }
   .unit-portrait { width: 44px; height: 44px; }
 }
+
+/* Космічна гонка й кінець гри */
+.status-row.hidden { display: none; }
+.space-canvas { display: block; width: 100%; max-width: 600px; image-rendering: pixelated; margin: 6px auto; border: 1px solid #1a528e; }
+.space-status { margin: 6px 0; color: #f1c40f; }
+.space-rivals { margin-top: 8px; font-size: 12px; }
+.space-rivals ul { margin: 4px 0 0 18px; }
+.hall-table-wrap { overflow-x: auto; }
+.hall-table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 6px 0; }
+.hall-table th, .hall-table td { border: 1px solid #1a528e; padding: 3px 6px; text-align: left; }
+.hall-table th { background: #0a2e5c; color: #f1c40f; }
+.hall-table tr.hall-me td { color: #7fd1ff; }
+.hall-title { color: #f1c40f; font-size: 13px; margin-top: 10px; }
+.hall-buttons { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }

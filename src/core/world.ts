@@ -1,8 +1,8 @@
 /**
  * Стан ігрового світу, управління мапою, юнітами, містами та гравцями.
  */
-import { MAP_WIDTH, MAP_HEIGHT, UNIT_CONFIGS, BUILDING_CONFIGS, TECH_TREE, GOVERNMENTS } from './constants';
-import { TileData, Unit, City, Player, PlayerFog, UnitTypeKey, TerrainType, BuildingTypeKey, GovernmentKey } from './types';
+import { MAP_WIDTH, MAP_HEIGHT, UNIT_CONFIGS, BUILDING_CONFIGS, TECH_TREE, GOVERNMENTS, SPACE_LIMITS } from './constants';
+import { TileData, Unit, City, Player, PlayerFog, UnitTypeKey, TerrainType, BuildingTypeKey, GovernmentKey, Spaceship, GameOver } from './types';
 import { MapGenerator } from './map-generator';
 import { CityLogic } from './city';
 import { UnitLogic } from './unit';
@@ -401,8 +401,7 @@ export class World {
       const options = TurnManager.getAvailableTechs(player);
       const tech = options.find((t) => t.id === player.currentTechId) ?? options[0];
       if (!tech) break;
-      player.knownTechs.push(tech.id);
-      if (player.currentTechId === tech.id) player.currentTechId = undefined;
+      TurnManager.learnTech(player, tech);
       got.push(tech.nameUa);
     }
     return got;
@@ -586,7 +585,17 @@ export class World {
         if (mine) completedItems.push(`${city.name} створило юніт: ${UNIT_CONFIGS[newUnit.type].nameUa}${newUnit.veteran ? ' (ветеран)' : ''}`);
       } else {
         const cfg = BUILDING_CONFIGS[res.completedProduction.key as BuildingTypeKey];
+        if (cfg.spacePart) {
+          // Частина корабля йде на стартовий майданчик, а не в місто; місто будує далі те саме, поки можна
+          city.buildings = city.buildings.filter((b) => b !== cfg.key);
+          const ship = this.spaceship(city.playerId);
+          ship[cfg.spacePart]++;
+          if (this.canBuildSpacePart(city.playerId, cfg.key)) city.currentProduction = { isBuilding: true, key: cfg.key };
+          if (mine) completedItems.push(`🚀 ${city.name}: готово — ${cfg.nameUa.replace('🚀 ', '')} (${this.shipSummary(ship)})`);
+          continue;
+        }
         if (cfg.isWonder) {
+          if (cfg.key === BuildingTypeKey.Apollo) this.revealAllCities(city.playerId);
           // Чудо — новина для всього світу
           completedItems.push(`🌟 ${this.players[city.playerId].nameUa} завершили чудо світу «${cfg.nameUa}» у місті ${city.name}!`);
           if (cfg.key === BuildingTypeKey.Darwin) {
@@ -682,8 +691,11 @@ export class World {
     const raid = this.spawnBarbarians();
     if (raid) completedItems.push(raid);
 
-    // 5. Календар
+    // 5. Календар; загибель цивілізацій, кораблі до Альфи Центавра, кінець гри
     this.turnManager.advanceCalendar();
+    this.checkEliminations();
+    this.checkArrivals();
+    this.checkGameEnd();
     completedItems.push(...this.news.splice(0));
 
     return {
@@ -755,8 +767,7 @@ export class World {
       const options = TurnManager.getAvailableTechs(player);
       if (!options.length) return human ? gold() : (gold(), undefined);
       const tech = options[Math.floor(Math.random() * options.length)];
-      player.knownTechs.push(tech.id);
-      if (player.currentTechId === tech.id) player.currentTechId = undefined;
+      TurnManager.learnTech(player, tech);
       return human ? `📜 Мудреці племені навчили вас: ${tech.nameUa}!` : undefined;
     }
 
@@ -793,9 +804,153 @@ export class World {
     return human ? '🏚️ Селище порожнє — плем\'я давно пішло.' : undefined;
   }
 
+  // ---------- Космічна гонка ----------
+
+  public spaceship(playerId: number): Spaceship {
+    const p = this.players[playerId];
+    if (!p.spaceship) p.spaceship = { structural: 0, component: 0, module: 0 };
+    return p.spaceship;
+  }
+
+  public shipSummary(s: Spaceship): string {
+    return `каркасів ${s.structural}, двигунів ${s.component}, модулів ${s.module}`;
+  }
+
+  /** Чи може гравець будувати цю частину: технологія, «Аполлон» будь-де, ліміт, корабель ще не в польоті. */
+  public canBuildSpacePart(playerId: number, key: BuildingTypeKey): boolean {
+    const cfg = BUILDING_CONFIGS[key];
+    if (!cfg.spacePart) return false;
+    const p = this.players[playerId];
+    const ship = this.spaceship(playerId);
+    return (!cfg.prereqTech || p.knownTechs.includes(cfg.prereqTech))
+      && this.isWonderBuilt(BuildingTypeKey.Apollo)
+      && ship.arrivalYear === undefined
+      && ship[cfg.spacePart] < SPACE_LIMITS[cfg.spacePart];
+  }
+
+  /** Політ: 20 років мінус 2 за кожен двигун (не менше 5). */
+  public flightYears(s: Spaceship): number {
+    return Math.max(5, 20 - 2 * s.component);
+  }
+
+  /** Шанс долетіти: 40% + 20% за модуль. */
+  public flightSuccess(s: Spaceship): number {
+    return Math.min(1, 0.4 + 0.2 * s.module);
+  }
+
+  /** Що заважає запуску (undefined — можна стартувати). */
+  public launchProblem(playerId: number): string | undefined {
+    const s = this.spaceship(playerId);
+    if (s.arrivalYear !== undefined) return 'Корабель уже в польоті';
+    if (s.component < 1) return 'Потрібен хоча б один двигун';
+    if (s.module < 1) return 'Потрібен хоча б один модуль';
+    if (s.component + s.module > s.structural) return `Бракує каркасів: двигуни й модулі (${s.component + s.module}) потребують стільки ж каркасів (є ${s.structural})`;
+    const capital = [...this.cities.values()].some((c) => c.playerId === playerId && c.buildings.includes(BuildingTypeKey.Palace));
+    if (!capital) return 'Запуск — лише зі столиці, а палацу немає';
+    return undefined;
+  }
+
+  /** Запуск корабля до Альфи Центавра — новина для всього світу. */
+  public launchSpaceship(playerId: number): boolean {
+    if (this.launchProblem(playerId)) return false;
+    const s = this.spaceship(playerId);
+    s.arrivalYear = this.turnManager.year + this.flightYears(s);
+    s.success = this.flightSuccess(s);
+    const p = this.players[playerId];
+    const msg = `🚀 ${p.nameUa} запустили космічний корабель до Альфи Центавра! Прибуття — ${TurnManager.formatYear(s.arrivalYear)}`;
+    if (playerId !== 0) this.news.push(msg);
+    return true;
+  }
+
+  /** «Аполлон»: власник бачить усі міста світу. */
+  private revealAllCities(playerId: number): void {
+    for (const c of this.cities.values()) this.revealFog(playerId, c.x, c.y, 1);
+  }
+
+  /** Кораблі, чий рік прибуття настав: успіх — перемога, невдача — корабель втрачено. */
+  private checkArrivals(): void {
+    if (this.gameOver) return;
+    for (const p of this.players) {
+      const s = p.spaceship;
+      if (!p.alive || s?.arrivalYear === undefined || this.turnManager.year < s.arrivalYear) continue;
+      if (Math.random() < (s.success ?? 0)) {
+        this.news.push(`🌟 Корабель цивілізації ${p.nameUa} досяг Альфи Центавра! Колоністів: ${s.module * 10000}.`);
+        this.gameOver = { reason: 'space', winner: p.id, year: this.turnManager.getYearString() };
+        return;
+      }
+      this.news.push(`💥 Зв'язок із кораблем цивілізації ${p.nameUa} втрачено — колоністи не долетіли.`);
+      p.spaceship = undefined;
+    }
+  }
+
+  // ---------- Кінець гри ----------
+
+  /** Чим закінчилась гра (undefined — гра триває). */
+  public gameOver?: GameOver;
+
+  /** Цивілізація без міст і поселенців гине (Civ 1). */
+  private checkEliminations(): void {
+    for (const p of this.players) {
+      if (!p.alive || p.isBarbarian) continue;
+      const hasCity = [...this.cities.values()].some((c) => c.playerId === p.id);
+      const hasSettlers = [...this.units.values()].some((u) => u.playerId === p.id && u.type === UnitTypeKey.Settlers);
+      if (hasCity || hasSettlers) continue;
+      p.alive = false;
+      p.spaceship = undefined;
+      for (const u of [...this.units.values()]) if (u.playerId === p.id) this.removeUnit(u.id);
+      this.news.push(`💀 Цивілізацію ${p.nameUa} знищено.`);
+    }
+  }
+
+  /** Завоювання, загибель людини або 2100 рік. */
+  private checkGameEnd(): void {
+    if (this.gameOver) return;
+    const year = this.turnManager.getYearString();
+    if (!this.players[0].alive) {
+      this.gameOver = { reason: 'destroyed', year };
+      return;
+    }
+    const alive = this.players.filter((p) => p.alive && !p.isBarbarian);
+    if (alive.length === 1) {
+      this.gameOver = { reason: 'conquest', winner: alive[0].id, year };
+      return;
+    }
+    if (this.turnManager.year >= 2100) {
+      const best = alive.reduce((a, b) => (this.score(b.id).total > this.score(a.id).total ? b : a));
+      this.gameOver = { reason: 'time', winner: best.id, year };
+    }
+  }
+
+  /**
+   * Рахунок цивілізації (у дусі Civ 1): задоволений громадянин +1, щасливий +2, чудо +20,
+   * технологія майбутнього +5, долетілі модулі по +50, забруднені клітинки біля своїх міст −5.
+   */
+  public score(playerId: number): { citizens: number; wonders: number; future: number; space: number; pollution: number; total: number } {
+    let citizens = 0;
+    let pollution = 0;
+    for (const c of this.cities.values()) {
+      if (c.playerId !== playerId) continue;
+      const y = this.cityYields(c);
+      citizens += y.content + y.happy * 2;
+      pollution += c.workedTiles.filter((t) => this.tiles[t.y][t.x].hasPollution).length;
+    }
+    const p = this.players[playerId];
+    const wonders = this.ownerWonders(playerId).size * 20;
+    const future = (p.futureTechs ?? 0) * 5;
+    const space = this.gameOver?.reason === 'space' && this.gameOver.winner === playerId ? (p.spaceship?.module ?? 0) * 50 : 0;
+    const total = citizens + wonders + future + space - pollution * 5;
+    return { citizens, wonders, future, space, pollution: -pollution * 5, total };
+  }
+
   /** Захоплення міста: новий власник, населення −1, палац руйнується. */
   private captureCity(city: City, newOwner: number): string {
     const oldOwner = this.players[city.playerId];
+    // Впала столиця — корабель (і в польоті теж) втрачено, як у Civ 1
+    const ship = oldOwner.spaceship;
+    if (city.buildings.includes(BuildingTypeKey.Palace) && ship && ship.structural + ship.component + ship.module > 0) {
+      oldOwner.spaceship = undefined;
+      this.news.push(`💥 ${oldOwner.nameUa} втратили столицю — а з нею й космічний корабель!`);
+    }
     city.playerId = newOwner;
     city.size = Math.max(1, city.size - 1);
     city.foodNeeded = city.size * 10;

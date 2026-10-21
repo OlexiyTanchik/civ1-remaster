@@ -2,7 +2,7 @@
  * Менеджер ходів, календар Civ 1 та розподіл економіки гравців.
  */
 import { Player, Tech } from './types';
-import { TECH_TREE } from './constants';
+import { TECH_TREE, FUTURE_TECH } from './constants';
 
 export class TurnManager {
   public turnNumber: number = 1;
@@ -17,6 +17,16 @@ export class TurnManager {
       return `${this.yearBC} до н.е.`;
     }
     return `${this.yearBC} н.е.`;
+  }
+
+  /** Рік числом у підпис: −500 → «500 до н.е.». */
+  public static formatYear(year: number): string {
+    return year < 0 ? `${-year} до н.е.` : `${year} н.е.`;
+  }
+
+  /** Рік числом: до н.е. — від'ємний. */
+  public get year(): number {
+    return this.isAD ? this.yearBC : -this.yearBC;
   }
 
   /**
@@ -51,7 +61,19 @@ export class TurnManager {
    * перша — 10 колб, десята — 100. Тому епохи змінюються повільно.
    */
   public static researchCost(player: Player): number {
-    return (player.knownTechs.length + 1) * 10;
+    return (player.knownTechs.length + (player.futureTechs ?? 0) + 1) * 10;
+  }
+
+  /** Технологія за id (включно з технологією майбутнього). */
+  public static techById(id: string): Tech | undefined {
+    return id === FUTURE_TECH.id ? FUTURE_TECH : TECH_TREE[id];
+  }
+
+  /** Гравець опановує технологію: звичайна — у список, майбутнього — лічильник. */
+  public static learnTech(player: Player, tech: Tech): void {
+    if (tech.id === FUTURE_TECH.id) player.futureTechs = (player.futureTechs ?? 0) + 1;
+    else if (!player.knownTechs.includes(tech.id)) player.knownTechs.push(tech.id);
+    if (player.currentTechId === tech.id) player.currentTechId = undefined;
   }
 
   /**
@@ -69,8 +91,8 @@ export class TurnManager {
     let techDiscovered: Tech | undefined;
     const cost = TurnManager.researchCost(player);
     if (player.currentTechId && player.researchProgress >= cost) {
-      techDiscovered = TECH_TREE[player.currentTechId];
-      player.knownTechs.push(techDiscovered.id);
+      techDiscovered = TurnManager.techById(player.currentTechId)!;
+      TurnManager.learnTech(player, techDiscovered);
       player.researchProgress -= cost;
       player.currentTechId = undefined; // Потребує вибору нової технології
     }
@@ -93,6 +115,8 @@ export class TurnManager {
         available.push(tech);
       }
     }
+    // Усе дерево відоме — далі технології майбутнього
+    if (!available.length) available.push(FUTURE_TECH);
 
     return available;
   }
