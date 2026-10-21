@@ -383,7 +383,7 @@ export class Diplomacy {
       const want = this.tradeable(other.id, ai.id);
       if (!give.length || !want.length) continue;
       if (other.isAi) {
-        if (this.attitude(other.id, ai.id) > -2 && Math.random() < 0.03) {
+        if (this.attitude(other.id, ai.id) > -2 && Math.random() < 0.08) {
           this.exchange(ai.id, give[0], other.id, want[0]);
           this.mood(ai.id, other.id, 0.5);
           this.mood(other.id, ai.id, 0.5);

@@ -87,7 +87,9 @@ export class AiController {
   public chooseResearch(player: Player): void {
     if (player.currentTechId) return;
     const available = new Set(TurnManager.getAvailableTechs(player).map((t) => t.id));
-    player.currentTechId = RESEARCH_ORDER.find((id) => available.has(id)) ?? [...available][0];
+    // Навмання з трьох найближчих у черзі: у різних AI різні знання — є чим мінятися
+    const next = RESEARCH_ORDER.filter((id) => available.has(id)).slice(0, 3);
+    player.currentTechId = next.length ? next[Math.floor(Math.random() * next.length)] : [...available][0];
   }
 
   // ---------- Устрій ----------
