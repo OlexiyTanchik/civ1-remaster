@@ -157,6 +157,7 @@ export class MapGenerator {
       case TerrainType.Mountains: return ResourceType.Gold;
       case TerrainType.Forest: return ResourceType.Game;
       case TerrainType.Plains: return ResourceType.Iron;
+      case TerrainType.Swamp: return ResourceType.Oil;
       default: return ResourceType.None;
     }
   }

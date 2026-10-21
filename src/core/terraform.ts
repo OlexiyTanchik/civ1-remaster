@@ -3,7 +3,7 @@
  * Тривалість і бонуси залежать від рельєфу; іригація лише біля води;
  * шахта й іригація взаємовиключні.
  */
-import { TileData, TerrainType, Player, UnitTypeKey } from './types';
+import { TileData, TerrainType, ResourceType, Player, UnitTypeKey } from './types';
 import { TERRAIN_DATA, MAP_WIDTH, MAP_HEIGHT } from './constants';
 
 export type TerraformKind = 'road' | 'irrigation' | 'mine' | 'clean';
@@ -42,6 +42,18 @@ const MINE_TURNS: Partial<Record<TerrainType, number>> = {
 const ROAD_TRADE = new Set([TerrainType.Grassland, TerrainType.Plains, TerrainType.Desert]);
 const MINE_SHIELDS: Partial<Record<TerrainType, number>> = {
   [TerrainType.Desert]: 1, [TerrainType.Hills]: 3, [TerrainType.Mountains]: 1,
+};
+
+// Ресурси клітинки (Civ 1): оаза 3/1/0, нафта на болоті 1/4/0, вугілля 1/2/0, золото 0/1/6,
+// залізо (коні Civ 1) 1/3/0, риба 3/0/2, дичина 3/2/0
+const RESOURCE_BONUS: Partial<Record<ResourceType, { food: number; shields: number; trade: number }>> = {
+  [ResourceType.Oasis]: { food: 3, shields: 0, trade: 0 },
+  [ResourceType.Oil]: { food: 0, shields: 4, trade: 0 },
+  [ResourceType.Coal]: { food: 0, shields: 2, trade: 0 },
+  [ResourceType.Gold]: { food: 0, shields: 0, trade: 6 },
+  [ResourceType.Iron]: { food: 0, shields: 2, trade: 0 },
+  [ResourceType.Fish]: { food: 2, shields: 0, trade: 0 },
+  [ResourceType.Game]: { food: 2, shields: 0, trade: 0 },
 };
 
 export interface TerraformCheck {
@@ -129,13 +141,14 @@ export function hasGrasslandShield(tile: TileData): boolean {
   return ((h ^ (h >>> 16)) >>> 0) % 100 < 45;
 }
 
-/** Видобуток клітинки з урахуванням покращень. */
+/** Видобуток клітинки з урахуванням ресурсу й покращень. */
 export function tileYield(tile: TileData): { food: number; shields: number; trade: number } {
   const base = TERRAIN_DATA[tile.terrain];
+  const res = RESOURCE_BONUS[tile.resource];
   const y = {
-    food: base.food + (tile.hasIrrigation ? 1 : 0),
-    shields: base.shields + (hasGrasslandShield(tile) ? 1 : 0) + (tile.hasMine ? MINE_SHIELDS[tile.terrain] ?? 0 : 0),
-    trade: base.trade + (tile.hasRoad && ROAD_TRADE.has(tile.terrain) ? 1 : 0) + (tile.hasRiver ? 1 : 0),
+    food: base.food + (res?.food ?? 0) + (tile.hasIrrigation ? 1 : 0),
+    shields: base.shields + (res?.shields ?? 0) + (hasGrasslandShield(tile) ? 1 : 0) + (tile.hasMine ? MINE_SHIELDS[tile.terrain] ?? 0 : 0),
+    trade: base.trade + (res?.trade ?? 0) + (tile.hasRoad && ROAD_TRADE.has(tile.terrain) ? 1 : 0) + (tile.hasRiver ? 1 : 0),
   };
   // Залізниця: +1 щит там, де щити вже є
   if (tile.hasRailroad && y.shields > 0) y.shields += 1;
