@@ -104,9 +104,12 @@ export function drawCityPanorama(canvas: HTMLCanvasElement, city: City): void {
   const seed = city.x * 131 + city.y;
   const items: Item[] = [];
 
-  for (const b of city.buildings) {
-    const slot = BUILDING_SLOTS[b];
-    if (slot) items.push({ frame: `${BUILDING_CONFIGS[b]?.isWonder ? 'w' : 'b'}_${b}`, ...slot });
+  // Багато споруд — менші спрайти (на тих самих місцях), щоб фасади не налазили один на одного
+  const placed = city.buildings.filter((b) => BUILDING_SLOTS[b]);
+  const shrink = placed.length > 30 ? 0.78 : placed.length > 20 ? 0.88 : 1;
+  for (const b of placed) {
+    const slot = BUILDING_SLOTS[b]!;
+    items.push({ frame: `${BUILDING_CONFIGS[b]?.isWonder ? 'w' : 'b'}_${b}`, ...slot, scale: slot.scale * shrink });
   }
 
   // 3 житла на кожен рівень населення; з ростом хатинки змінюються будинками
