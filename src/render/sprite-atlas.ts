@@ -1,0 +1,102 @@
+/**
+ * Єдиний атлас спрайтів ремастеру (генерується tools/process-sprites.py).
+ * Ті самі кадри використовуються і в Pixi (юніти, міста), і в 2D-запіканні рельєфу.
+ */
+import { Texture, Rectangle, TextureSource } from 'pixi.js';
+import { TerrainType, ResourceType, UnitTypeKey } from '../core/types';
+
+interface FrameData {
+  frame: { x: number; y: number; w: number; h: number };
+}
+
+export const TERRAIN_FRAME: Partial<Record<TerrainType, string>> = {
+  [TerrainType.Ocean]: 't_ocean',
+  [TerrainType.Grassland]: 't_grassland',
+  [TerrainType.Plains]: 't_plains',
+  [TerrainType.Desert]: 't_desert',
+  [TerrainType.Tundra]: 't_tundra',
+  [TerrainType.Glacier]: 't_glacier',
+  [TerrainType.Swamp]: 't_swamp',
+};
+
+export const OVERLAY_FRAME: Partial<Record<TerrainType, string>> = {
+  [TerrainType.Hills]: 'o_hills',
+  [TerrainType.Mountains]: 'o_mountains',
+  [TerrainType.Forest]: 'o_forest',
+  [TerrainType.Jungle]: 'o_jungle',
+};
+
+export const RESOURCE_FRAME: Partial<Record<ResourceType, string>> = {
+  [ResourceType.Oasis]: 'r_oasis',
+  [ResourceType.Oil]: 'r_oil',
+  [ResourceType.Coal]: 'r_coal',
+  [ResourceType.Gold]: 'r_gold',
+  [ResourceType.Iron]: 'r_iron',
+  [ResourceType.Fish]: 'r_fish',
+  [ResourceType.Game]: 'r_game',
+};
+
+export class SpriteAtlas {
+  public static image: HTMLImageElement;
+  private static frames: Record<string, FrameData> = {};
+  private static source: TextureSource;
+  private static textures = new Map<string, Texture>();
+
+  public static async load(): Promise<void> {
+    const base = '/assets/sprites/';
+    const json = await fetch(`${base}atlas.json`).then((r) => r.json());
+    this.frames = json.frames;
+    this.image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = `${base}${json.meta.image}`;
+    });
+    this.source = Texture.from(this.image).source;
+    this.source.scaleMode = 'nearest';
+  }
+
+  public static has(name: string): boolean {
+    return name in this.frames;
+  }
+
+  public static rect(name: string): { x: number; y: number; w: number; h: number } {
+    const f = this.frames[name];
+    if (!f) throw new Error(`Спрайт "${name}" відсутній в атласі`);
+    return f.frame;
+  }
+
+  public static texture(name: string): Texture {
+    let tex = this.textures.get(name);
+    if (!tex) {
+      const { x, y, w, h } = this.rect(name);
+      tex = new Texture({ source: this.source, frame: new Rectangle(x, y, w, h) });
+      this.textures.set(name, tex);
+    }
+    return tex;
+  }
+
+  public static unitTexture(type: UnitTypeKey): Texture {
+    return this.texture(`u_${type}`);
+  }
+
+  public static cityTexture(size: number): Texture {
+    return this.texture(size <= 3 ? 'c_tier1' : size <= 7 ? 'c_tier2' : 'c_tier3');
+  }
+
+  /** Малює кадр на 2D-полотні (для запікання та HUD). */
+  public static draw(ctx: CanvasRenderingContext2D, name: string, dx: number, dy: number, dw?: number, dh?: number): void {
+    const { x, y, w, h } = this.rect(name);
+    ctx.drawImage(this.image, x, y, w, h, dx, dy, dw ?? w, dh ?? h);
+  }
+
+  /** Окреме полотно з одним кадром (джерело для createPattern). */
+  public static toCanvas(name: string): HTMLCanvasElement {
+    const { w, h } = this.rect(name);
+    const c = document.createElement('canvas');
+    c.width = w;
+    c.height = h;
+    this.draw(c.getContext('2d')!, name, 0, 0);
+    return c;
+  }
+}

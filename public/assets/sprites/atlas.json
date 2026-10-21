@@ -1,0 +1,1722 @@
+{
+ "frames": {
+  "bd_land": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 384,
+    "h": 216
+   },
+   "sourceSize": {
+    "w": 384,
+    "h": 216
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 384,
+    "h": 216
+   }
+  },
+  "t_ocean": {
+   "frame": {
+    "x": 388,
+    "y": 2,
+    "w": 128,
+    "h": 128
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 128
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 128
+   }
+  },
+  "t_grassland": {
+   "frame": {
+    "x": 518,
+    "y": 2,
+    "w": 128,
+    "h": 128
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 128
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 128
+   }
+  },
+  "t_plains": {
+   "frame": {
+    "x": 648,
+    "y": 2,
+    "w": 128,
+    "h": 128
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 128
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 128
+   }
+  },
+  "t_desert": {
+   "frame": {
+    "x": 778,
+    "y": 2,
+    "w": 128,
+    "h": 128
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 128
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 128
+   }
+  },
+  "t_tundra": {
+   "frame": {
+    "x": 2,
+    "y": 220,
+    "w": 128,
+    "h": 128
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 128
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 128
+   }
+  },
+  "t_glacier": {
+   "frame": {
+    "x": 132,
+    "y": 220,
+    "w": 128,
+    "h": 128
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 128
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 128
+   }
+  },
+  "t_swamp": {
+   "frame": {
+    "x": 262,
+    "y": 220,
+    "w": 128,
+    "h": 128
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 128
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 128
+   }
+  },
+  "b_palace": {
+   "frame": {
+    "x": 392,
+    "y": 220,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "b_barracks": {
+   "frame": {
+    "x": 466,
+    "y": 220,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "b_granary": {
+   "frame": {
+    "x": 540,
+    "y": 220,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "b_temple": {
+   "frame": {
+    "x": 614,
+    "y": 220,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "b_marketplace": {
+   "frame": {
+    "x": 688,
+    "y": 220,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "b_library": {
+   "frame": {
+    "x": 762,
+    "y": 220,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "b_city_walls": {
+   "frame": {
+    "x": 836,
+    "y": 220,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "b_courthouse": {
+   "frame": {
+    "x": 910,
+    "y": 220,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "b_colosseum": {
+   "frame": {
+    "x": 2,
+    "y": 350,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "b_aqueduct": {
+   "frame": {
+    "x": 76,
+    "y": 350,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "w_pyramids": {
+   "frame": {
+    "x": 150,
+    "y": 350,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "w_colossus": {
+   "frame": {
+    "x": 224,
+    "y": 350,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "w_great_library": {
+   "frame": {
+    "x": 298,
+    "y": 350,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "w_hanging_gardens": {
+   "frame": {
+    "x": 372,
+    "y": 350,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "w_great_wall": {
+   "frame": {
+    "x": 446,
+    "y": 350,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "w_lighthouse": {
+   "frame": {
+    "x": 520,
+    "y": 350,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "w_oracle": {
+   "frame": {
+    "x": 594,
+    "y": 350,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "b_cathedral": {
+   "frame": {
+    "x": 668,
+    "y": 350,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "b_university": {
+   "frame": {
+    "x": 742,
+    "y": 350,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "b_bank": {
+   "frame": {
+    "x": 816,
+    "y": 350,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "b_harbour": {
+   "frame": {
+    "x": 890,
+    "y": 350,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "w_marco_polo": {
+   "frame": {
+    "x": 2,
+    "y": 424,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "w_copernicus": {
+   "frame": {
+    "x": 76,
+    "y": 424,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "w_michelangelo": {
+   "frame": {
+    "x": 150,
+    "y": 424,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "w_king_richards": {
+   "frame": {
+    "x": 224,
+    "y": 424,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "b_factory": {
+   "frame": {
+    "x": 298,
+    "y": 424,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "b_power_plant": {
+   "frame": {
+    "x": 372,
+    "y": 424,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "w_shakespeare": {
+   "frame": {
+    "x": 446,
+    "y": 424,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "w_newton": {
+   "frame": {
+    "x": 520,
+    "y": 424,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "w_magellan": {
+   "frame": {
+    "x": 594,
+    "y": 424,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "w_leonardo": {
+   "frame": {
+    "x": 668,
+    "y": 424,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "w_darwin": {
+   "frame": {
+    "x": 742,
+    "y": 424,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "w_adam_smith": {
+   "frame": {
+    "x": 816,
+    "y": 424,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "b_stock_exchange": {
+   "frame": {
+    "x": 890,
+    "y": 424,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "b_sewer": {
+   "frame": {
+    "x": 2,
+    "y": 498,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "b_mass_transit": {
+   "frame": {
+    "x": 76,
+    "y": 498,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "w_hoover_dam": {
+   "frame": {
+    "x": 150,
+    "y": 498,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "w_womens_suffrage": {
+   "frame": {
+    "x": 224,
+    "y": 498,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "w_bach": {
+   "frame": {
+    "x": 298,
+    "y": 498,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   }
+  },
+  "o_hills": {
+   "frame": {
+    "x": 372,
+    "y": 498,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   }
+  },
+  "o_mountains": {
+   "frame": {
+    "x": 438,
+    "y": 498,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   }
+  },
+  "o_forest": {
+   "frame": {
+    "x": 504,
+    "y": 498,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   }
+  },
+  "o_jungle": {
+   "frame": {
+    "x": 570,
+    "y": 498,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   }
+  },
+  "c_tier1": {
+   "frame": {
+    "x": 636,
+    "y": 498,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   }
+  },
+  "c_tier2": {
+   "frame": {
+    "x": 702,
+    "y": 498,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   }
+  },
+  "c_tier3": {
+   "frame": {
+    "x": 768,
+    "y": 498,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   }
+  },
+  "u_settlers": {
+   "frame": {
+    "x": 834,
+    "y": 498,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_militia": {
+   "frame": {
+    "x": 892,
+    "y": 498,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_phalanx": {
+   "frame": {
+    "x": 950,
+    "y": 498,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_legion": {
+   "frame": {
+    "x": 2,
+    "y": 572,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_cavalry": {
+   "frame": {
+    "x": 60,
+    "y": 572,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_chariot": {
+   "frame": {
+    "x": 118,
+    "y": 572,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_catapult": {
+   "frame": {
+    "x": 176,
+    "y": 572,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_knights": {
+   "frame": {
+    "x": 234,
+    "y": 572,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_sail": {
+   "frame": {
+    "x": 292,
+    "y": 572,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_workers": {
+   "frame": {
+    "x": 350,
+    "y": 572,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_diplomat": {
+   "frame": {
+    "x": 408,
+    "y": 572,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_caravan": {
+   "frame": {
+    "x": 466,
+    "y": 572,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_archers": {
+   "frame": {
+    "x": 524,
+    "y": 572,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_pikemen": {
+   "frame": {
+    "x": 582,
+    "y": 572,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_crusaders": {
+   "frame": {
+    "x": 640,
+    "y": 572,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_musketeers": {
+   "frame": {
+    "x": 698,
+    "y": 572,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_cannon": {
+   "frame": {
+    "x": 756,
+    "y": 572,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_caravel": {
+   "frame": {
+    "x": 814,
+    "y": 572,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_frigate": {
+   "frame": {
+    "x": 872,
+    "y": 572,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_ironclad": {
+   "frame": {
+    "x": 930,
+    "y": 572,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_transport": {
+   "frame": {
+    "x": 2,
+    "y": 630,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_riflemen": {
+   "frame": {
+    "x": 60,
+    "y": 630,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_artillery": {
+   "frame": {
+    "x": 118,
+    "y": 630,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_armor": {
+   "frame": {
+    "x": 176,
+    "y": 630,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_mech_inf": {
+   "frame": {
+    "x": 234,
+    "y": 630,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_cruiser": {
+   "frame": {
+    "x": 292,
+    "y": 630,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_battleship": {
+   "frame": {
+    "x": 350,
+    "y": 630,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "u_submarine": {
+   "frame": {
+    "x": 408,
+    "y": 630,
+    "w": 56,
+    "h": 56
+   },
+   "sourceSize": {
+    "w": 56,
+    "h": 56
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 56,
+    "h": 56
+   }
+  },
+  "i_mine": {
+   "frame": {
+    "x": 466,
+    "y": 630,
+    "w": 36,
+    "h": 36
+   },
+   "sourceSize": {
+    "w": 36,
+    "h": 36
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 36,
+    "h": 36
+   }
+  },
+  "i_hut": {
+   "frame": {
+    "x": 504,
+    "y": 630,
+    "w": 36,
+    "h": 36
+   },
+   "sourceSize": {
+    "w": 36,
+    "h": 36
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 36,
+    "h": 36
+   }
+  },
+  "h_hut_a": {
+   "frame": {
+    "x": 542,
+    "y": 630,
+    "w": 34,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 34,
+    "h": 34
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 34,
+    "h": 34
+   }
+  },
+  "h_hut_b": {
+   "frame": {
+    "x": 578,
+    "y": 630,
+    "w": 34,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 34,
+    "h": 34
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 34,
+    "h": 34
+   }
+  },
+  "h_house_a": {
+   "frame": {
+    "x": 614,
+    "y": 630,
+    "w": 34,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 34,
+    "h": 34
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 34,
+    "h": 34
+   }
+  },
+  "h_house_b": {
+   "frame": {
+    "x": 650,
+    "y": 630,
+    "w": 34,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 34,
+    "h": 34
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 34,
+    "h": 34
+   }
+  },
+  "r_oasis": {
+   "frame": {
+    "x": 686,
+    "y": 630,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   }
+  },
+  "r_oil": {
+   "frame": {
+    "x": 716,
+    "y": 630,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   }
+  },
+  "r_coal": {
+   "frame": {
+    "x": 746,
+    "y": 630,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   }
+  },
+  "r_gold": {
+   "frame": {
+    "x": 776,
+    "y": 630,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   }
+  },
+  "r_iron": {
+   "frame": {
+    "x": 806,
+    "y": 630,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   }
+  },
+  "r_fish": {
+   "frame": {
+    "x": 836,
+    "y": 630,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   }
+  },
+  "r_game": {
+   "frame": {
+    "x": 866,
+    "y": 630,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   }
+  }
+ },
+ "meta": {
+  "image": "atlas.png",
+  "size": {
+   "w": 1024,
+   "h": 1024
+  },
+  "scale": 1
+ }
+}

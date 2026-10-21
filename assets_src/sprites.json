@@ -1,0 +1,506 @@
+{
+  "style": {
+    "common": "16-bit SNES-era pixel art for a top-down turn-based historical strategy game in the spirit of Civilization. Crisp hard-edged square pixels, no anti-aliasing, no blur, no gradients, limited palette of about 24 colors, warm natural tones, consistent lighting from the top-left. Absolutely no text, letters, numbers, labels, border, frame, card, panel, UI elements or watermark.",
+    "terrain": "Seamless tileable square ground texture seen straight down from high above like a map, filling the entire image edge to edge. Calm and LOW CONTRAST: mostly one flat base color with only sparse, small, subtle detail pixels in two or three close shades, so that game units placed on top stay clearly readable. Uniform density everywhere, no single object that stands out, no tall blades seen from the side, no vignette, no perspective, no horizon.",
+    "overlay": "One single cluster seen from a 3/4 top-down view, centered, filling about 80% of the image width, 1-pixel dark outline around the whole cluster, on a perfectly flat solid pure magenta (#FF00FF) background. No ground patch, no grass, no cast shadow, nothing else on the background.",
+    "unit": "One single game unit sprite, full body, 3/4 top-down view facing right, centered, filling about 75% of the image height, chunky readable silhouette, 1-pixel dark outline, on a perfectly flat solid pure magenta (#FF00FF) background. No ground, no shadow, no base, no pedestal, no extra objects.",
+    "city": "One single compact walled town, 3/4 top-down view, centered, filling about 85% of the image width, 1-pixel dark outline around the whole town, on a perfectly flat solid pure magenta (#FF00FF) background. No ground plane, no roads leading out, no cast shadow.",
+    "resource": "One single small icon object, centered, filling about 60% of the image, bold readable shape, 1-pixel dark outline, on a perfectly flat solid pure magenta (#FF00FF) background. No ground, no shadow.",
+    "improvement": "One single small object, 3/4 top-down view, centered, filling about 70% of the image, bold readable shape, 1-pixel dark outline, on a perfectly flat solid pure magenta (#FF00FF) background. No ground patch, no grass, no shadow.",
+    "building": "One single building, ancient Mediterranean / Kyivan Rus era, 3/4 top-down view from the front, centered, filling about 85% of the image width, 1-pixel dark outline around the whole building, on a perfectly flat solid pure magenta (#FF00FF) background. No ground patch, no grass, no people, no cast shadow.",
+    "house": "One single building, ancient Mediterranean / Kyivan Rus era, 3/4 top-down view from the front, centered, filling about 85% of the image width, 1-pixel dark outline around the whole building, on a perfectly flat solid pure magenta (#FF00FF) background. No ground patch, no grass, no people, no cast shadow.",
+    "backdrop": "Wide landscape backdrop for a city view screen, seen from slightly above. No buildings, no people, no animals, no roads."
+  },
+  "sizes": {
+    "terrain": 128,
+    "overlay": 64,
+    "unit": 56,
+    "city": 64,
+    "resource": 28,
+    "improvement": 36,
+    "building": 72,
+    "house": 34,
+    "backdrop": [
+      384,
+      216
+    ]
+  },
+  "sprites": [
+    {
+      "id": "t_ocean",
+      "kind": "terrain",
+      "prompt": "deep blue ocean water with small scattered lighter wave glints"
+    },
+    {
+      "id": "t_grassland",
+      "kind": "terrain",
+      "prompt": "lush green meadow grass with tiny darker and lighter tufts"
+    },
+    {
+      "id": "t_plains",
+      "kind": "terrain",
+      "prompt": "dry yellow-green prairie grass with sparse ochre patches"
+    },
+    {
+      "id": "t_desert",
+      "kind": "terrain",
+      "prompt": "pale golden sand with gentle wind ripples and a few tiny pebbles"
+    },
+    {
+      "id": "t_tundra",
+      "kind": "terrain",
+      "prompt": "cold grey-brown tundra soil with sparse moss and lichen and small rocks"
+    },
+    {
+      "id": "t_glacier",
+      "kind": "terrain",
+      "prompt": "white and pale-blue packed snow and ice with faint cracks"
+    },
+    {
+      "id": "t_swamp",
+      "kind": "terrain",
+      "prompt": "murky olive-green marsh with small dark water pools and reeds"
+    },
+    {
+      "id": "o_hills",
+      "kind": "overlay",
+      "prompt": "a group of three rounded grassy-brown hills, low and wide"
+    },
+    {
+      "id": "o_mountains",
+      "kind": "overlay",
+      "prompt": "a group of two or three jagged grey rocky mountain peaks with snow caps"
+    },
+    {
+      "id": "o_forest",
+      "kind": "overlay",
+      "prompt": "a dense cluster of five or six dark green conifer and broadleaf trees"
+    },
+    {
+      "id": "o_jungle",
+      "kind": "overlay",
+      "prompt": "a dense cluster of tropical palm trees and large leafy jungle plants, vivid green"
+    },
+    {
+      "id": "u_settlers",
+      "kind": "unit",
+      "prompt": "a covered settler wagon pulled by one brown ox, with a peasant walking beside it"
+    },
+    {
+      "id": "u_militia",
+      "kind": "unit",
+      "prompt": "an ancient tribal militia warrior with a wooden club and leather tunic"
+    },
+    {
+      "id": "u_phalanx",
+      "kind": "unit",
+      "prompt": "a Greek hoplite with a big round bronze shield and a long spear held upright, crested helmet"
+    },
+    {
+      "id": "u_legion",
+      "kind": "unit",
+      "prompt": "a Roman legionary with a red rectangular scutum shield, short sword and plumed helmet"
+    },
+    {
+      "id": "u_cavalry",
+      "kind": "unit",
+      "prompt": "an ancient horseman riding a brown horse, holding a spear"
+    },
+    {
+      "id": "u_chariot",
+      "kind": "unit",
+      "prompt": "an ancient two-wheeled war chariot pulled by one horse with a charioteer"
+    },
+    {
+      "id": "u_catapult",
+      "kind": "unit",
+      "prompt": "a wooden siege catapult on four wheels, arm raised with a stone"
+    },
+    {
+      "id": "u_knights",
+      "kind": "unit",
+      "prompt": "a medieval armored knight on a white barded horse with a lance and pennant"
+    },
+    {
+      "id": "u_sail",
+      "kind": "unit",
+      "prompt": "an ancient trireme galley ship with one square sail and a row of oars, side view"
+    },
+    {
+      "id": "c_tier1",
+      "kind": "city",
+      "prompt": "a tiny ancient village of four small huts with thatched roofs inside a low wooden palisade"
+    },
+    {
+      "id": "c_tier2",
+      "kind": "city",
+      "prompt": "an ancient town with several stone houses with red tile roofs and a small temple, inside low stone walls"
+    },
+    {
+      "id": "c_tier3",
+      "kind": "city",
+      "prompt": "a large ancient city with many houses, a tall palace with towers and a big temple, inside thick stone walls with gate towers"
+    },
+    {
+      "id": "r_oasis",
+      "kind": "resource",
+      "prompt": "a tiny oasis pond with two palm trees"
+    },
+    {
+      "id": "r_oil",
+      "kind": "resource",
+      "prompt": "a black oil drop with a glossy highlight"
+    },
+    {
+      "id": "r_coal",
+      "kind": "resource",
+      "prompt": "a small pile of black coal lumps"
+    },
+    {
+      "id": "r_gold",
+      "kind": "resource",
+      "prompt": "a small pile of shiny gold nuggets"
+    },
+    {
+      "id": "r_iron",
+      "kind": "resource",
+      "prompt": "a small pile of rusty grey iron ore rocks"
+    },
+    {
+      "id": "r_fish",
+      "kind": "resource",
+      "prompt": "a single silver-blue fish leaping, side view"
+    },
+    {
+      "id": "r_game",
+      "kind": "resource",
+      "prompt": "a brown deer with antlers, side view"
+    },
+    {
+      "id": "i_mine",
+      "kind": "improvement",
+      "prompt": "an ancient mine entrance: a dark tunnel opening framed by wooden beams in a small pile of grey rocks, with a tiny wooden ore cart beside it"
+    },
+    {
+      "id": "u_workers",
+      "kind": "unit",
+      "prompt": "two ancient peasant workers in simple tunics, one carrying a shovel and the other a pickaxe on his shoulder"
+    },
+    {
+      "id": "b_palace",
+      "kind": "building",
+      "prompt": "a grand ancient palace with columns, a wide staircase, a golden dome and two small towers with banners"
+    },
+    {
+      "id": "b_barracks",
+      "kind": "building",
+      "prompt": "a long low military barracks of wood and stone with a training yard fence, stacked spears and a red banner"
+    },
+    {
+      "id": "b_granary",
+      "kind": "building",
+      "prompt": "a round clay granary with a conical thatched roof, sacks of grain at the door"
+    },
+    {
+      "id": "b_temple",
+      "kind": "building",
+      "prompt": "a small ancient stone temple with white columns and a triangular pediment roof"
+    },
+    {
+      "id": "b_marketplace",
+      "kind": "building",
+      "prompt": "an ancient open marketplace with three colorful striped cloth awnings over stalls with fruit, pottery and fabric"
+    },
+    {
+      "id": "b_library",
+      "kind": "building",
+      "prompt": "an ancient library building of sandstone with columns, scroll shelves visible through the open door"
+    },
+    {
+      "id": "b_city_walls",
+      "kind": "building",
+      "prompt": "a short straight section of grey crenellated stone city wall with one square tower in the middle, front view"
+    },
+    {
+      "id": "h_hut_a",
+      "kind": "house",
+      "prompt": "a tiny round peasant hut with mud walls and a thatched roof"
+    },
+    {
+      "id": "h_hut_b",
+      "kind": "house",
+      "prompt": "a tiny wooden log cabin with a steep thatched roof"
+    },
+    {
+      "id": "h_house_a",
+      "kind": "house",
+      "prompt": "a small whitewashed stone house with a red clay tile roof"
+    },
+    {
+      "id": "h_house_b",
+      "kind": "house",
+      "prompt": "a small two-storey timber and plaster house with a brown tile roof"
+    },
+    {
+      "id": "bd_land",
+      "kind": "backdrop",
+      "aspect": "16:9",
+      "prompt": "a peaceful wide grassy plain under a blue sky with a few small white clouds in the top quarter, low green hills and scattered trees along the horizon, a calm river far in the distance; the lower two thirds of the image is flat open grass ground, evenly lit, empty"
+    },
+    {
+      "id": "b_courthouse",
+      "kind": "building",
+      "prompt": "an ancient courthouse: a square stone hall with a columned portico and a bronze scales emblem above the door"
+    },
+    {
+      "id": "b_colosseum",
+      "kind": "building",
+      "prompt": "a round ancient amphitheatre arena of tan stone with rows of arches on two levels"
+    },
+    {
+      "id": "b_aqueduct",
+      "kind": "building",
+      "prompt": "an ancient stone aqueduct: a straight bridge of three tall arches carrying a water channel on top"
+    },
+    {
+      "id": "w_pyramids",
+      "kind": "building",
+      "prompt": "the great pyramid of Giza, tall golden-sand stone pyramid with a small temple at its base"
+    },
+    {
+      "id": "w_colossus",
+      "kind": "building",
+      "prompt": "the Colossus of Rhodes: a giant bronze statue of a man holding a torch, standing on a stone pedestal"
+    },
+    {
+      "id": "w_great_library",
+      "kind": "building",
+      "prompt": "the great library of Alexandria: a large white marble building with many columns and a wide staircase"
+    },
+    {
+      "id": "w_hanging_gardens",
+      "kind": "building",
+      "prompt": "the hanging gardens of Babylon: a stepped terraced ziggurat covered with green plants, palm trees and waterfalls"
+    },
+    {
+      "id": "w_great_wall",
+      "kind": "building",
+      "prompt": "a section of the great wall of China: a crenellated stone wall winding over a hill with two watchtowers"
+    },
+    {
+      "id": "w_lighthouse",
+      "kind": "building",
+      "prompt": "the lighthouse of Alexandria: a tall three-tiered white stone tower with a fire burning at the top"
+    },
+    {
+      "id": "u_diplomat",
+      "kind": "unit",
+      "prompt": "an ancient diplomat in a long blue robe holding a sealed scroll"
+    },
+    {
+      "id": "u_caravan",
+      "kind": "unit",
+      "prompt": "a merchant caravan: a loaded camel with bundles and a turbaned trader leading it"
+    },
+    {
+      "id": "u_archers",
+      "kind": "unit",
+      "prompt": "an ancient archer in a leather jerkin drawing a longbow, quiver on the back"
+    },
+    {
+      "id": "u_pikemen",
+      "kind": "unit",
+      "prompt": "a medieval pikeman in a steel helmet and padded coat holding a very long pike upright"
+    },
+    {
+      "id": "u_crusaders",
+      "kind": "unit",
+      "prompt": "a crusader knight in chainmail with a white surcoat and red cross, riding a brown horse, sword raised"
+    },
+    {
+      "id": "u_musketeers",
+      "kind": "unit",
+      "prompt": "a 17th century musketeer with a wide brimmed hat, blue coat and a long musket on the shoulder"
+    },
+    {
+      "id": "u_cannon",
+      "kind": "unit",
+      "prompt": "a bronze field cannon on a wooden two-wheeled carriage with a gunner beside it"
+    },
+    {
+      "id": "u_caravel",
+      "kind": "unit",
+      "prompt": "a small caravel sailing ship with two triangular lateen sails and a high stern, side view"
+    },
+    {
+      "id": "u_frigate",
+      "kind": "unit",
+      "prompt": "a three-masted wooden frigate with full white sails and a row of gun ports, side view"
+    },
+    {
+      "id": "w_oracle",
+      "kind": "building",
+      "prompt": "the Oracle of Delphi: a small round Greek temple with white columns on a rocky ledge with smoke rising from it"
+    },
+    {
+      "id": "b_cathedral",
+      "kind": "building",
+      "prompt": "a medieval stone cathedral with a tall bell tower, pointed arches and a large rose window"
+    },
+    {
+      "id": "b_university",
+      "kind": "building",
+      "prompt": "a medieval university: a sandstone college building with a clock tower and arched cloister"
+    },
+    {
+      "id": "b_bank",
+      "kind": "building",
+      "prompt": "a renaissance bank: a stone building with columns, heavy doors and gold coins carved above the entrance"
+    },
+    {
+      "id": "b_harbour",
+      "kind": "building",
+      "prompt": "a wooden harbour: a pier on stilts with a small crane, barrels and a moored rowing boat"
+    },
+    {
+      "id": "w_marco_polo",
+      "kind": "building",
+      "prompt": "Marco Polo's embassy: an ornate Venetian palazzo with arched windows and a striped mooring pole"
+    },
+    {
+      "id": "w_copernicus",
+      "kind": "building",
+      "prompt": "Copernicus' observatory: a round brick tower with a domed roof and a large brass telescope on top"
+    },
+    {
+      "id": "w_michelangelo",
+      "kind": "building",
+      "prompt": "Michelangelo's chapel: a renaissance chapel with a huge ribbed dome and a small lantern on top"
+    },
+    {
+      "id": "w_king_richards",
+      "kind": "building",
+      "prompt": "King Richard's crusade: a grey stone castle keep with banners and a gate with a portcullis"
+    },
+    {
+      "id": "i_hut",
+      "kind": "improvement",
+      "prompt": "a tiny tribal village: two small round huts with thatched roofs and a carved wooden totem pole between them"
+    },
+    {
+      "id": "u_ironclad",
+      "kind": "unit",
+      "prompt": "an 1860s steam ironclad warship: low dark iron hull, one smokestack with smoke, one gun turret, side view"
+    },
+    {
+      "id": "u_transport",
+      "kind": "unit",
+      "prompt": "a 19th century steam transport ship: long hull with a tall smokestack and cargo crates on deck, side view"
+    },
+    {
+      "id": "u_riflemen",
+      "kind": "unit",
+      "prompt": "a 19th century infantry rifleman in a blue coat and kepi cap holding a rifle with bayonet"
+    },
+    {
+      "id": "b_factory",
+      "kind": "building",
+      "prompt": "a 19th century brick factory with a saw-tooth roof and two tall smoking chimneys"
+    },
+    {
+      "id": "b_power_plant",
+      "kind": "building",
+      "prompt": "an early coal power plant: a big brick hall with three tall smokestacks and a small chimney cooling tower"
+    },
+    {
+      "id": "w_shakespeare",
+      "kind": "building",
+      "prompt": "Shakespeare's Globe Theatre: a round open-air wooden theatre with white plaster walls and a thatched roof and a flag on top"
+    },
+    {
+      "id": "w_newton",
+      "kind": "building",
+      "prompt": "Isaac Newton's College: an English stone college building with a clock tower, gothic windows and a large brass telescope on the roof"
+    },
+    {
+      "id": "w_magellan",
+      "kind": "building",
+      "prompt": "Magellan's expedition: a big three-masted carrack ship moored at a stone quay with a huge globe statue beside it"
+    },
+    {
+      "id": "w_leonardo",
+      "kind": "building",
+      "prompt": "Leonardo's Workshop: a renaissance workshop building with a wooden flying machine with bat wings mounted on its roof and gears outside"
+    },
+    {
+      "id": "w_darwin",
+      "kind": "building",
+      "prompt": "Darwin's voyage: the sailing ship HMS Beagle beside a small natural history museum with a giant tortoise statue"
+    },
+    {
+      "id": "w_adam_smith",
+      "kind": "building",
+      "prompt": "Adam Smith's trading company: a grand classical stock exchange building with columns and a golden coin emblem above the door"
+    },
+    {
+      "id": "u_artillery",
+      "kind": "unit",
+      "prompt": "a World War I field artillery gun: long steel barrel on two big spoked wheels with a gun shield, olive drab paint"
+    },
+    {
+      "id": "u_armor",
+      "kind": "unit",
+      "prompt": "a World War II battle tank: olive green steel hull, caterpillar tracks, round turret with a long cannon, side view"
+    },
+    {
+      "id": "u_mech_inf",
+      "kind": "unit",
+      "prompt": "a mid 20th century armored personnel carrier: boxy olive green wheeled vehicle with a helmeted soldier in the open hatch, side view"
+    },
+    {
+      "id": "u_cruiser",
+      "kind": "unit",
+      "prompt": "an early 20th century grey steel cruiser warship: sleek hull, two smokestacks, two small gun turrets, side view"
+    },
+    {
+      "id": "u_battleship",
+      "kind": "unit",
+      "prompt": "a huge World War II battleship: long dark grey hull, tall superstructure tower, three big triple gun turrets, side view"
+    },
+    {
+      "id": "u_submarine",
+      "kind": "unit",
+      "prompt": "a World War II submarine surfaced: long dark grey cigar-shaped hull low in the water with a conning tower and periscope, side view"
+    },
+    {
+      "id": "b_stock_exchange",
+      "kind": "building",
+      "prompt": "a 1900s stock exchange: grand neoclassical stone building with six tall columns, a triangular pediment and a big clock"
+    },
+    {
+      "id": "b_sewer",
+      "kind": "building",
+      "prompt": "a 1900s red brick sewage pumping station: small brick hall with arched windows and one short chimney, round iron manhole beside it"
+    },
+    {
+      "id": "b_mass_transit",
+      "kind": "building",
+      "prompt": "a 1920s tram depot: a long brick shed with arched gates and a red and cream electric tram car in front with overhead wire poles"
+    },
+    {
+      "id": "w_hoover_dam",
+      "kind": "building",
+      "prompt": "the Hoover Dam: a huge curved concrete arch dam between two rocky canyon walls with water falling and two intake towers"
+    },
+    {
+      "id": "w_womens_suffrage",
+      "kind": "building",
+      "prompt": "Women's suffrage monument: a white marble statue of a woman holding a torch up high on a stone pedestal with purple and white banners"
+    },
+    {
+      "id": "w_bach",
+      "kind": "building",
+      "prompt": "J.S. Bach's cathedral: a tall baroque church with twin spires and a big rose window, golden organ pipes visible through the open door"
+    }
+  ]
+}

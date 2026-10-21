@@ -1,0 +1,7 @@
+node_modules
+dist
+.env.local
+assets_src/raw
+_to_delete
+*.bak*
+assets_src/test

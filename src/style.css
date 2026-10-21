@@ -1,0 +1,590 @@
+/* Автентичні стилі класичного ремастеру Civilization 1 (1991 DOS) */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #02040a;
+  font-family: 'Courier New', Tahoma, monospace;
+  font-size: 12px;
+  color: #e2e8f0;
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+}
+
+/* Ліва бічна панель (автентичний DOS лейаут) */
+#sidebar-container {
+  width: 250px;
+  flex: 0 0 250px;
+  height: 100vh;
+  z-index: 20;
+}
+
+.civ-sidebar {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #09152e 0%, #0d1e3d 100%);
+  border-right: 2px solid #23467c;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  box-shadow: 3px 0 12px rgba(0, 0, 0, 0.7);
+}
+
+.civ-game-title {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 900;
+  color: #f1c40f;
+  letter-spacing: 2px;
+  text-shadow: 1px 1px 0 #000, 0 0 8px rgba(241, 196, 15, 0.5);
+  padding: 4px 0 2px 0;
+  border-bottom: 2px solid #23467c;
+}
+
+/* Класичні рамки панелей Civ 1 */
+.civ-panel-box {
+  background: rgba(10, 22, 45, 0.95);
+  border: 2px solid;
+  border-color: #3b629b #070e1c #070e1c #3b629b;
+  padding: 6px;
+  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.panel-header {
+  font-size: 10px;
+  font-weight: bold;
+  color: #70a1ff;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #1a3258;
+  padding-bottom: 2px;
+  text-transform: uppercase;
+}
+
+/* Міні-карта */
+.minimap-wrapper {
+  background: #000000;
+  border: 1px solid #1a3258;
+  display: flex;
+  justify-content: center;
+  padding: 2px;
+}
+
+.minimap-canvas {
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+  cursor: crosshair;
+}
+
+/* Статус імперії */
+.civ-name-badge {
+  background: #0a2e5c;
+  color: #54fcfc;
+  font-weight: bold;
+  font-size: 12px;
+  text-align: center;
+  padding: 4px;
+  border: 1px solid #00ffff;
+  text-shadow: 1px 1px 0 #000;
+  margin-bottom: 6px;
+}
+
+.status-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+}
+
+.highlight-gold {
+  font-size: 13px;
+  font-weight: bold;
+  color: #f1c40f;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.tech-link {
+  color: #60a5fa;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.tech-link:hover {
+  text-decoration: underline;
+  color: #93c5fd;
+}
+
+/* Активний юніт */
+.unit-card-flex {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+}
+
+.unit-portrait {
+  width: 56px;
+  height: 56px;
+  border: 1px solid #000;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+  background: #ffffff;
+}
+
+.unit-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.unit-name-text {
+  font-weight: bold;
+  font-size: 11px;
+  color: #ffffff;
+}
+
+.unit-terrain-text {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+/* Кнопки наказів */
+.action-buttons-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.civ-btn {
+  background: linear-gradient(180deg, #1e3a68 0%, #132749 100%);
+  border: 2px solid;
+  border-color: #3f72b5 #0a172c #0a172c #3f72b5;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 5px 8px;
+  cursor: pointer;
+  text-align: left;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.civ-btn:hover {
+  filter: brightness(1.2);
+}
+
+.civ-btn:active {
+  border-color: #0a172c #3f72b5 #3f72b5 #0a172c;
+  padding: 6px 7px 4px 9px;
+}
+
+.civ-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.8);
+}
+
+.civ-btn-end-turn {
+  background: linear-gradient(180deg, #b91c1c 0%, #7f1d1d 100%);
+  border-color: #ef4444 #450a0a #450a0a #ef4444;
+  color: #ffffff;
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 1px;
+  margin-top: 4px;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
+.civ-btn-end-turn:hover {
+  background: linear-gradient(180deg, #dc2626 0%, #991b1b 100%);
+}
+
+/* Права колонка: Ігрове поле та стрічка подій */
+#game-main {
+  flex: 1;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.civ-ticker {
+  height: 26px;
+  background: #060d1a;
+  border-bottom: 2px solid #1a3258;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #54fcfc;
+  text-shadow: 1px 1px 0 #000;
+  z-index: 10;
+}
+
+#canvas-container {
+  flex: 1;
+  width: 100%;
+  height: calc(100vh - 26px);
+  position: relative;
+  overflow: hidden;
+  background-color: #02040a;
+  cursor: grab;
+}
+
+#canvas-container:active {
+  cursor: grabbing;
+}
+
+/* Модальні вікна (Місто, Наука) */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.city-modal, .tech-modal {
+  width: 640px;
+  max-width: 90vw;
+  background: #0e1e3b;
+  border: 3px solid;
+  border-color: #3b629b #070e1c #070e1c #3b629b;
+  padding: 12px;
+  color: #e2e8f0;
+  box-shadow: 4px 4px 24px rgba(0, 0, 0, 0.9);
+}
+
+.city-header {
+  background: #0a2e5c;
+  color: #f1c40f;
+  padding: 6px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  border: 1px solid #1a528e;
+}
+
+.city-header h2 {
+  font-size: 14px;
+}
+
+.btn-close {
+  background: #1e3a68;
+  color: #fff;
+  border: 1px solid #3f72b5;
+  cursor: pointer;
+  padding: 2px 8px;
+  font-weight: bold;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 12px;
+  background: #060d1a;
+  border: 1px solid #1a3258;
+  margin: 5px 0;
+}
+
+.progress-fill.food {
+  height: 100%;
+  background: #27ae60;
+}
+
+.progress-fill.shields {
+  height: 100%;
+  background: #2980b9;
+}
+
+.btn-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.btn-group button, .btn-primary {
+  background: #1e3a68;
+  border: 1px solid #3f72b5;
+  color: #ffffff;
+  padding: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn-group button:hover, .btn-primary:hover {
+  background: #2b528f;
+}
+
+.tech-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 60vh;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.tech-card {
+  background: #09152b;
+  border: 1px solid #1a3258;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tech-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tech-cost {
+  color: #60a5fa;
+  font-weight: bold;
+}
+
+/* Обране виробництво в екрані міста */
+.btn-action.active {
+  outline: 2px solid #f1c40f;
+  outline-offset: -2px;
+}
+
+/* Неможлива дія — видно, але не клікається; причина в підказці */
+.civ-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Панорама міста: піксель-арт 320×180, масштабується на всю ширину вікна */
+.city-panorama {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  image-rendering: pixelated;
+  border: 2px solid;
+  border-color: #070e1c #3b629b #3b629b #070e1c;
+  margin-bottom: 10px;
+}
+
+/* Що відкриває технологія */
+.tech-unlocks {
+  color: #f1c40f;
+  font-size: 11px;
+}
+
+/* Безлад у місті */
+.disorder-badge {
+  background: #c0392b;
+  color: #fff;
+  padding: 0 6px;
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+/* Ставки податків / розкоші / науки */
+.rates-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+.rate-btn {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  line-height: 14px;
+  font-family: inherit;
+  font-weight: bold;
+  color: #f1c40f;
+  background: #16305a;
+  border: 1px solid;
+  border-color: #3b629b #070e1c #070e1c #3b629b;
+  cursor: pointer;
+}
+.rate-btn:active {
+  border-color: #070e1c #3b629b #3b629b #070e1c;
+}
+.citizens {
+  letter-spacing: -2px;
+  font-size: 15px;
+}
+
+/* Недоступна дія в діалогах (устрій, дослідження) */
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Чистий дохід у бічній панелі */
+.income-good { color: #7fd17f; }
+.income-bad { color: #ff6b6b; }
+
+
+/* ===== Усе вміщається в екран ===== */
+
+/* Вікна не вищі за екран: заголовок фіксований, вміст гортається всередині */
+.city-modal, .tech-modal {
+  max-height: calc(100vh - 24px);
+  display: flex;
+  flex-direction: column;
+}
+.tech-modal .tech-list {
+  max-height: none;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Екран міста: дві колонки */
+.city-modal--wide {
+  width: min(1240px, 96vw);
+  max-width: 96vw;
+}
+.city-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 12px;
+  min-height: 0;
+  flex: 1;
+}
+.city-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 0;
+}
+.city-modal--wide .city-panorama {
+  width: 100%;
+  height: auto;
+  max-height: 48vh;
+  object-fit: contain;
+  background: #060d1a;
+  margin-bottom: 4px;
+}
+.city-stat {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 10px;
+  font-size: 11px;
+}
+.city-stat .good { color: #7fd17f; }
+.city-stat .bad { color: #ff6b6b; }
+.dim { color: #8aa0bf; font-weight: normal; }
+.city-subhead {
+  font-size: 11px;
+  color: #70a1ff;
+  border-bottom: 1px solid #1a3258;
+  padding-bottom: 2px;
+  margin-top: 2px;
+  display: flex;
+  justify-content: space-between;
+}
+.building-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-height: 22vh;
+  overflow-y: auto;
+}
+.chip {
+  background: #12284d;
+  border: 1px solid #2c4f86;
+  padding: 1px 6px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.chip--wonder { border-color: #f1c40f; color: #f8e08e; }
+.prod-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.prod-group-title {
+  font-size: 10px;
+  color: #8aa0bf;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 6px 0 3px;
+}
+.prod-list .btn-group {
+  margin-top: 0;
+  gap: 4px;
+}
+.prod-list .btn-action {
+  padding: 4px 6px;
+  font-size: 11px;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+}
+.prod-list .cost { color: #8aa0bf; white-space: nowrap; }
+
+/* Вузький екран: колонки одна під одною */
+@media (max-width: 820px) {
+  .city-columns { grid-template-columns: 1fr; overflow-y: auto; }
+  .city-modal--wide .city-panorama { max-height: 30vh; }
+}
+
+/* Бічна панель: накази сіткою у 2 колонки, «Кінець ходу» на всю ширину */
+.action-buttons-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+.action-buttons-list .civ-btn {
+  padding: 4px 5px;
+  font-size: 10px;
+  line-height: 1.15;
+  /* довгий підпис переноситься, а не обрізається */
+  white-space: normal;
+}
+.action-buttons-list .civ-btn-end-turn {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  padding: 6px;
+}
+
+/* Низькі екрани: компактніша панель і менша мінікарта */
+@media (max-height: 820px) {
+  .civ-sidebar { padding: 6px; gap: 5px; }
+  .civ-panel-box { padding: 4px 6px; }
+  .civ-game-title { font-size: 13px; padding: 2px 0; }
+  .civ-name-badge { margin-bottom: 3px; padding: 2px; }
+  .status-rows { gap: 1px; }
+  .minimap-canvas { max-height: 110px; object-fit: contain; }
+  .unit-portrait { width: 44px; height: 44px; }
+}

@@ -1,0 +1,101 @@
+/**
+ * Логіка юнітів, переміщення та бойова система за правилами 1991 року.
+ */
+import { UNIT_CONFIGS, TERRAIN_DATA, MAP_WIDTH } from './constants';
+import { Unit, TileData, UnitTypeKey } from './types';
+
+/** Кіннота, проти якої стоять піки. */
+const MOUNTED = new Set([UnitTypeKey.Cavalry, UnitTypeKey.Chariot, UnitTypeKey.Knights, UnitTypeKey.Crusaders]);
+
+export class UnitLogic {
+  /**
+   * Обчислює витрати очок руху на вхід у клітинку.
+   */
+  public static getMovementCost(fromTile: TileData, toTile: TileData): number {
+    // Дороги знижують вартість пересування до 1/3 очка руху
+    // Місто в Civ 1 діє як клітинка з дорогою
+    const fromRoad = fromTile.hasRoad || !!fromTile.cityId;
+    const toRoad = toTile.hasRoad || !!toTile.cityId;
+    if (fromTile.hasRailroad && toTile.hasRailroad) {
+      return 0;
+    }
+    if (fromRoad && toRoad) {
+      return 1 / 3;
+    }
+
+    const terrain = TERRAIN_DATA[toTile.terrain];
+    return terrain ? terrain.moveCost : 1;
+  }
+
+  /**
+   * Перевіряє, чи може юніт здійснити рух на цільову клітинку.
+   */
+  public static canMoveTo(unit: Unit, targetTile: TileData): boolean {
+    const config = UNIT_CONFIGS[unit.type];
+    if (config.domain === 'land' && targetTile.terrain === 'ocean') {
+      return false; // Сухопутні юніти не ходять по воді без транспорту
+    }
+    if (config.domain === 'sea' && targetTile.terrain !== 'ocean' && !targetTile.cityId) {
+      return false; // Кораблі можуть заходити тільки у воду або портове місто
+    }
+    return unit.movesLeft > 0;
+  }
+
+  /**
+   * Вирішення бою між атакуючим та захисником за класичною формулою 1991 року.
+   */
+  public static resolveCombat(
+    attacker: Unit,
+    defender: Unit,
+    defTile: TileData,
+    hasWalls: boolean = false
+  ): { attackerWon: boolean; logUa: string } {
+    const aCfg = UNIT_CONFIGS[attacker.type];
+    const dCfg = UNIT_CONFIGS[defender.type];
+
+    // Ветерани: +50% атаки й захисту
+    const attackPower = Math.max(1, aCfg.attack) * (attacker.veteran ? 1.5 : 1);
+    let defensePower = Math.max(1, dCfg.defense) * (defender.veteran ? 1.5 : 1);
+
+    // Бонус місцевості
+    const terrainBonus = TERRAIN_DATA[defTile.terrain]?.defenseBonus ?? 1.0;
+    defensePower *= terrainBonus;
+
+    // Пікінери проти вершників — захист ×2 (танки й мотопіхота — не коні)
+    if (defender.type === UnitTypeKey.Pikemen && MOUNTED.has(attacker.type)) {
+      defensePower *= 2;
+    }
+
+    // Бонус укріплення (+50%)
+    if (defender.isFortified) {
+      defensePower *= 1.5;
+    }
+
+    // Бонус міських мурів або Великого муру (потроєння захисту проти сухопутних сил)
+    if (hasWalls && aCfg.domain === 'land') {
+      defensePower *= 3.0;
+    }
+
+    // Класичний раунд бою Civ 1: імовірність перемоги = Attack / (Attack + Defense)
+    const totalPower = attackPower + defensePower;
+    const attackerWinProb = attackPower / totalPower;
+    const roll = Math.random();
+
+    const attackerWon = roll < attackerWinProb;
+
+    const logUa = attackerWon
+      ? `${aCfg.nameUa} здолав ${dCfg.nameUa}! (Атака: ${attackPower.toFixed(1)} проти Захисту: ${defensePower.toFixed(1)})`
+      : `${dCfg.nameUa} відбив напад ${aCfg.nameUa}! (Захист: ${defensePower.toFixed(1)} проти Атаки: ${attackPower.toFixed(1)})`;
+
+    return { attackerWon, logUa };
+  }
+
+  /**
+   * Перевіряє суміжність двох точок з урахуванням горизонтального зациклення карти.
+   */
+  public static isAdjacent(x1: number, y1: number, x2: number, y2: number): boolean {
+    if (Math.abs(y1 - y2) > 1) return false;
+    const dx = Math.abs(x1 - x2);
+    return dx <= 1 || dx === MAP_WIDTH - 1;
+  }
+}
