@@ -9,6 +9,9 @@ import { GovernmentDialog } from './ui/government-dialog';
 import { SpaceDialog } from './ui/space-dialog';
 import { TurnManager } from './core/turn-manager';
 import { GameOverDialog } from './ui/game-over-dialog';
+import { GameMenuDialog } from './ui/game-menu-dialog';
+import { showMainMenu, MenuChoice } from './ui/main-menu';
+import { saveGame, loadSave, takePendingLoad } from './ui/save-store';
 import { MapRenderer } from './render/map-renderer';
 import { Hud } from './ui/hud';
 import { CityDialog } from './ui/city-dialog';
@@ -22,6 +25,11 @@ import { TerraformKind, TERRAFORM_INFO } from './core/terraform';
 async function bootstrap() {
   const container = document.getElementById('canvas-container')!;
   const appElement = document.getElementById('app')!;
+
+  // 0. Головне меню; після «Завантажити» в грі сторінка перезапускається одразу з потрібним слотом
+  const pending = takePendingLoad();
+  const pendingSave = pending ? loadSave(pending) : undefined;
+  const choice: MenuChoice = pendingSave ? { save: pendingSave } : await showMainMenu(appElement);
 
   // 1. Ініціалізація графічного рушія PixiJS v8
   const app = new Application();
@@ -37,7 +45,7 @@ async function bootstrap() {
   await SpriteAtlas.load();
 
   // 2. Створення світу та запікання рельєфу в шматки
-  const world = new World();
+  const world = 'save' in choice ? new World(undefined, choice.save) : new World(choice.options);
   const terrainChunks = TerrainBaker.bake(world);
   const renderer = new MapRenderer(app, world, terrainChunks);
   const hud = new Hud(appElement, world, renderer);
@@ -49,7 +57,9 @@ async function bootstrap() {
   const govDialog = new GovernmentDialog(appElement, world);
   const spaceDialog = new SpaceDialog(appElement, world);
   const gameOverDialog = new GameOverDialog(appElement, world);
-  let gameOverShown = false;
+  const gameMenu = new GameMenuDialog(appElement, world);
+  // Збережену завершену партію не оголошуємо вдруге
+  let gameOverShown = !!world.gameOver;
 
   let selectedUnit: Unit | undefined;
 
@@ -200,12 +210,17 @@ async function bootstrap() {
 
     renderer.refreshAll();
     selectNextAvailableUnit();
+    // Автозбереження щоходу
+    const saveError = saveGame(world, 'auto');
+    if (saveError) hud.addLogMessage(`⚠️ ${saveError}`);
     // Кінець гри показуємо один раз; далі можна дивитися на світ
     if (world.gameOver && !gameOverShown) {
       gameOverShown = true;
       gameOverDialog.show();
     }
   };
+
+  hud.onOpenGameMenu = () => gameMenu.show();
 
   hud.onOpenSpace = () => {
     spaceDialog.show(() => {

@@ -4,7 +4,7 @@
  */
 import { World } from '../core/world';
 import { Unit, UnitTypeKey, BuildingTypeKey } from '../core/types';
-import { UNIT_CONFIGS, TERRAIN_DATA, BUILDING_CONFIGS, GOVERNMENTS } from '../core/constants';
+import { MAP_WIDTH, MAP_HEIGHT, UNIT_CONFIGS, TERRAIN_DATA, BUILDING_CONFIGS, GOVERNMENTS } from '../core/constants';
 import { MiniMap } from './minimap';
 import { TurnManager } from '../core/turn-manager';
 import { MapRenderer } from '../render/map-renderer';
@@ -35,6 +35,7 @@ export class Hud {
   public onRatesChanged?: () => void;
   public onOpenGovernment?: () => void;
   public onOpenSpace?: () => void;
+  public onOpenGameMenu?: () => void;
 
   constructor(
     private container: HTMLElement,
@@ -51,7 +52,7 @@ export class Hud {
 
       <!-- Світ / Міні-карта -->
       <div class="civ-panel-box minimap-box-container">
-        <div class="panel-header">СВІТ (80×50)</div>
+        <div class="panel-header">СВІТ (${MAP_WIDTH}×${MAP_HEIGHT})</div>
         <div id="minimap-box" class="minimap-wrapper"></div>
       </div>
 
@@ -98,6 +99,7 @@ export class Hud {
           <button class="civ-btn" id="btn-fortify" title="Укріпитися: +50% захисту [F]">🛡️ Укріпити [F]</button>
           <button class="civ-btn" id="btn-wait" title="Чекати: наступний юніт [W]">⏳ Чекати [W]</button>
           <button class="civ-btn" id="btn-toggle-grid" title="Сітка клітинок [G]">📐 Сітка ✓ [G]</button>
+          <button class="civ-btn" id="btn-game-menu" title="Зберегти, завантажити, головне меню">💾 Гра</button>
           <button class="civ-btn civ-btn-end-turn" id="btn-end-turn">КІНЕЦЬ ХОДУ ⌛</button>
         </div>
       </div>
@@ -117,6 +119,7 @@ export class Hud {
     document.getElementById('btn-help-wonder')?.addEventListener('click', () => this.onHelpWonder?.());
     document.getElementById('hud-gov')?.addEventListener('click', () => this.onOpenGovernment?.());
     document.getElementById('hud-space')?.addEventListener('click', () => this.onOpenSpace?.());
+    document.getElementById('btn-game-menu')?.addEventListener('click', () => this.onOpenGameMenu?.());
     // Ставки: податки й розкіш ±10%, наука — решта (межа залежить від устрою)
     this.sidebarEl.querySelectorAll<HTMLButtonElement>('.rate-btn').forEach((btn) => {
       btn.addEventListener('click', () => {

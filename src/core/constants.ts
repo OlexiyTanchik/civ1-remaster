@@ -1,10 +1,89 @@
 import {
   TerrainType, TerrainYield, UnitTypeKey, UnitConfig, BuildingTypeKey, BuildingConfig, Tech, GovernmentKey, GovernmentConfig, SpacePart,
+  MapSizeKey, DifficultyKey, CivKey, GameOptions,
 } from './types';
 
-export const MAP_WIDTH = 80;
-export const MAP_HEIGHT = 50;
+// Розмір мапи змінюється перед створенням світу (setMapSize); імпорти бачать нове значення (live binding)
+export let MAP_WIDTH = 80;
+export let MAP_HEIGHT = 50;
 export const TILE_SIZE = 64;
+
+export function setMapSize(w: number, h: number): void {
+  MAP_WIDTH = w;
+  MAP_HEIGHT = h;
+}
+
+export const MAP_SIZES: Record<MapSizeKey, { nameUa: string; w: number; h: number }> = {
+  small: { nameUa: 'Мала', w: 64, h: 40 },
+  normal: { nameUa: 'Звичайна', w: 80, h: 50 },
+  large: { nameUa: 'Велика', w: 112, h: 70 },
+};
+
+/**
+ * Рівні складності Civ 1. Людині: скільки громадян задоволені від природи, у скільки разів дорожча наука.
+ * AI: у скільки разів дешевше/дорожче йому все будувати. Варвари: з якого ходу приходять.
+ */
+export const DIFFICULTIES: Record<DifficultyKey, { nameUa: string; content: number; research: number; aiCost: number; barbariansFrom: number; descriptionUa: string }> = {
+  chieftain: { nameUa: 'Вождь', content: 6, research: 0.8, aiCost: 1.4, barbariansFrom: 90, descriptionUa: 'Для знайомства: люди спокійні, наука дешева, суперники повільні.' },
+  warlord: { nameUa: 'Воєвода', content: 5, research: 0.9, aiCost: 1.2, barbariansFrom: 75, descriptionUa: 'Трохи легше за звичайне.' },
+  prince: { nameUa: 'Князь', content: 4, research: 1, aiCost: 1, barbariansFrom: 60, descriptionUa: 'Рівні умови для всіх.' },
+  king: { nameUa: 'Король', content: 4, research: 1.1, aiCost: 0.85, barbariansFrom: 50, descriptionUa: 'Суперники будують швидше, наука дорожча.' },
+  emperor: { nameUa: 'Імператор', content: 3, research: 1.25, aiCost: 0.7, barbariansFrom: 45, descriptionUa: 'Для майстрів: міста бунтують, суперники мчать уперед.' },
+};
+
+/** Характер лідера: з якого ходу починає нападати на сусідів. */
+const WARLIKE = 45;
+const NORMAL = 80;
+const PEACEFUL = 110;
+
+export const CIVS: Record<CivKey, { nameUa: string; leaderUa: string; color: string; colorHex: number; hostileFromTurn: number; cityNames: string[] }> = {
+  rus: {
+    nameUa: 'Київська Русь', leaderUa: 'Ярослав Мудрий', color: '#2a75d3', colorHex: 0x2a75d3, hostileFromTurn: NORMAL,
+    cityNames: ['Київ', 'Чернігів', 'Переяслав', 'Галич', 'Володимир', 'Новгород-Сіверський', 'Полоцьк', 'Смоленськ',
+      'Турів', 'Луцьк', 'Белз', 'Звенигород', 'Вишгород', 'Любеч', 'Корсунь', 'Канів'],
+  },
+  romans: {
+    nameUa: 'Римляни', leaderUa: 'Юлій Цезар', color: '#d63031', colorHex: 0xd63031, hostileFromTurn: WARLIKE,
+    cityNames: ['Рим', 'Капуя', 'Неаполь', 'Равенна', 'Тарент', 'Помпеї', 'Мілан', 'Генуя', 'Верона', 'Аквілея'],
+  },
+  egyptians: {
+    nameUa: 'Єгиптяни', leaderUa: 'Рамзес II', color: '#f1c40f', colorHex: 0xf1c40f, hostileFromTurn: PEACEFUL,
+    cityNames: ['Фіви', 'Мемфіс', 'Олександрія', 'Гіза', 'Луксор', 'Асуан', 'Абідос', 'Саїс', 'Танис', 'Буто'],
+  },
+  greeks: {
+    nameUa: 'Греки', leaderUa: 'Олександр Македонський', color: '#7fd1ff', colorHex: 0x7fd1ff, hostileFromTurn: NORMAL,
+    cityNames: ['Афіни', 'Спарта', 'Коринф', 'Дельфи', 'Фіви Беотійські', 'Аргос', 'Мілет', 'Ефес', 'Пелла', 'Олімпія'],
+  },
+  babylonians: {
+    nameUa: 'Вавилоняни', leaderUa: 'Хаммурапі', color: '#e0e0e0', colorHex: 0xe0e0e0, hostileFromTurn: PEACEFUL,
+    cityNames: ['Вавилон', 'Ур', 'Урук', 'Ніппур', 'Лагаш', 'Кіш', 'Еріду', 'Ларса', 'Сіппар', 'Борсіппа'],
+  },
+  germans: {
+    nameUa: 'Германці', leaderUa: 'Фрідріх Барбаросса', color: '#4a4a4a', colorHex: 0x4a4a4a, hostileFromTurn: WARLIKE,
+    cityNames: ['Ахен', 'Кельн', 'Майнц', 'Трір', 'Аугсбург', 'Регенсбург', 'Вормс', 'Фульда', 'Бремен', 'Любек'],
+  },
+  chinese: {
+    nameUa: 'Китайці', leaderUa: 'Цінь Шихуанді', color: '#2ecc71', colorHex: 0x2ecc71, hostileFromTurn: NORMAL,
+    cityNames: ['Сяньян', 'Чан\'ань', 'Лоян', 'Ханчжоу', 'Кайфен', 'Нанкін', 'Ченду', 'Гуанчжоу', 'Пекін', 'Сучжоу'],
+  },
+  mongols: {
+    nameUa: 'Монголи', leaderUa: 'Чингісхан', color: '#a0522d', colorHex: 0xa0522d, hostileFromTurn: WARLIKE,
+    cityNames: ['Каракорум', 'Хара-Хото', 'Бейбулак', 'Кондуй', 'Аврага', 'Олон-Сум', 'Хадан', 'Ергуне', 'Шанду', 'Ханбалик'],
+  },
+  aztecs: {
+    nameUa: 'Ацтеки', leaderUa: 'Монтесума', color: '#e67e22', colorHex: 0xe67e22, hostileFromTurn: WARLIKE,
+    cityNames: ['Теночтітлан', 'Тескоко', 'Тлакопан', 'Чолула', 'Шочимілько', 'Тула', 'Койоакан', 'Кульуакан', 'Тлателолько', 'Чалько'],
+  },
+  english: {
+    nameUa: 'Англійці', leaderUa: 'Єлизавета I', color: '#9b59b6', colorHex: 0x9b59b6, hostileFromTurn: NORMAL,
+    cityNames: ['Лондон', 'Йорк', 'Ноттінгем', 'Гастінгс', 'Кентербері', 'Ковентрі', 'Вінчестер', 'Оксфорд', 'Бристоль', 'Плімут'],
+  },
+};
+
+/** Налаштування за замовчуванням: класична партія Русь проти Риму та Єгипту. */
+export const DEFAULT_OPTIONS: GameOptions = {
+  civ: 'rus', rivalCivs: ['romans', 'egyptians'], rivals: 2, mapSize: 'normal', difficulty: 'prince',
+};
 
 // Характеристики рельєфу за правилами Civilization 1 (1991)
 export const TERRAIN_DATA: Record<TerrainType, TerrainYield> = {

@@ -602,3 +602,23 @@ body, html {
 .hall-table tr.hall-me td { color: #7fd1ff; }
 .hall-title { color: #f1c40f; font-size: 13px; margin-top: 10px; }
 .hall-buttons { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+
+/* Головне меню, збереження */
+.main-menu-overlay { background: #050811; overflow-y: auto; align-items: flex-start; padding: 24px 16px; box-sizing: border-box; }
+.main-menu { width: 720px; margin: auto; }
+.main-menu-title { text-align: center; font-size: 34px; letter-spacing: 8px; color: #f1c40f; text-shadow: 3px 3px 0 #7a2e00; margin: 8px 0 2px; }
+.main-menu-sub { text-align: center; color: #9fb3d9; font-size: 12px; margin-bottom: 14px; }
+.main-menu-buttons { display: flex; flex-direction: column; gap: 10px; max-width: 360px; margin: 10px auto 6px; }
+.main-menu-buttons .btn-primary { padding: 10px; font-size: 14px; }
+.main-menu-buttons small { display: block; font-size: 11px; opacity: 0.8; margin-top: 2px; }
+.main-menu-back { margin-top: 12px; }
+.main-menu-start { width: 100%; padding: 10px; font-size: 14px; margin-top: 10px; }
+.mm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 6px; }
+.mm-civs { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.mm-option { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border: 1px solid #1a528e; background: #0a1a33; cursor: pointer; font-size: 12px; }
+.mm-option.selected { border-color: #f1c40f; background: #183a6b; }
+.mm-option input { accent-color: #f1c40f; }
+.mm-swatch { width: 14px; height: 14px; border: 1px solid #000; flex: none; }
+.save-slots { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
+.save-slot { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid #1a528e; background: #0a1a33; font-size: 12px; flex-wrap: wrap; }
+.save-slot-buttons { display: flex; gap: 6px; }

@@ -278,8 +278,27 @@ export interface Tech {
   descriptionUa: string;
 }
 
+/** Цивілізації, з яких обирають гравця й суперників. */
+export type CivKey = 'rus' | 'romans' | 'egyptians' | 'greeks' | 'babylonians' | 'germans' | 'chinese' | 'mongols' | 'aztecs' | 'english';
+export type MapSizeKey = 'small' | 'normal' | 'large';
+export type DifficultyKey = 'chieftain' | 'warlord' | 'prince' | 'king' | 'emperor';
+
+/** Налаштування нової гри (головне меню). */
+export interface GameOptions {
+  civ: CivKey;
+  /** Суперники; якщо не задано — випадкові з решти */
+  rivalCivs?: CivKey[];
+  rivals: number;
+  mapSize: MapSizeKey;
+  difficulty: DifficultyKey;
+}
+
 export interface Player {
   id: number;
+  /** Яка це цивілізація (назви міст, характер); у варварів немає */
+  civ?: CivKey;
+  /** Складність: у скільки разів дорожча наука (лише людині) */
+  researchFactor?: number;
   nameUa: string;
   leaderUa: string;
   color: string;

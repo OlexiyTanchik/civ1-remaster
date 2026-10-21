@@ -45,14 +45,17 @@ export class MapGenerator {
   private static generateContinents(seed: number): boolean[][] {
     let grid: boolean[][] = Array.from({ length: MAP_HEIGHT }, () => Array(MAP_WIDTH).fill(false));
 
-    // 5 великих континентальних ядер
+    // 5 великих континентальних ядер (розставлені для 80×50, масштабуються під розмір мапи)
+    const sx = MAP_WIDTH / 80;
+    const sy = MAP_HEIGHT / 50;
+    const ss = Math.sqrt(sx * sy);
     const centers = [
       { x: 16, y: 18, size: 16 },
       { x: 38, y: 32, size: 18 },
       { x: 62, y: 20, size: 17 },
       { x: 25, y: 36, size: 15 },
       { x: 70, y: 34, size: 14 },
-    ];
+    ].map((c) => ({ x: Math.round(c.x * sx), y: Math.round(c.y * sy), size: c.size * ss }));
 
     for (let y = 3; y < MAP_HEIGHT - 3; y++) {
       for (let x = 0; x < MAP_WIDTH; x++) {

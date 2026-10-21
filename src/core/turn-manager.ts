@@ -61,7 +61,7 @@ export class TurnManager {
    * перша — 10 колб, десята — 100. Тому епохи змінюються повільно.
    */
   public static researchCost(player: Player): number {
-    return (player.knownTechs.length + (player.futureTechs ?? 0) + 1) * 10;
+    return Math.round((player.knownTechs.length + (player.futureTechs ?? 0) + 1) * 10 * (player.researchFactor ?? 1));
   }
 
   /** Технологія за id (включно з технологією майбутнього). */

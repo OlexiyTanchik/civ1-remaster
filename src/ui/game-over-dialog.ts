@@ -13,6 +13,26 @@ interface HallEntry {
 
 const HALL_KEY = 'civ1-remaster-hall-of-fame';
 
+function loadHall(): HallEntry[] {
+  try {
+    return JSON.parse(localStorage.getItem(HALL_KEY) ?? '[]');
+  } catch {
+    return [];
+  }
+}
+
+/** Таблиця «Залу слави»: 10 найкращих партій (і для головного меню). */
+export function hallOfFameHtml(): string {
+  const hall = loadHall().sort((a, b) => b.score - a.score).slice(0, 10);
+  return `
+    <div class="hall-table-wrap">
+      <table class="hall-table">
+        <tr><th>#</th><th>Дата</th><th>Цивілізація</th><th>Підсумок</th><th>Рік</th><th>Рахунок</th></tr>
+        ${hall.map((h, i) => `<tr><td>${i + 1}</td><td>${h.date}</td><td>${h.civ}</td><td>${h.result}</td><td>${h.year}</td><td><b>${h.score}</b></td></tr>`).join('') || '<tr><td colspan="6">Поки порожньо — зіграйте першу партію до кінця.</td></tr>'}
+      </table>
+    </div>`;
+}
+
 export class GameOverDialog {
   private overlay: HTMLElement;
   private recorded = false;
@@ -37,7 +57,6 @@ export class GameOverDialog {
       this.recorded = true;
       this.saveHall({ date: new Date().toLocaleDateString('uk-UA'), civ: human.nameUa, result: won ? 'Перемога' : 'Поразка', year: over.year, score: myScore });
     }
-    const hall = this.loadHall().sort((a, b) => b.score - a.score).slice(0, 10);
 
     const rows = w.players
       .filter((p) => !p.isBarbarian)
@@ -60,12 +79,7 @@ export class GameOverDialog {
           </table>
         </div>
         <h3 class="hall-title">🏛️ Зал слави</h3>
-        <div class="hall-table-wrap">
-          <table class="hall-table">
-            <tr><th>#</th><th>Дата</th><th>Цивілізація</th><th>Підсумок</th><th>Рік</th><th>Рахунок</th></tr>
-            ${hall.map((h, i) => `<tr><td>${i + 1}</td><td>${h.date}</td><td>${h.civ}</td><td>${h.result}</td><td>${h.year}</td><td><b>${h.score}</b></td></tr>`).join('') || '<tr><td colspan="6">—</td></tr>'}
-          </table>
-        </div>
+        ${hallOfFameHtml()}
         <div class="hall-buttons">
           <button class="btn-primary" id="go-new-btn">Нова гра</button>
           <button class="btn-primary" id="go-close-btn">Подивитися на світ</button>
@@ -94,17 +108,9 @@ export class GameOverDialog {
       : { title: '⌛ 2100 рік: час вийшов', text: `Найвищий рахунок — у цивілізації ${winnerName}.` };
   }
 
-  private loadHall(): HallEntry[] {
-    try {
-      return JSON.parse(localStorage.getItem(HALL_KEY) ?? '[]');
-    } catch {
-      return [];
-    }
-  }
-
   private saveHall(entry: HallEntry): void {
     try {
-      localStorage.setItem(HALL_KEY, JSON.stringify([...this.loadHall(), entry]));
+      localStorage.setItem(HALL_KEY, JSON.stringify([...loadHall(), entry]));
     } catch {
       // Сховище недоступне (приватне вікно) — Зал слави просто не запам'ятає гру
     }

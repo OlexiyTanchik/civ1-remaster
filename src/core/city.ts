@@ -24,6 +24,10 @@ export interface CityEnv {
   government: GovernmentKey;
   /** Скільки військових стоїть у місті (воєнний стан Монархії) */
   garrison: number;
+  /** Складність: скільки громадян задоволені від природи (типово 4) */
+  baseContent?: number;
+  /** Складність: множник ціни виробництва (AI на високих рівнях будує дешевше) */
+  costFactor?: number;
 }
 
 export interface CityYields {
@@ -127,7 +131,7 @@ export class CityLogic {
 
     // Щастя: серед працюючих перші 4 задоволені, решта невдоволені (артисти не бунтують)
     const citizens = city.size - entertainers;
-    let content = Math.min(citizens, BASE_CONTENT);
+    let content = Math.min(citizens, env.baseContent ?? BASE_CONTENT);
     let unhappy = citizens - content;
     // Храм/колізей/чудеса заспокоюють невдоволених
     let calm = 0;
@@ -255,7 +259,7 @@ export class CityLogic {
 
     // 2. Виробництво щитів (у безладі місто не виробляє)
     city.shieldsStored += yields.shields;
-    const targetCost = this.getProductionCost(city.currentProduction);
+    const targetCost = Math.round(this.getProductionCost(city.currentProduction) * (env.costFactor ?? 1));
 
     if (city.shieldsStored >= targetCost) {
       completedProduction = { ...city.currentProduction };

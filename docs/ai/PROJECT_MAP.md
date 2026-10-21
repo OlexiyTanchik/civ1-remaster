@@ -12,8 +12,8 @@
 |---|---|
 | `src/main.ts` | Bootstrap: Pixi, атлас, світ, рендерер, HUD, діалоги; обробники кнопок і гарячих клавіш; `moveSelected` |
 | `src/core/types.ts` | Усі типи й енуми: `TileData`, `Unit`, `City`, `Player`, `UnitTypeKey`, `BuildingTypeKey`, `GovernmentKey/Config` |
-| `src/core/constants.ts` | Дані: `TERRAIN_DATA`, `UNIT_CONFIGS`, `BUILDING_CONFIGS` (чудеса — `isWonder`), `TECH_TREE` (69 техн., `era` 1–6; далі `FUTURE_TECH`), `SPACE_LIMITS`, `GOVERNMENTS`, `FAT_CROSS_OFFSETS`, `TILE_SIZE=64`, мапа 80×50 |
-| `src/core/world.ts` | Стан гри й правила між системами: рух/бій/посадка на кораблі й авіаносці, пальне літаків, ядерний вибух (`detonate`), агресія для ООН (`attackedRecently`), захоплення міст, хатки, варвари, кінець ходу, економіка, утримання, революції, чудеса (Леонардо, Дарвін), забруднення |
+| `src/core/constants.ts` | `MAP_WIDTH/HEIGHT` — `export let`, міняє `setMapSize` до створення світу; `MAP_SIZES`, `DIFFICULTIES`, `CIVS` (10 цивілізацій: лідер, колір, характер, міста), `DEFAULT_OPTIONS`. Дані: `TERRAIN_DATA`, `UNIT_CONFIGS`, `BUILDING_CONFIGS` (чудеса — `isWonder`), `TECH_TREE` (69 техн., `era` 1–6; далі `FUTURE_TECH`), `SPACE_LIMITS`, `GOVERNMENTS`, `FAT_CROSS_OFFSETS`, `TILE_SIZE=64`, мапа 80×50 |
+| `src/core/world.ts` | `new World(options, save?)`; `serialize()` / відновлення (`SaveData`, клітинки `[рельєф, ресурс, прапорці]`). Стан гри й правила між системами: рух/бій/посадка на кораблі й авіаносці, пальне літаків, ядерний вибух (`detonate`), агресія для ООН (`attackedRecently`), захоплення міст, хатки, варвари, кінець ходу, економіка, утримання, революції, чудеса (Леонардо, Дарвін), забруднення |
 | `src/core/city.ts` | `CityLogic`: видобуток міста (`calculateYields` → артисти → `yieldsWith`), щастя, корупція, множники будівель, ріст, виробництво, `autoAssignWorkers` |
 | `src/core/terraform.ts` | Роботи на землі (road/railroad, irrigation, mine, clean), `tileYield` (бонуси, щитові луки, залізниця, забруднення) |
 | `src/core/unit.ts` | `UnitLogic`: вартість руху (дорога 1/3, залізниця 0), `canMoveTo`, бій (`resolveCombat`: ветерани, мури, пікінери проти `MOUNTED`) |
@@ -27,6 +27,9 @@
 | `src/ui/hud.ts` | Бічна панель: ставки, лад, юніт, накази (сітка 2 колонки) |
 | `src/ui/city-dialog.ts` | Екран міста у 2 колонки; `productionOptions` (техи, `requires`, `coastal`, палац лише якщо втрачений) |
 | `src/ui/city-panorama.ts` | Панорама 384×216: `BUILDING_SLOTS` для кожної споруди/чуда, житла від центру назовні |
+| `src/ui/main-menu.ts` | Головне меню перед грою (`showMainMenu` → опції нової гри або збереження) |
+| `src/ui/save-store.ts` | localStorage: слоти `auto`, `1..3`, метадані; `setPendingLoad` + перезавантаження сторінки для завантаження з гри |
+| `src/ui/game-menu-dialog.ts` | «💾 Гра»: зберегти / завантажити / головне меню |
 | `src/ui/space-dialog.ts` | Вікно космічної гонки: частини (спрайти `sp_*`), час і шанс польоту, запуск, кораблі суперників |
 | `src/ui/game-over-dialog.ts` | Кінець гри: підсумок, рахунок усіх цивілізацій, «Зал слави» в localStorage (`civ1-remaster-hall-of-fame`) |
 | `src/ui/tech-dialog.ts`, `government-dialog.ts`, `minimap.ts`, `sound-fx.ts` | Радник (показує «що відкриває»), революція, мінікарта, звуки |
@@ -36,9 +39,10 @@
 | `tools/process-sprites.py` | Нарізка сіток (білі лінії між клітинками стирає `_erase_grid_lines`) → вирізання фону → зменшення → палітра → контур → `public/assets/sprites/atlas.png/json` |
 
 ## Модель даних і координати
-- Мапа `world.tiles[y][x]`, 80×50, **зациклена по X** (завжди `(x + W) % W`), по Y — ні. Відстань: `world.distance()` (Чебишов із зацикленням).
+- Мапа `world.tiles[y][x]`, 80×50 типово (64×40 / 112×70), **зациклена по X** (завжди `(x + W) % W`), по Y — ні. Відстань: `world.distance()` (Чебишов із зацикленням).
 - Світові пікселі = клітинка × `TILE_SIZE` (64). Рельєф запечений у полотна по 1024 px.
-- Гравці: `0` — людина, `1` Римляни (войовничі, `hostileFromTurn` 45), `2` Єгиптяни (мирні, 110), `3` — варвари (`BARBARIANS`, `isBarbarian`).
+- Гравці: `0` — людина, `1..N` — суперники (`player.civ`, `hostileFromTurn` з характеру: 45/80/110), останній — варвари (`world.barbarianId`, `isBarbarian`). `new World()` без опцій — Русь проти Риму й Єгипту.
+- Складність: `cityEnv` дає `baseContent` (людині) і `costFactor` (AI); `player.researchFactor` (людині).
 - `Unit`: `task` (робота R/I/M/P), `veteran`, `carriedBy` (id корабля чи авіаносця), `fuel` (літаки), `aiTarget`. Пасажири стоять на клітинці корабля, але сховані.
 - `UnitConfig`: `capacity` (сухопутні пасажири), `airCapacity` (літаки на авіаносці), `fuel` (ходів у повітрі), `requiresWonder` (ядерна ракета — Мангеттен будь-де).
 - `TileData`: `hasRoad/hasRailroad/hasIrrigation/hasMine/hasRiver/hasHut/hasPollution`, `cityId`, `unitIds`.

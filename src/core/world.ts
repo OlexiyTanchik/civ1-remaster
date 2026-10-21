@@ -1,8 +1,14 @@
 /**
  * Стан ігрового світу, управління мапою, юнітами, містами та гравцями.
  */
-import { MAP_WIDTH, MAP_HEIGHT, UNIT_CONFIGS, BUILDING_CONFIGS, TECH_TREE, GOVERNMENTS, SPACE_LIMITS } from './constants';
-import { TileData, Unit, City, Player, PlayerFog, UnitTypeKey, TerrainType, BuildingTypeKey, GovernmentKey, Spaceship, GameOver } from './types';
+import {
+  MAP_WIDTH, MAP_HEIGHT, UNIT_CONFIGS, BUILDING_CONFIGS, TECH_TREE, GOVERNMENTS, SPACE_LIMITS,
+  CIVS, MAP_SIZES, DIFFICULTIES, DEFAULT_OPTIONS, setMapSize,
+} from './constants';
+import {
+  TileData, Unit, City, Player, PlayerFog, UnitTypeKey, TerrainType, BuildingTypeKey, GovernmentKey, Spaceship, GameOver,
+  GameOptions, CivKey, ResourceType,
+} from './types';
 import { MapGenerator } from './map-generator';
 import { CityLogic } from './city';
 import { UnitLogic } from './unit';
@@ -24,8 +30,21 @@ export class World {
   private ai = new AiController(this);
   /** Події чужих ходів (захоплення міст), які треба показати людині в кінці ходу */
   private news: string[] = [];
+  /** Налаштування партії (цивілізація, суперники, мапа, складність) */
+  public options: GameOptions;
+  /** Індекс гравця-варварів — завжди останній */
+  public barbarianId = 0;
 
-  constructor() {
+  /** Нова гра з налаштувань або відновлення збереженої. */
+  constructor(options: GameOptions = DEFAULT_OPTIONS, save?: SaveData) {
+    this.options = save ? save.options : options;
+    const size = MAP_SIZES[this.options.mapSize];
+    setMapSize(size.w, size.h);
+    if (save) {
+      this.tiles = [];
+      this.restore(save);
+      return;
+    }
     this.tiles = MapGenerator.generateWorld();
     this.initPlayers();
     this.initFogOfWar();
@@ -33,19 +52,27 @@ export class World {
     this.placeHuts();
   }
 
+  /** Людина — гравець 0; далі суперники (задані або випадкові з решти); варвари — останні. */
   private initPlayers(): void {
-    const makePlayer = (id: number, nameUa: string, leaderUa: string, color: string, colorHex: number, isAi: boolean): Player => ({
-      id, nameUa, leaderUa, color, colorHex, isAi,
+    const o = this.options;
+    const diff = DIFFICULTIES[o.difficulty];
+    const others = (Object.keys(CIVS) as CivKey[]).filter((c) => c !== o.civ).sort(() => Math.random() - 0.5);
+    const rivals = (o.rivalCivs ?? others).filter((c) => c !== o.civ).slice(0, o.rivals);
+    const makePlayer = (id: number, civ: CivKey, isAi: boolean): Player => ({
+      id, civ, nameUa: CIVS[civ].nameUa, leaderUa: CIVS[civ].leaderUa, color: CIVS[civ].color, colorHex: CIVS[civ].colorHex, isAi,
       gold: 50, taxRate: 5, scienceRate: 5, luxuryRate: 0,
       researchProgress: 0, knownTechs: [], alive: true, government: 'despotism',
     });
+    // Характер лідерів: войовничі рано беруться за меч, мирні довго будують
     this.players = [
-      makePlayer(0, 'Київська Русь', 'Ярослав Мудрий', '#2a75d3', 0x2a75d3, false),
-      // Характер лідерів: Цезар рано береться за меч, Рамзес довго будує
-      { ...makePlayer(1, 'Римляни', 'Юлій Цезар', '#d63031', 0xd63031, true), hostileFromTurn: 45 },
-      { ...makePlayer(2, 'Єгиптяни', 'Рамзес II', '#f1c40f', 0xf1c40f, true), hostileFromTurn: 110 },
-      { ...makePlayer(BARBARIANS, 'Варвари', 'Вождь', '#5a1010', 0x5a1010, true), isBarbarian: true },
+      { ...makePlayer(0, o.civ, false), researchFactor: diff.research },
+      ...rivals.map((civ, i) => ({ ...makePlayer(i + 1, civ, true), hostileFromTurn: CIVS[civ].hostileFromTurn })),
     ];
+    this.barbarianId = this.players.length;
+    this.players.push({
+      id: this.barbarianId, nameUa: 'Варвари', leaderUa: 'Вождь', color: '#5a1010', colorHex: 0x5a1010, isAi: true, isBarbarian: true,
+      gold: 0, taxRate: 5, scienceRate: 5, luxuryRate: 0, researchProgress: 0, knownTechs: [], alive: true, government: 'despotism',
+    });
   }
 
   private initFogOfWar(): void {
@@ -476,6 +503,9 @@ export class World {
       scienceRate: player.scienceRate,
       luxuryRate: player.luxuryRate,
       government: player.government,
+      // Складність: людині — менше задоволених на важких рівнях, AI — інша ціна виробництва
+      baseContent: player.isAi ? 4 : DIFFICULTIES[this.options.difficulty].content,
+      costFactor: player.isAi && !player.isBarbarian ? DIFFICULTIES[this.options.difficulty].aiCost : 1,
       garrison: this.tiles[city.y][city.x].unitIds
         .map((id) => this.units.get(id))
         .filter((u) => u && u.playerId === city.playerId && UNIT_CONFIGS[u.type].attack > 0).length,
@@ -786,7 +816,7 @@ export class World {
         if (y < 0 || y >= MAP_HEIGHT) continue;
         const t = this.tiles[y][x];
         if (t.terrain === TerrainType.Ocean || t.cityId || t.unitIds.length) continue;
-        this.createUnit(BARBARIANS, UnitTypeKey.Legion, x, y);
+        this.createUnit(this.barbarianId, UnitTypeKey.Legion, x, y);
         spawned++;
       }
       if (spawned) return human ? '⚔️ Це була пастка! З селища вискочили варвари!' : undefined;
@@ -942,6 +972,62 @@ export class World {
     return { citizens, wonders, future, space, pollution: -pollution * 5, total };
   }
 
+  // ---------- Збереження ----------
+
+  /** Знімок усього стану гри (без кешів: unitIds і cityId клітинок відновлюються з юнітів і міст). */
+  public serialize(): SaveData {
+    const fogRow = (row: boolean[]) => row.map((b) => (b ? '1' : '0')).join('');
+    return {
+      version: 1,
+      options: this.options,
+      tiles: this.tiles.map((row) => row.map((t) => [
+        TERRAINS.indexOf(t.terrain),
+        RESOURCES.indexOf(t.resource),
+        TILE_FLAGS.reduce((m, f, i) => (t[f] ? m | (1 << i) : m), 0),
+      ] as [number, number, number])),
+      units: [...this.units.values()],
+      cities: [...this.cities.values()],
+      players: this.players,
+      fogs: [...this.playerFogs.entries()].map(([id, f]) => ({ id, explored: f.explored.map(fogRow), visible: f.visible.map(fogRow) })),
+      turn: { turnNumber: this.turnManager.turnNumber, yearBC: this.turnManager.yearBC, isAD: this.turnManager.isAD },
+      nextId: this.nextId,
+      cityNameIndex: [...this.cityNameIndex.entries()],
+      news: this.news,
+      aggression: [...this.aggression.entries()],
+      barbarianId: this.barbarianId,
+      gameOver: this.gameOver,
+    };
+  }
+
+  private restore(s: SaveData): void {
+    this.tiles = s.tiles.map((row, y) => row.map(([t, r, flags], x) => {
+      const tile: TileData = {
+        x, y, terrain: TERRAINS[t], resource: RESOURCES[r],
+        hasRoad: false, hasRailroad: false, hasIrrigation: false, hasMine: false, hasRiver: false, unitIds: [],
+      };
+      TILE_FLAGS.forEach((f, i) => { if (flags & (1 << i)) tile[f] = true; });
+      return tile;
+    }));
+    this.players = s.players;
+    this.barbarianId = s.barbarianId;
+    for (const u of s.units) {
+      this.units.set(u.id, u);
+      this.tiles[u.y][u.x].unitIds.push(u.id);
+    }
+    for (const c of s.cities) {
+      this.cities.set(c.id, c);
+      this.tiles[c.y][c.x].cityId = c.id;
+    }
+    const fogRow = (str: string) => [...str].map((ch) => ch === '1');
+    for (const f of s.fogs) this.playerFogs.set(f.id, { explored: f.explored.map(fogRow), visible: f.visible.map(fogRow) });
+    Object.assign(this.turnManager, s.turn);
+    this.nextId = s.nextId;
+    this.cityNameIndex = new Map(s.cityNameIndex);
+    this.news = s.news;
+    this.aggression = new Map(s.aggression);
+    this.gameOver = s.gameOver;
+  }
+
   /** Захоплення міста: новий власник, населення −1, палац руйнується. */
   private captureCity(city: City, newOwner: number): string {
     const oldOwner = this.players[city.playerId];
@@ -970,9 +1056,9 @@ export class World {
    */
   private spawnBarbarians(): string | undefined {
     // З ~1000 до н.е.; спершу поодинці, з ~1 н.е. — загонами
-    if (this.turnManager.turnNumber < 60 || Math.random() > 0.1) return undefined;
+    if (this.turnManager.turnNumber < DIFFICULTIES[this.options.difficulty].barbariansFrom || Math.random() > 0.1) return undefined;
     // Навали не накопичуються безкінечно
-    if ([...this.units.values()].filter((u) => u.playerId === BARBARIANS).length >= 12) return undefined;
+    if ([...this.units.values()].filter((u) => u.playerId === this.barbarianId).length >= 12) return undefined;
     const targets = [...this.cities.values()].filter((c) => !this.players[c.playerId].isBarbarian);
     if (!targets.length) return undefined;
     const target = targets[Math.floor(Math.random() * targets.length)];
@@ -988,10 +1074,10 @@ export class World {
       const tooClose = [...this.cities.values()].some((c) => this.distance(c.x, c.y, x, y) < 4);
       if (tooClose) continue;
 
-      this.createUnit(BARBARIANS, UnitTypeKey.Legion, x, y);
+      this.createUnit(this.barbarianId, UnitTypeKey.Legion, x, y);
       // Пізніше — загони з вершниками
       if (this.turnManager.turnNumber > 100) {
-        this.createUnit(BARBARIANS, this.turnManager.turnNumber > 130 ? UnitTypeKey.Cavalry : UnitTypeKey.Legion, x, y);
+        this.createUnit(this.barbarianId, this.turnManager.turnNumber > 130 ? UnitTypeKey.Cavalry : UnitTypeKey.Legion, x, y);
       }
       return target.playerId === 0 ? `⚔️ Варвари з'явилися неподалік міста ${target.name}!` : undefined;
     }
@@ -1003,7 +1089,7 @@ export class World {
     let best: City | undefined;
     let bestD = Infinity;
     for (const c of this.cities.values()) {
-      if (c.playerId === BARBARIANS) continue;
+      if (c.playerId === this.barbarianId) continue;
       const d = this.distance(c.x, c.y, unit.x, unit.y);
       if (d < bestD) { bestD = d; best = c; }
     }
@@ -1030,13 +1116,13 @@ export class World {
       if (player.isAi && !player.isBarbarian && player.alive) this.ai.takeTurn(player);
     }
     for (const unit of [...this.units.values()]) {
-      if (unit.playerId === BARBARIANS && this.units.has(unit.id)) this.moveBarbarian(unit);
+      if (unit.playerId === this.barbarianId && this.units.has(unit.id)) this.moveBarbarian(unit);
     }
   }
 
   /** Назви міст по черзі, як у Civ 1: перша — столиця. */
   private generateCityName(playerId: number): string {
-    const names = CITY_NAMES[playerId] ?? CITY_NAMES[1];
+    const names = CIVS[this.players[playerId].civ ?? 'romans'].cityNames;
     const i = this.cityNameIndex.get(playerId) ?? 0;
     this.cityNameIndex.set(playerId, i + 1);
     return i < names.length ? names[i] : `${names[i % names.length]} ${Math.floor(i / names.length) + 1}`;
@@ -1067,8 +1153,28 @@ export class World {
   }
 }
 
-/** Індекс гравця-варварів. */
-const BARBARIANS = 3;
+/** Знімок гри для збереження (localStorage). Клітинки — компактно: [рельєф, ресурс, прапорці]. */
+export interface SaveData {
+  version: 1;
+  options: GameOptions;
+  tiles: [number, number, number][][];
+  units: Unit[];
+  cities: City[];
+  players: Player[];
+  /** Туман: рядки з '0'/'1' (розвідано, видно) */
+  fogs: { id: number; explored: string[]; visible: string[] }[];
+  turn: { turnNumber: number; yearBC: number; isAD: boolean };
+  nextId: number;
+  cityNameIndex: [number, number][];
+  news: string[];
+  aggression: [string, number][];
+  barbarianId: number;
+  gameOver?: GameOver;
+}
+
+const TERRAINS = Object.values(TerrainType);
+const RESOURCES = Object.values(ResourceType);
+const TILE_FLAGS = ['hasRoad', 'hasRailroad', 'hasIrrigation', 'hasMine', 'hasRiver', 'hasPollution', 'hasHut'] as const;
 
 /** Що чим застаріває (для Майстерні Леонардо). */
 const UPGRADES: Partial<Record<UnitTypeKey, UnitTypeKey>> = {
@@ -1089,11 +1195,4 @@ const UPGRADES: Partial<Record<UnitTypeKey, UnitTypeKey>> = {
   [UnitTypeKey.Caravel]: UnitTypeKey.Frigate,
   [UnitTypeKey.Frigate]: UnitTypeKey.Ironclad,
   [UnitTypeKey.Ironclad]: UnitTypeKey.Cruiser,
-};
-
-const CITY_NAMES: Record<number, string[]> = {
-  0: ['Київ', 'Чернігів', 'Переяслав', 'Галич', 'Володимир', 'Новгород-Сіверський', 'Полоцьк', 'Смоленськ',
-      'Турів', 'Луцьк', 'Белз', 'Звенигород', 'Вишгород', 'Любеч', 'Корсунь', 'Канів'],
-  1: ['Рим', 'Капуя', 'Неаполь', 'Равенна', 'Тарент', 'Помпеї', 'Мілан', 'Генуя', 'Верона', 'Аквілея'],
-  2: ['Фіви', 'Мемфіс', 'Олександрія', 'Гіза', 'Луксор', 'Асуан', 'Абідос', 'Саїс', 'Танис', 'Буто'],
 };
