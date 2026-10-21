@@ -56,6 +56,7 @@ export class CityDialog {
 
     const units = Object.values(UNIT_CONFIGS)
       .filter((u) => hasTech(u.prereqTech) && (u.domain !== 'sea' || coastal))
+      .filter((u) => !u.requiresWonder || this.world.isWonderBuilt(u.requiresWonder))
       .map((u) => ({ isBuilding: false, key: u.key as string, name: u.nameUa, cost: u.cost, description: u.descriptionUa }));
     const buildings = Object.values(BUILDING_CONFIGS)
       .filter((b) => (b.key !== BuildingTypeKey.Palace || !this.hasPalace(city.playerId)) && hasTech(b.prereqTech) && !city.buildings.includes(b.key))

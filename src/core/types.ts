@@ -79,6 +79,11 @@ export enum UnitTypeKey {
   Cruiser = 'cruiser',
   Battleship = 'battleship',
   Submarine = 'submarine',
+  // Сучасність II: небо й атом
+  Fighter = 'fighter',
+  Bomber = 'bomber',
+  Carrier = 'carrier',
+  Nuclear = 'nuclear',
 }
 
 export interface UnitConfig {
@@ -92,6 +97,12 @@ export interface UnitConfig {
   domain: 'land' | 'sea' | 'air';
   /** Скільки сухопутних юнітів везе корабель */
   capacity?: number;
+  /** Скільки літаків несе авіаносець */
+  airCapacity?: number;
+  /** Літак: скільки ходів може бути в повітрі (поза своїм містом чи авіаносцем) */
+  fuel?: number;
+  /** Виробляється лише тоді, коли це чудо збудоване будь-де у світі */
+  requiresWonder?: BuildingTypeKey;
   prereqTech?: string;
   descriptionUa: string;
 }
@@ -109,8 +120,10 @@ export interface Unit {
   task?: { kind: 'road' | 'irrigation' | 'mine' | 'clean'; turnsLeft: number };
   /** Ветеран: +50% атаки й захисту (казарми або перемога в бою) */
   veteran?: boolean;
-  /** Корабель, на якому пливе сухопутний юніт */
+  /** Корабель, на якому пливе сухопутний юніт (чи авіаносець, на якому стоїть літак) */
   carriedBy?: string;
+  /** Літак: ходів пального, що лишились */
+  fuel?: number;
   /** Ціль AI (місце для міста тощо), щоб не обирати її щоходу заново */
   aiTarget?: { x: number; y: number };
 }
@@ -158,6 +171,11 @@ export enum BuildingTypeKey {
   HooverDam = 'hoover_dam',
   WomensSuffrage = 'womens_suffrage',
   Bach = 'bach',
+  // Сучасність II
+  Airport = 'airport',
+  NuclearPlant = 'nuclear_plant',
+  Manhattan = 'manhattan',
+  UnitedNations = 'united_nations',
 }
 
 /** Державний устрій (Civ 1). Анархія — перехідний стан під час революції. */

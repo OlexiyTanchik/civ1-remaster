@@ -84,10 +84,10 @@ export class CityLogic {
       trade += y.trade;
     }
 
-    // Піраміди +25%, фабрика +50%, електростанція (лише з фабрикою; Гребля Гувера — у кожному місті) ще +25%
+    // Піраміди +25%, фабрика +50%, електростанція чи АЕС (лише з фабрикою; Гребля Гувера — у кожному місті) ще +25%
     let shieldBonus = 1;
     if (has(BuildingTypeKey.Pyramids)) shieldBonus += 0.25;
-    const power = has(BuildingTypeKey.PowerPlant) || env.ownerWonders.has(BuildingTypeKey.HooverDam);
+    const power = has(BuildingTypeKey.PowerPlant) || has(BuildingTypeKey.NuclearPlant) || env.ownerWonders.has(BuildingTypeKey.HooverDam);
     if (has(BuildingTypeKey.Factory)) shieldBonus += power ? 0.75 : 0.5;
     shields = Math.floor(shields * shieldBonus);
 

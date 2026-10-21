@@ -207,8 +207,11 @@ export class Hud {
         const notes = [
           selectedUnit.veteran ? 'Ветеран +50%' : '',
           selectedUnit.isFortified ? 'Укріплений' : '',
-          selectedUnit.carriedBy ? 'На кораблі — стрілкою на сушу, щоб висадитись' : '',
+          selectedUnit.carriedBy && cfg.domain !== 'air' ? 'На кораблі — стрілкою на сушу, щоб висадитись' : '',
+          selectedUnit.carriedBy && cfg.domain === 'air' ? 'На авіаносці' : '',
           cfg.capacity ? `Пасажирів ${this.world.cargoOf(selectedUnit.id).length}/${cfg.capacity}` : '',
+          cfg.airCapacity ? `Літаків ${this.world.cargoOf(selectedUnit.id).length}/${cfg.airCapacity}` : '',
+          cfg.fuel ? `⛽ Пальне: ${selectedUnit.fuel ?? cfg.fuel}/${cfg.fuel} ход. — сідайте в місті чи на авіаносці` : '',
         ].filter(Boolean).join(' • ');
         terrainEl.textContent = `Рельєф: ${currentTile.terrain} (Захист: x${terrainYield.defenseBonus})${notes ? ' • ' + notes : ''}`;
       }

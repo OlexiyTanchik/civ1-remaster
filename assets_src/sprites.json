@@ -501,6 +501,46 @@
       "id": "w_bach",
       "kind": "building",
       "prompt": "J.S. Bach's cathedral: a tall baroque church with twin spires and a big rose window, golden organ pipes visible through the open door"
+    },
+    {
+      "id": "u_fighter",
+      "kind": "unit",
+      "prompt": "a World War II propeller fighter plane in flight seen from above at an angle: single engine, silver-green wings with roundels, facing right"
+    },
+    {
+      "id": "u_bomber",
+      "kind": "unit",
+      "prompt": "a heavy four-engine World War II bomber plane in flight seen from above at an angle: long olive wings, glass nose, facing right"
+    },
+    {
+      "id": "u_carrier",
+      "kind": "unit",
+      "prompt": "a mid 20th century aircraft carrier: long flat grey flight deck with a small island tower on the right side and two tiny planes parked on deck, side view"
+    },
+    {
+      "id": "u_nuclear",
+      "kind": "unit",
+      "prompt": "a nuclear missile in flight: white rocket with a red nose cone and fins, a yellow radiation trefoil sign on the body and a flame trail, flying diagonally up-right"
+    },
+    {
+      "id": "b_airport",
+      "kind": "building",
+      "prompt": "a 1950s airfield: a curved hangar with an open gate, a small control tower with a glass cab and a windsock"
+    },
+    {
+      "id": "b_nuclear_plant",
+      "kind": "building",
+      "prompt": "a nuclear power plant: two big grey hyperbolic cooling towers with white steam and a domed reactor building beside them"
+    },
+    {
+      "id": "w_manhattan",
+      "kind": "building",
+      "prompt": "the Manhattan Project: a secret desert laboratory compound with a steel tower holding a bomb and a mushroom-shaped atom symbol sign, barbed wire fence"
+    },
+    {
+      "id": "w_united_nations",
+      "kind": "building",
+      "prompt": "the United Nations headquarters: a tall slim glass and concrete skyscraper slab with a row of colorful national flags on poles in front"
     }
   ]
 }

@@ -107,6 +107,7 @@ export class World {
       isSentry: false,
     };
     unit.movesLeft = this.unitMoves(unit);
+    if (cfg.fuel) unit.fuel = cfg.fuel;
     this.units.set(id, unit);
     this.tiles[y][x].unitIds.push(id);
     return unit;
@@ -162,6 +163,14 @@ export class World {
 
     const fromTile = this.tiles[unit.y][unit.x];
     const toTile = this.tiles[destY][destX];
+    const air = UNIT_CONFIGS[unit.type].domain === 'air';
+
+    // Ядерна ракета вибухає над ворожим загоном чи містом
+    if (unit.type === UnitTypeKey.Nuclear) {
+      const enemyCity = toTile.cityId && this.cities.get(toTile.cityId)!.playerId !== unit.playerId;
+      const enemyUnits = toTile.unitIds.some((id) => this.units.get(id)?.playerId !== unit.playerId);
+      if (enemyCity || enemyUnits) return { success: true, combatLog: this.detonate(unit, destX, destY) };
+    }
 
     // Перевірка ворожих юнітів на клітинці (Бій)
     if (toTile.unitIds.length > 0) {
@@ -175,6 +184,11 @@ export class World {
         if (atSea && UNIT_CONFIGS[unit.type].domain === 'land') return { success: false }; // з суші кораблі не атакують
         if (!atSea && unit.type === UnitTypeKey.Submarine) return { success: false }; // торпеди — лише по кораблях
         const defCity = toTile.cityId ? this.cities.get(toTile.cityId) : undefined;
+        // Літак у небі (не в місті) збиває лише винищувач
+        if (!defCity && UNIT_CONFIGS[otherUnit.type].domain === 'air' && !otherUnit.carriedBy && unit.type !== UnitTypeKey.Fighter) {
+          return { success: false };
+        }
+        this.noteAggression(unit.playerId, otherUnit.playerId);
         const walls = !!defCity && (defCity.buildings.includes(BuildingTypeKey.CityWalls)
           || this.ownerWonders(defCity.playerId).has(BuildingTypeKey.GreatWall));
         const combat = UnitLogic.resolveCombat(unit, otherUnit, toTile, walls);
@@ -206,20 +220,25 @@ export class World {
       return { success: false };
     }
 
-    // Порожнє вороже місто: бойовий юніт захоплює, мирний — не заходить
+    // Порожнє вороже місто: бойовий наземний юніт захоплює; мирний і літак — не заходять
     const enemyCity = toTile.cityId ? this.cities.get(toTile.cityId) : undefined;
     let captureLog: string | undefined;
     if (enemyCity && enemyCity.playerId !== unit.playerId) {
-      if (UNIT_CONFIGS[unit.type].attack === 0) return { success: false };
+      if (UNIT_CONFIGS[unit.type].attack === 0 || air) return { success: false };
+      this.noteAggression(unit.playerId, enemyCity.playerId);
       captureLog = this.captureCity(enemyCity, unit.playerId);
     }
 
-    const cost = UnitLogic.getMovementCost(fromTile, toTile);
+    // Літак летить над будь-чим по 1 руху за клітинку
+    const cost = air ? 1 : UnitLogic.getMovementCost(fromTile, toTile);
     unit.movesLeft = Math.max(0, unit.movesLeft - cost);
     unit.isFortified = false;
     unit.task = undefined;
-    // Посадка на корабель / висадка на сушу
-    unit.carriedBy = boardShip?.id;
+    // Посадка на корабель / висадка на сушу; літак у морі сідає на свій авіаносець, якщо є місце
+    const carrier = air && toTile.terrain === TerrainType.Ocean
+      ? toTile.unitIds.map((id) => this.units.get(id)!).find((s) => s.playerId === unit.playerId && (UNIT_CONFIGS[s.type].airCapacity ?? 0) > this.cargoOf(s.id).length)
+      : undefined;
+    unit.carriedBy = boardShip?.id ?? carrier?.id;
 
     // Корабель везе пасажирів із собою; у порту вони сходять на берег
     const cargo = cfg.domain === 'sea' ? this.cargoOf(unit.id) : [];
@@ -244,6 +263,67 @@ export class World {
     unit.x = newX;
     unit.y = newY;
     this.tiles[newY][newX].unitIds.push(unit.id);
+  }
+
+  /** Хто на кого нападав і коли (для Ради безпеки ООН): ключ «нападник>жертва» → хід. */
+  private aggression = new Map<string, number>();
+
+  private noteAggression(attacker: number, victim: number): void {
+    if (attacker !== victim) this.aggression.set(`${attacker}>${victim}`, this.turnManager.turnNumber);
+  }
+
+  /** Чи нападав гравець на іншого за останні `turns` ходів. */
+  public attackedRecently(attacker: number, victim: number, turns = 10): boolean {
+    const t = this.aggression.get(`${attacker}>${victim}`);
+    return t !== undefined && this.turnManager.turnNumber - t <= turns;
+  }
+
+  /**
+   * Ядерний вибух (Civ 1): гинуть усі юніти на 3×3 клітинки (і свої теж),
+   * міста втрачають половину жителів, земля вкривається радіоактивним смогом.
+   */
+  private detonate(nuke: Unit, cx: number, cy: number): string {
+    nuke.movesLeft = 0;
+    this.removeUnit(nuke.id);
+    let killed = 0;
+    const hit: string[] = [];
+    for (let dy = -1; dy <= 1; dy++) {
+      const y = cy + dy;
+      if (y < 0 || y >= MAP_HEIGHT) continue;
+      for (let dx = -1; dx <= 1; dx++) {
+        const t = this.tiles[y][(cx + dx + MAP_WIDTH) % MAP_WIDTH];
+        for (const id of [...t.unitIds]) {
+          const u = this.units.get(id);
+          if (!u) continue;
+          if (u.playerId !== nuke.playerId) this.noteAggression(nuke.playerId, u.playerId);
+          killed++;
+          this.removeUnit(id);
+        }
+        if (t.cityId) {
+          const c = this.cities.get(t.cityId)!;
+          this.noteAggression(nuke.playerId, c.playerId);
+          c.size = Math.max(1, Math.ceil(c.size / 2));
+          c.foodNeeded = c.size * 10;
+          c.foodStored = Math.min(c.foodStored, c.foodNeeded);
+          CityLogic.autoAssignWorkers(c, this.tiles, this.cityEnv(c));
+          hit.push(c.name);
+        } else if (t.terrain !== TerrainType.Ocean && Math.random() < 0.5) {
+          t.hasPollution = true;
+        }
+      }
+    }
+    const who = this.players[nuke.playerId].nameUa;
+    const msg = `☢️ ${who}: ядерний удар! Загинуло юнітів: ${killed}${hit.length ? `; місто ${hit.join(', ')} втратило половину жителів` : ''}.`;
+    if (nuke.playerId !== 0) this.news.push(msg);
+    return msg;
+  }
+
+  /** Літак заправляється у своєму місті або на своєму авіаносці. */
+  private atAirBase(unit: Unit): boolean {
+    const t = this.tiles[unit.y][unit.x];
+    if (t.cityId && this.cities.get(t.cityId)!.playerId === unit.playerId) return true;
+    const ship = unit.carriedBy ? this.units.get(unit.carriedBy) : undefined;
+    return !!ship && !!UNIT_CONFIGS[ship.type].airCapacity;
   }
 
   /** Пасажири корабля. */
@@ -355,7 +435,8 @@ export class World {
    */
   private pollute(city: City): string | undefined {
     const shields = this.cityYields(city).shields;
-    const factor = city.buildings.includes(BuildingTypeKey.Factory) ? 2 : 1;
+    // Фабрика — удвічі частіше, АЕС — удвічі рідше
+    const factor = (city.buildings.includes(BuildingTypeKey.Factory) ? 2 : 1) * (city.buildings.includes(BuildingTypeKey.NuclearPlant) ? 0.5 : 1);
     const cars = this.players[city.playerId].knownTechs.includes('automobile') && !city.buildings.includes(BuildingTypeKey.MassTransit);
     const people = cars ? Math.max(0, city.size - 10) : 0;
     const chance = Math.min(0.6, (Math.max(0, shields - 20) * factor + people) * 0.03);
@@ -450,12 +531,13 @@ export class World {
     return CityLogic.calculateYields(city, this.tiles, this.cityEnv(city));
   }
 
-  /** Повний рух юніта з урахуванням чудес (Маяк: +1 кораблям). */
+  /** Повний рух юніта з урахуванням чудес (Маяк: +1 кораблям) і Ядерної енергетики (+1 кораблям). */
   public unitMoves(unit: Unit): number {
     const cfg = UNIT_CONFIGS[unit.type];
     if (cfg.domain !== 'sea') return cfg.moves;
     const w = this.ownerWonders(unit.playerId);
-    return cfg.moves + (w.has(BuildingTypeKey.Lighthouse) ? 1 : 0) + (w.has(BuildingTypeKey.Magellan) ? 2 : 0);
+    const atom = this.players[unit.playerId].knownTechs.includes('nuclear_power') ? 1 : 0;
+    return cfg.moves + (w.has(BuildingTypeKey.Lighthouse) ? 1 : 0) + (w.has(BuildingTypeKey.Magellan) ? 2 : 0) + atom;
   }
 
   /** Караван у своєму місті віддає 50 щитів на чудо, яке там будується. */
@@ -497,8 +579,10 @@ export class World {
       if (!res.completedProduction) continue;
       if (!res.completedProduction.isBuilding) {
         const newUnit = this.createUnit(city.playerId, res.completedProduction.key as UnitTypeKey, city.x, city.y);
-        // Казарми: нові бойові юніти — ветерани
-        if (city.buildings.includes(BuildingTypeKey.Barracks) && UNIT_CONFIGS[newUnit.type].attack > 0) newUnit.veteran = true;
+        // Казарми — ветерани серед наземних і кораблів, аеропорт — серед літаків
+        const newCfg = UNIT_CONFIGS[newUnit.type];
+        const school = newCfg.domain === 'air' ? BuildingTypeKey.Airport : BuildingTypeKey.Barracks;
+        if (city.buildings.includes(school) && newCfg.attack > 0 && newUnit.type !== UnitTypeKey.Nuclear) newUnit.veteran = true;
         if (mine) completedItems.push(`${city.name} створило юніт: ${UNIT_CONFIGS[newUnit.type].nameUa}${newUnit.veteran ? ' (ветеран)' : ''}`);
       } else {
         const cfg = BUILDING_CONFIGS[res.completedProduction.key as BuildingTypeKey];
@@ -565,6 +649,15 @@ export class World {
         }
       }
       unit.movesLeft = unit.task ? 0 : this.unitMoves(unit);
+      // Пальне: у своєму місті чи на авіаносці — повний бак, у небі — мінус хід, порожній бак — падіння
+      const fuel = UNIT_CONFIGS[unit.type].fuel;
+      if (fuel) {
+        unit.fuel = this.atAirBase(unit) ? fuel : (unit.fuel ?? fuel) - 1;
+        if (unit.fuel <= 0) {
+          if (unit.playerId === 0) completedItems.push(`✈️ ${UNIT_CONFIGS[unit.type].nameUa}: скінчилось пальне — літак розбився`);
+          this.removeUnit(unit.id);
+        }
+      }
     }
 
     // Майстерня Леонардо: щоходу оновлює один застарілий юніт власника

@@ -21,6 +21,7 @@ const RESEARCH_ORDER = [
   'steam_engine', 'railroad', 'industrialization', 'chemistry', 'electricity', 'conscription',
   'the_corporation', 'steel', 'electronics', 'sanitation', 'explosives', 'refining', 'theology',
   'combustion', 'automobile', 'mass_production', 'machine_tools', 'mobile_warfare', 'labor_union',
+  'atomic_theory', 'flight', 'nuclear_fission', 'nuclear_power', 'radio', 'advanced_flight', 'rocketry',
 ];
 
 /** Скільки міст AI хоче мати (далі поселенців не будує). */
@@ -154,7 +155,10 @@ export class AiController {
       if (city.size >= 3 && canBuild(b)) return set(true, b);
     }
     // Індустрія — лише великим містам (утримання й забруднення)
-    for (const b of [BuildingTypeKey.Factory, BuildingTypeKey.PowerPlant]) {
+    // АЕС і електростанція — одне з двох (бонус не додається); АЕС чистіша
+    const power = has(BuildingTypeKey.PowerPlant) || has(BuildingTypeKey.NuclearPlant);
+    for (const b of [BuildingTypeKey.Factory, BuildingTypeKey.NuclearPlant, BuildingTypeKey.PowerPlant]) {
+      if (b !== BuildingTypeKey.Factory && power) continue;
       if (city.size >= 8 && canBuild(b)) return set(true, b);
     }
     if (yields.corruption >= 2 && canBuild(BuildingTypeKey.Courthouse)) return set(true, BuildingTypeKey.Courthouse);
@@ -203,6 +207,7 @@ export class AiController {
     if (unit.type === UnitTypeKey.Workers) return this.work(unit);
     if (unit.type === UnitTypeKey.Caravan) return this.caravan(unit);
     if (cfg.domain === 'sea') return this.wander(unit);
+    if (cfg.domain === 'air') return; // авіацією AI ще не керує (борг)
     if (cfg.attack > cfg.defense) return this.attack(unit);
     return this.defend(unit);
   }
@@ -549,6 +554,8 @@ export class AiController {
   /** Варварів б'ємо завжди; інших — коли настав час війни за характером лідера. */
   private mayAttack(player: Player, targetId: number): boolean {
     if (this.world.players[targetId].isBarbarian) return true;
+    // Рада безпеки ООН: власника не чіпають, поки він сам не напав
+    if (this.world.ownerWonders(targetId).has(BuildingTypeKey.UnitedNations) && !this.world.attackedRecently(targetId, player.id)) return false;
     return this.isHostilePhase(player);
   }
 }

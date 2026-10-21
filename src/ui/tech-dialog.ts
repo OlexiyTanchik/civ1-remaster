@@ -16,6 +16,7 @@ function unlocksOf(techId: string): string {
   if (techId === 'bridge_building') parts.push('🛤️ Дороги через річки');
   if (techId === 'explosives') parts.push('⛏️ Робітники працюють удвічі швидше');
   if (techId === 'automobile') parts.push('☁️ Великі міста забруднюють і без фабрик');
+  if (techId === 'nuclear_power') parts.push('⚓ Кораблі +1 рух');
   for (const g of Object.values(GOVERNMENTS)) if (g.prereqTech === techId) parts.push(`👑 Устрій: ${g.nameUa}`);
   const next = Object.values(TECH_TREE).filter((t) => t.prereqs.includes(techId)).map((t) => t.nameUa);
   if (next.length) parts.push(`→ ${next.join(', ')}`);

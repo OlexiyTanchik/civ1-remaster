@@ -53,6 +53,11 @@ const BUILDING_SLOTS: Partial<Record<BuildingTypeKey, { x: number; y: number; sc
   [BuildingTypeKey.StockExchange]: { x: 226, y: 160, scale: 0.5 },
   [BuildingTypeKey.Sewer]: { x: 124, y: 210, scale: 0.45 },
   [BuildingTypeKey.MassTransit]: { x: 264, y: 210, scale: 0.5 },
+  // Сучасність II: аеродром і АЕС на околицях, чудеса — на горизонті
+  [BuildingTypeKey.Airport]: { x: 330, y: 206, scale: 0.5 },
+  [BuildingTypeKey.NuclearPlant]: { x: 316, y: 86, scale: 0.5 },
+  [BuildingTypeKey.Manhattan]: { x: 206, y: 210, scale: 0.5 },
+  [BuildingTypeKey.UnitedNations]: { x: 156, y: 160, scale: 0.55 },
 };
 
 const hash = (a: number, b: number) => {

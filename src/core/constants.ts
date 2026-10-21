@@ -132,6 +132,24 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
     key: UnitTypeKey.Submarine, name: 'Submarine', nameUa: 'Підводний човен', attack: 8, defense: 2, moves: 3, cost: 50, domain: 'sea',
     prereqTech: 'combustion', descriptionUa: 'Торпеди проти кораблів. Сушу не атакує.',
   },
+  // Сучасність II: небо й атом
+  [UnitTypeKey.Fighter]: {
+    key: UnitTypeKey.Fighter, name: 'Fighter', nameUa: 'Винищувач', attack: 4, defense: 2, moves: 10, cost: 60, domain: 'air', fuel: 1,
+    prereqTech: 'flight', descriptionUa: 'Пальне на один хід: до кінця ходу сядьте в місті чи на авіаносці. Єдиний, хто збиває літаки.',
+  },
+  [UnitTypeKey.Bomber]: {
+    key: UnitTypeKey.Bomber, name: 'Bomber', nameUa: 'Бомбардувальник', attack: 12, defense: 1, moves: 8, cost: 120, domain: 'air', fuel: 2,
+    prereqTech: 'advanced_flight', descriptionUa: 'Нищівний удар з неба; мури не рятують. Пальне на два ходи.',
+  },
+  [UnitTypeKey.Carrier]: {
+    key: UnitTypeKey.Carrier, name: 'Carrier', nameUa: 'Авіаносець', attack: 1, defense: 12, moves: 5, cost: 160, domain: 'sea', airCapacity: 8,
+    prereqTech: 'advanced_flight', descriptionUa: 'Плавучий аеродром: несе 8 літаків і заправляє їх.',
+  },
+  [UnitTypeKey.Nuclear]: {
+    key: UnitTypeKey.Nuclear, name: 'Nuclear', nameUa: 'Ядерна ракета', attack: 99, defense: 0, moves: 16, cost: 160, domain: 'air', fuel: 1,
+    prereqTech: 'rocketry', requiresWonder: BuildingTypeKey.Manhattan,
+    descriptionUa: 'Знищує все живе на 3×3 клітинки, міста втрачають половину жителів. Потрібен Мангеттенський проєкт (будь-чий).',
+  },
 };
 
 // Будівлі міст Civ 1
@@ -289,6 +307,23 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
     key: BuildingTypeKey.Bach, nameUa: 'Собор Баха', cost: 400, maintenance: 0, prereqTech: 'theology', isWonder: true,
     descriptionUa: 'Чудо світу. Музика заспокоює двох невдоволених у кожному вашому місті.',
   },
+  // Сучасність II
+  [BuildingTypeKey.Airport]: {
+    key: BuildingTypeKey.Airport, nameUa: 'Аеропорт', cost: 120, maintenance: 3, prereqTech: 'radio',
+    descriptionUa: 'Усі нові літаки міста — ветерани: +50% атаки й захисту.',
+  },
+  [BuildingTypeKey.NuclearPlant]: {
+    key: BuildingTypeKey.NuclearPlant, nameUa: 'АЕС', cost: 160, maintenance: 2, prereqTech: 'nuclear_power', requires: BuildingTypeKey.Factory,
+    descriptionUa: 'Як електростанція (+25% щитів з фабрикою, не додається до неї), але забруднення від виробництва вдвічі рідше.',
+  },
+  [BuildingTypeKey.Manhattan]: {
+    key: BuildingTypeKey.Manhattan, nameUa: 'Мангеттенський проєкт', cost: 600, maintenance: 0, prereqTech: 'nuclear_fission', isWonder: true,
+    descriptionUa: 'Чудо світу. Відкриває ядерну зброю ВСІМ, хто знає Ракетобудування.',
+  },
+  [BuildingTypeKey.UnitedNations]: {
+    key: BuildingTypeKey.UnitedNations, nameUa: 'Організація Об\'єднаних Націй', cost: 600, maintenance: 0, prereqTech: 'nuclear_fission', isWonder: true,
+    descriptionUa: 'Чудо світу. Рада безпеки: суперники не нападають на вас, якщо ви самі не нападали на них останні 10 ходів.',
+  },
 };
 
 // Дерево технологій стародавньої епохи (у дусі Civ 1). Ціна дослідження — TurnManager.researchCost.
@@ -353,6 +388,14 @@ export const TECH_TREE: Record<string, Tech> = {
   machine_tools: { id: 'machine_tools', nameUa: 'Верстати', era: 4, prereqs: ['steel', 'conscription'], descriptionUa: 'Точні верстати: далекобійні гармати.' },
   mobile_warfare: { id: 'mobile_warfare', nameUa: 'Мобільна війна', era: 4, prereqs: ['automobile', 'machine_tools'], descriptionUa: 'Бліцкриг: броня і мотори.' },
   labor_union: { id: 'labor_union', nameUa: 'Профспілки', era: 4, prereqs: ['mass_production', 'conscription'], descriptionUa: 'Робітники об\'єднуються: армія на колесах.' },
+  // Сучасність II: небо й атом
+  atomic_theory: { id: 'atomic_theory', nameUa: 'Атомна теорія', era: 5, prereqs: ['theory_of_gravity', 'electronics'], descriptionUa: 'Атом ділиться: ядро, електрони, нейтрони.' },
+  flight: { id: 'flight', nameUa: 'Польоти', era: 5, prereqs: ['combustion', 'theory_of_gravity'], descriptionUa: 'Людина в небі.' },
+  radio: { id: 'radio', nameUa: 'Радіо', era: 5, prereqs: ['flight', 'electronics'], descriptionUa: 'Голос в ефірі, диспетчери аеродромів.' },
+  advanced_flight: { id: 'advanced_flight', nameUa: 'Реактивна авіація', era: 5, prereqs: ['radio', 'machine_tools'], descriptionUa: 'Важкі бомбардувальники й палубна авіація.' },
+  nuclear_fission: { id: 'nuclear_fission', nameUa: 'Ядерний розпад', era: 5, prereqs: ['atomic_theory', 'mass_production'], descriptionUa: 'Ланцюгова реакція: енергія — і загроза — небачені досі.' },
+  nuclear_power: { id: 'nuclear_power', nameUa: 'Ядерна енергетика', era: 5, prereqs: ['nuclear_fission', 'electronics'], descriptionUa: 'Атом на службі міст і флоту: кораблі +1 рух.' },
+  rocketry: { id: 'rocketry', nameUa: 'Ракетобудування', era: 5, prereqs: ['advanced_flight', 'nuclear_fission'], descriptionUa: 'Ракети далекого радіуса — з будь-якою боєголовкою.' },
 };
 
 // 21 клітинка міста (Fat Cross Civ 1)

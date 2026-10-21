@@ -57,8 +57,9 @@ export class UnitLogic {
     const attackPower = Math.max(1, aCfg.attack) * (attacker.veteran ? 1.5 : 1);
     let defensePower = Math.max(1, dCfg.defense) * (defender.veteran ? 1.5 : 1);
 
-    // Бонус місцевості
-    const terrainBonus = TERRAIN_DATA[defTile.terrain]?.defenseBonus ?? 1.0;
+    // Бонус місцевості (літаку в небі рельєф не допомагає)
+    const inSky = dCfg.domain === 'air';
+    const terrainBonus = inSky ? 1.0 : TERRAIN_DATA[defTile.terrain]?.defenseBonus ?? 1.0;
     defensePower *= terrainBonus;
 
     // Пікінери проти вершників — захист ×2 (танки й мотопіхота — не коні)
@@ -67,7 +68,7 @@ export class UnitLogic {
     }
 
     // Бонус укріплення (+50%)
-    if (defender.isFortified) {
+    if (defender.isFortified && !inSky) {
       defensePower *= 1.5;
     }
 
