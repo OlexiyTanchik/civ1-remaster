@@ -28,6 +28,8 @@ export interface CityEnv {
   baseContent?: number;
   /** Складність: множник ціни виробництва (AI на високих рівнях будує дешевше) */
   costFactor?: number;
+  /** Юніти, яких утримує місто: усього й з них поселенців */
+  support?: { units: number; settlers: number };
 }
 
 export interface CityYields {
@@ -40,6 +42,12 @@ export interface CityYields {
   science: number;
   luxury: number;
   entertainers: number;
+  /** Утримання армії: щитів і їжі за хід */
+  upkeepShields: number;
+  upkeepFood: number;
+  /** Щити до утримання (для забруднення) і скільки бракує на утримання */
+  shieldsGross: number;
+  shieldDeficit: number;
   happy: number;
   content: number;
   unhappy: number;
@@ -94,6 +102,12 @@ export class CityLogic {
     const power = has(BuildingTypeKey.PowerPlant) || has(BuildingTypeKey.NuclearPlant) || env.ownerWonders.has(BuildingTypeKey.HooverDam);
     if (has(BuildingTypeKey.Factory)) shieldBonus += power ? 0.75 : 0.5;
     shields = Math.floor(shields * shieldBonus);
+
+    // Утримання армії (Civ 1): понад безкоштовних — по щиту за юніт; поселенці ще й їдять
+    const gov = GOVERNMENTS[env.government];
+    const support = env.support ?? { units: 0, settlers: 0 };
+    const upkeepShields = Math.max(0, support.units - gov.freeUnits);
+    const upkeepFood = support.settlers * gov.settlerFood;
 
     // Корупція: зростає з відстанню до столиці; суд зменшує вдвічі; столиця не корумпована
     let corruptionShare = 0.3; // без палацу — як у Civ 1, держава без центру
@@ -160,9 +174,13 @@ export class CityLogic {
 
     return {
       food,
-      shields: disorder ? 0 : shields,
+      shields: disorder ? 0 : Math.max(0, shields - upkeepShields),
       trade,
-      foodSurplus: food - city.size * 2,
+      foodSurplus: food - city.size * 2 - upkeepFood,
+      upkeepShields,
+      upkeepFood,
+      shieldsGross: shields,
+      shieldDeficit: disorder ? 0 : Math.max(0, upkeepShields - shields),
       corruption,
       gold: disorder ? 0 : gold,
       science: disorder ? 0 : science,

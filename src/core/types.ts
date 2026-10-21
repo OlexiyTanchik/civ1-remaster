@@ -126,6 +126,12 @@ export interface Unit {
   fuel?: number;
   /** Ціль AI (місце для міста тощо), щоб не обирати її щоходу заново */
   aiTarget?: { x: number; y: number };
+  /** Рідне місто, що утримує юніт щитами (і їжею — поселенці). Без нього — безкоштовний */
+  homeCityId?: string;
+  /** AI: чекає в порту на пором, щоб переправитися до цілі за морем */
+  aiMission?: { kind: 'board'; purpose: 'settle' | 'invade'; target: { x: number; y: number } };
+  /** AI-пором: скільки ходів уже чекає пасажирів у порту */
+  aiWait?: number;
 }
 
 export enum BuildingTypeKey {
@@ -224,6 +230,10 @@ export interface GovernmentConfig {
   tradeBonus: boolean;
   /** Скільки невдоволених заспокоюють військові в місті (по 1 на юніт) */
   martialLaw: number;
+  /** Скільки юнітів місто утримує безкоштовно; кожен наступний — 1 щит */
+  freeUnits: number;
+  /** Скільки їжі з'їдають поселенці міста */
+  settlerFood: number;
   descriptionUa: string;
 }
 

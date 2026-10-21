@@ -120,7 +120,7 @@ export class World {
     }
   }
 
-  public createUnit(playerId: number, type: UnitTypeKey, x: number, y: number): Unit {
+  public createUnit(playerId: number, type: UnitTypeKey, x: number, y: number, homeCityId?: string): Unit {
     const id = `u_${this.nextId++}`;
     const cfg = UNIT_CONFIGS[type];
     const unit: Unit = {
@@ -132,6 +132,7 @@ export class World {
       movesLeft: cfg.moves,
       isFortified: false,
       isSentry: false,
+      homeCityId,
     };
     unit.movesLeft = this.unitMoves(unit);
     if (cfg.fuel) unit.fuel = cfg.fuel;
@@ -224,7 +225,8 @@ export class World {
           // Поза містом гине весь стос (Civ 1); у місті — лише захисник
           const losers = defCity ? [otherUnit.id] : [...toTile.unitIds];
           losers.forEach((id) => this.removeUnit(id));
-          unit.movesLeft = 0;
+          // Літак після удару летить далі (додому), решта зупиняється
+          unit.movesLeft = air ? Math.max(0, unit.movesLeft - 1) : 0;
           if (Math.random() < 0.5) unit.veteran = true; // переможець набирається досвіду
         } else {
           this.removeUnit(unit.id);
@@ -251,7 +253,8 @@ export class World {
     const enemyCity = toTile.cityId ? this.cities.get(toTile.cityId) : undefined;
     let captureLog: string | undefined;
     if (enemyCity && enemyCity.playerId !== unit.playerId) {
-      if (UNIT_CONFIGS[unit.type].attack === 0 || air) return { success: false };
+      // Міста беруть лише наземні війська: кораблі й літаки — ні
+      if (UNIT_CONFIGS[unit.type].attack === 0 || air || UNIT_CONFIGS[unit.type].domain === 'sea') return { success: false };
       this.noteAggression(unit.playerId, enemyCity.playerId);
       captureLog = this.captureCity(enemyCity, unit.playerId);
     }
@@ -351,6 +354,74 @@ export class World {
     if (t.cityId && this.cities.get(t.cityId)!.playerId === unit.playerId) return true;
     const ship = unit.carriedBy ? this.units.get(unit.carriedBy) : undefined;
     return !!ship && !!UNIT_CONFIGS[ship.type].airCapacity;
+  }
+
+  // ---------- Утримання армії ----------
+
+  /** Скільки юнітів утримує місто (і скільки з них поселенців). */
+  public supportOf(cityId: string): { units: number; settlers: number } {
+    let units = 0;
+    let settlers = 0;
+    for (const u of this.units.values()) {
+      if (u.homeCityId !== cityId) continue;
+      units++;
+      if (u.type === UnitTypeKey.Settlers) settlers++;
+    }
+    return { units, settlers };
+  }
+
+  /** Юніти, яких утримує місто, — найдальші першими (їх розпускають першими, як у Civ 1). */
+  public supportedUnits(city: City): Unit[] {
+    return [...this.units.values()]
+      .filter((u) => u.homeCityId === city.id)
+      .sort((a, b) => this.distance(b.x, b.y, city.x, city.y) - this.distance(a.x, a.y, city.x, city.y));
+  }
+
+  /** Бракує щитів — розпускаємо юніти; бракує їжі на поселенців — розпускаємо поселенців. */
+  private enforceUpkeep(city: City, log: string[]): void {
+    const mine = city.playerId === 0;
+    let y = this.cityYields(city);
+    while (y.shieldDeficit > 0) {
+      const victim = this.supportedUnits(city)[0];
+      if (!victim) break;
+      if (mine) log.push(`🪖 ${city.name} не може утримувати військо: розпущено «${UNIT_CONFIGS[victim.type].nameUa}»`);
+      this.removeUnit(victim.id);
+      y = this.cityYields(city);
+    }
+    while (city.foodStored + y.foodSurplus < 0 && y.upkeepFood > 0) {
+      const settlers = this.supportedUnits(city).find((u) => u.type === UnitTypeKey.Settlers);
+      if (!settlers) break;
+      if (mine) log.push(`🌾 ${city.name} не прогодує поселенців: їх розпущено`);
+      this.removeUnit(settlers.id);
+      y = this.cityYields(city);
+    }
+  }
+
+  /** Переписати юніт на місто, де він стоїть (тепер його утримує це місто). */
+  public rehome(unitId: string): City | undefined {
+    const unit = this.units.get(unitId);
+    const cityId = unit && this.tiles[unit.y][unit.x].cityId;
+    const city = cityId ? this.cities.get(cityId) : undefined;
+    if (!unit || !city || city.playerId !== unit.playerId || unit.homeCityId === city.id) return undefined;
+    unit.homeCityId = city.id;
+    return city;
+  }
+
+  /** AI: посадити своїх наземних юнітів, що стоять з кораблем у порту (скільки влізе). */
+  public boardInPort(shipId: string, unitIds: string[]): number {
+    const ship = this.units.get(shipId);
+    if (!ship) return 0;
+    let free = (UNIT_CONFIGS[ship.type].capacity ?? 0) - this.cargoOf(ship.id).length;
+    let boarded = 0;
+    for (const id of unitIds) {
+      const u = this.units.get(id);
+      if (free <= 0 || !u || u.playerId !== ship.playerId || u.x !== ship.x || u.y !== ship.y || UNIT_CONFIGS[u.type].domain !== 'land') continue;
+      u.carriedBy = ship.id;
+      u.isFortified = false;
+      free--;
+      boarded++;
+    }
+    return boarded;
   }
 
   /** Пасажири корабля. */
@@ -460,7 +531,9 @@ export class World {
    * Забруднюється випадкова оброблювана клітинка суші.
    */
   private pollute(city: City): string | undefined {
-    const shields = this.cityYields(city).shields;
+    // Забруднює виробництво, а не те, що лишилось після утримання армії
+    const y = this.cityYields(city);
+    const shields = y.disorder ? 0 : y.shieldsGross;
     // Фабрика — удвічі частіше, АЕС — удвічі рідше
     const factor = (city.buildings.includes(BuildingTypeKey.Factory) ? 2 : 1) * (city.buildings.includes(BuildingTypeKey.NuclearPlant) ? 0.5 : 1);
     const cars = this.players[city.playerId].knownTechs.includes('automobile') && !city.buildings.includes(BuildingTypeKey.MassTransit);
@@ -506,6 +579,7 @@ export class World {
       // Складність: людині — менше задоволених на важких рівнях, AI — інша ціна виробництва
       baseContent: player.isAi ? 4 : DIFFICULTIES[this.options.difficulty].content,
       costFactor: player.isAi && !player.isBarbarian ? DIFFICULTIES[this.options.difficulty].aiCost : 1,
+      support: this.supportOf(city.id),
       garrison: this.tiles[city.y][city.x].unitIds
         .map((id) => this.units.get(id))
         .filter((u) => u && u.playerId === city.playerId && UNIT_CONFIGS[u.type].attack > 0).length,
@@ -601,13 +675,14 @@ export class World {
 
       // Варварське місто — трофей, а не фабрика військ: щити не накопичуються
       if (this.players[city.playerId].isBarbarian) city.shieldsStored = 0;
+      this.enforceUpkeep(city, completedItems);
       const res = CityLogic.processTurn(city, this.tiles, this.cityEnv(city));
       const mine = city.playerId === human.id;
       if (mine && res.needsAqueduct) completedItems.push(`${city.name} не може рости далі без акведука`);
       if (mine && res.needsSewer) completedItems.push(`${city.name} не може рости далі без каналізації`);
       if (!res.completedProduction) continue;
       if (!res.completedProduction.isBuilding) {
-        const newUnit = this.createUnit(city.playerId, res.completedProduction.key as UnitTypeKey, city.x, city.y);
+        const newUnit = this.createUnit(city.playerId, res.completedProduction.key as UnitTypeKey, city.x, city.y, city.id);
         // Казарми — ветерани серед наземних і кораблів, аеропорт — серед літаків
         const newCfg = UNIT_CONFIGS[newUnit.type];
         const school = newCfg.domain === 'air' ? BuildingTypeKey.Airport : BuildingTypeKey.Barracks;
@@ -1037,6 +1112,10 @@ export class World {
       oldOwner.spaceship = undefined;
       this.news.push(`💥 ${oldOwner.nameUa} втратили столицю — а з нею й космічний корабель!`);
     }
+    // Юніти, яких утримувало місто, лишаються без постачання й розходяться (Civ 1)
+    const orphans = this.supportedUnits(city);
+    orphans.forEach((u) => this.removeUnit(u.id));
+    if (orphans.length && oldOwner.id === 0) this.news.push(`🪖 Разом із містом ${city.name} ви втратили військо, яке воно утримувало: ${orphans.length}`);
     city.playerId = newOwner;
     city.size = Math.max(1, city.size - 1);
     city.foodNeeded = city.size * 10;

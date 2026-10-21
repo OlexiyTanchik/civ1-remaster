@@ -9,6 +9,7 @@ import { City, Unit, UnitTypeKey, BuildingTypeKey, TerrainType, Player, Governme
 import { UNIT_CONFIGS, BUILDING_CONFIGS, TERRAIN_DATA, FAT_CROSS_OFFSETS, MAP_WIDTH, MAP_HEIGHT } from './constants';
 import { tileYield, TerraformKind, checkTerraform } from './terraform';
 import { TurnManager } from './turn-manager';
+import { FleetAi } from './ai-fleet';
 
 /** Черга досліджень: спершу оборона, їжа й порядок, далі гроші, знання, будівництво. */
 const RESEARCH_ORDER = [
@@ -36,7 +37,11 @@ const CITY_SPACING = 4;
 type Step = { x: number; y: number };
 
 export class AiController {
-  constructor(private world: World) {}
+  private fleet: FleetAi;
+
+  constructor(private world: World) {
+    this.fleet = new FleetAi(world, this);
+  }
 
   /** Повний хід одного AI-гравця: дослідження, виробництво, юніти. */
   public takeTurn(player: Player): void {
@@ -140,6 +145,11 @@ export class AiController {
     if (!hasPalace && city === allCities.reduce((a, b) => (b.size > a.size ? b : a))) return set(true, BuildingTypeKey.Palace);
     if ((yields.disorder || city.size >= 4) && canBuild(BuildingTypeKey.Temple)) return set(true, BuildingTypeKey.Temple);
     if (threat && garrison < 2) return set(false, defender);
+    // Пасажири чекають на пором — будуємо, якщо поромів бракує
+    if (this.isCoastal(city) && yields.shields >= 2 && this.fleet.needsFerry(player.id)) {
+      const ferry = this.bestShip(player, 'ferry');
+      if (ferry) return set(false, ferry);
+    }
     if ((yields.unhappy > 0 || yields.entertainers > 1) && canBuild(BuildingTypeKey.Colosseum)) return set(true, BuildingTypeKey.Colosseum);
     if ((yields.unhappy > 0 || yields.entertainers > 1) && canBuild(BuildingTypeKey.Cathedral)) return set(true, BuildingTypeKey.Cathedral);
     if (city.size >= 3 && canBuild(BuildingTypeKey.Harbour)) return set(true, BuildingTypeKey.Harbour);
@@ -174,7 +184,22 @@ export class AiController {
     if (yields.corruption >= 2 && canBuild(BuildingTypeKey.Courthouse)) return set(true, BuildingTypeKey.Courthouse);
     // Войовничі готують ветеранів у великих містах
     if (hostile && city.size >= 4 && canBuild(BuildingTypeKey.Barracks)) return set(true, BuildingTypeKey.Barracks);
-    if (hostile && !armyFull && count(attacker as UnitTypeKey) < Math.ceil(cities / 2)) return set(false, attacker);
+    // Утримання: нові війська — лише там, де лишаються щити після утримання
+    const canUpkeep = yields.shields >= 3;
+    if (hostile && !armyFull && canUpkeep && count(attacker as UnitTypeKey) < Math.ceil(cities / 2)) return set(false, attacker);
+    // Флот і авіація для войовничих і тих, кому загрожують
+    const ships = myUnits.filter((u) => this.isWarship(u.type)).length;
+    const ports = allCities.filter((c) => this.isCoastal(c)).length;
+    if (hostile && canUpkeep && city.size >= 6 && this.isCoastal(city) && ships < Math.min(3, Math.ceil(ports / 2))) {
+      const warship = this.bestShip(player, 'war');
+      if (warship) return set(false, warship);
+    }
+    if (canUpkeep && city.size >= 8 && (threat || hostile) && player.knownTechs.includes('flight') && count(UnitTypeKey.Fighter) < Math.ceil(cities / 3)) {
+      return set(false, UnitTypeKey.Fighter);
+    }
+    if (hostile && canUpkeep && city.size >= 8 && player.knownTechs.includes('advanced_flight') && count(UnitTypeKey.Bomber) < Math.ceil(cities / 4)) {
+      return set(false, UnitTypeKey.Bomber);
+    }
     if (cities < MAX_CITIES && city.size >= 2) return set(false, UnitTypeKey.Settlers);
     // Армії досить — будуємо місто: решта доступних споруд
     for (const b of [BuildingTypeKey.CityWalls, BuildingTypeKey.Colosseum, BuildingTypeKey.Aqueduct, BuildingTypeKey.Courthouse]) {
@@ -186,12 +211,18 @@ export class AiController {
     const wonderSite = allCities.some((c) => c.currentProduction.isBuilding && BUILDING_CONFIGS[c.currentProduction.key as BuildingTypeKey]?.isWonder);
     if (wonderSite && player.knownTechs.includes('trade') && count(UnitTypeKey.Caravan) < 3) return set(false, UnitTypeKey.Caravan);
     if (wonder && city.size >= 5) return set(true, wonder.key);
-    if (!armyFull) return set(false, hostile ? attacker : defender);
+    if (!armyFull && canUpkeep) return set(false, hostile ? attacker : defender);
     // Армії досить: щити — у чудеса (як любить AI Civ 1), інакше корисне без утримання
     if (wonder) return set(true, wonder.key);
-    if (count(UnitTypeKey.Workers) < cities * 1.5) return set(false, UnitTypeKey.Workers);
+    if (count(UnitTypeKey.Workers) < cities) return set(false, UnitTypeKey.Workers);
     if (cities < 14 && city.size >= 3) return set(false, UnitTypeKey.Settlers);
-    if (player.knownTechs.includes('trade')) return set(false, UnitTypeKey.Caravan); // запас на чудеса наступних епох
+    // Юніти коштують утримання — тож наостанок краще будь-яка ще не збудована споруда
+    const leftover = Object.values(BUILDING_CONFIGS)
+      .filter((b) => !b.isWonder && !b.spacePart && b.key !== BuildingTypeKey.Palace && !has(b.key)
+        && (!b.prereqTech || player.knownTechs.includes(b.prereqTech)) && (!b.requires || has(b.requires)) && (!b.coastal || this.isCoastal(city)))
+      .sort((a, b) => a.maintenance - b.maintenance || a.cost - b.cost)[0];
+    if (leftover && affordable(leftover.maintenance)) return set(true, leftover.key);
+    if (player.knownTechs.includes('trade') && count(UnitTypeKey.Caravan) < 3) return set(false, UnitTypeKey.Caravan); // запас на чудеса
     return set(false, UnitTypeKey.Workers);
   }
 
@@ -228,6 +259,20 @@ export class AiController {
     if (ready || (rivalFlying && s.module >= 2) || late) w.launchSpaceship(player.id);
   }
 
+  private isWarship(type: UnitTypeKey): boolean {
+    const u = UNIT_CONFIGS[type];
+    return u.domain === 'sea' && !u.capacity && !u.airCapacity && u.attack >= 4;
+  }
+
+  /** Найкращий доступний корабель: пором (більше місця) чи бойовий (сильніша атака). */
+  private bestShip(player: Player, kind: 'ferry' | 'war'): UnitTypeKey | undefined {
+    const ships = Object.values(UNIT_CONFIGS).filter((u) => u.domain === 'sea' && (!u.prereqTech || player.knownTechs.includes(u.prereqTech)));
+    const list = kind === 'ferry'
+      ? ships.filter((u) => (u.capacity ?? 0) > 0).sort((a, b) => (b.capacity ?? 0) - (a.capacity ?? 0) || b.moves - a.moves)
+      : ships.filter((u) => this.isWarship(u.key) && u.key !== UnitTypeKey.Submarine).sort((a, b) => b.attack - a.attack);
+    return list[0]?.key;
+  }
+
   /** Найкращий доступний сухопутний юніт за атакою або обороною. */
   private bestUnit(player: Player, by: 'attack' | 'defense'): UnitTypeKey {
     const units = Object.values(UNIT_CONFIGS).filter(
@@ -246,11 +291,13 @@ export class AiController {
 
   private moveUnit(unit: Unit): void {
     const cfg = UNIT_CONFIGS[unit.type];
+    if (unit.carriedBy && cfg.domain === 'land') return; // пасажир: ним керує пором
+    if (unit.aiMission && this.fleet.awaitFerry(unit)) return;
     if (unit.type === UnitTypeKey.Settlers) return this.settle(unit);
     if (unit.type === UnitTypeKey.Workers) return this.work(unit);
     if (unit.type === UnitTypeKey.Caravan) return this.caravan(unit);
-    if (cfg.domain === 'sea') return this.wander(unit);
-    if (cfg.domain === 'air') return; // авіацією AI ще не керує (борг)
+    if (cfg.domain === 'air') return this.fleet.moveAir(unit);
+    if (cfg.domain === 'sea') return this.fleet.moveShip(unit);
     if (cfg.attack > cfg.defense) return this.attack(unit);
     return this.defend(unit);
   }
@@ -265,7 +312,16 @@ export class AiController {
       return;
     }
     if (!unit.aiTarget || !this.canFoundAt(unit.aiTarget.x, unit.aiTarget.y)) unit.aiTarget = this.findCitySite(unit);
-    if (!unit.aiTarget) return this.work(unit); // місця нема — хай працює на землі
+    if (!unit.aiTarget) {
+      // На своєму суходолі тісно — за море, якщо є порт і кораблі
+      const far = this.citiesOf(unit.playerId).length < MAX_CITIES ? this.fleet.overseasSite(unit) : undefined;
+      if (far) {
+        unit.aiMission = { kind: 'board', purpose: 'settle', target: far };
+        this.fleet.awaitFerry(unit);
+        return;
+      }
+      return this.work(unit); // місця нема — хай працює на землі
+    }
 
     if (unit.x === unit.aiTarget.x && unit.y === unit.aiTarget.y) {
       const city = w.foundCity(unit.id);
@@ -275,7 +331,7 @@ export class AiController {
     this.walkTo(unit, unit.aiTarget);
   }
 
-  private canFoundAt(x: number, y: number): boolean {
+  public canFoundAt(x: number, y: number): boolean {
     const t = this.world.tiles[y][x];
     if (t.terrain === TerrainType.Ocean || t.terrain === TerrainType.Glacier || t.cityId) return false;
     return ![...this.world.cities.values()].some((c) => this.world.distance(c.x, c.y, x, y) < CITY_SPACING);
@@ -301,7 +357,7 @@ export class AiController {
     return best;
   }
 
-  private siteScore(x: number, y: number): number {
+  public siteScore(x: number, y: number): number {
     const tiles = this.world.tiles;
     let score = 0;
     let coast = false;
@@ -368,7 +424,16 @@ export class AiController {
     const target = this.citiesOf(unit.playerId).find(
       (c) => c.currentProduction.isBuilding && BUILDING_CONFIGS[c.currentProduction.key as BuildingTypeKey]?.isWonder
     );
-    if (!target) return this.defend(unit);
+    if (!target) {
+      // Чуда давно ніхто не будує — караван лише їсть щити утримання
+      unit.aiWait = (unit.aiWait ?? 0) + 1;
+      if (unit.aiWait > 20 && unit.homeCityId) {
+        w.removeUnit(unit.id);
+        return;
+      }
+      return this.defend(unit);
+    }
+    unit.aiWait = 0;
     if (unit.x === target.x && unit.y === target.y) {
       w.helpWonder(unit.id);
       return;
@@ -449,20 +514,31 @@ export class AiController {
       this.walkTo(unit, best, true);
       return;
     }
+    // Суходолом цілей нема — десант на вороже місто за морем
+    const far = this.isHostilePhase(player) ? this.fleet.overseasTarget(unit) : undefined;
+    if (far) {
+      unit.aiMission = { kind: 'board', purpose: 'invade', target: far };
+      unit.isFortified = false;
+      this.fleet.awaitFerry(unit);
+      return;
+    }
     if (cfg.attack > 0) this.defend(unit);
   }
 
   /** Шанси атаки за формулою бою (без випадковості): атака / (атака + захист). */
-  private odds(unit: Unit, x: number, y: number): number {
+  public odds(unit: Unit, x: number, y: number): number {
     const w = this.world;
     const tile = w.tiles[y][x];
     const defenders = tile.unitIds.map((id) => w.units.get(id)!).filter(Boolean);
     if (!defenders.length) return 1;
     const def = defenders.sort((a, b) => UNIT_CONFIGS[b.type].defense - UNIT_CONFIGS[a.type].defense)[0];
-    let d = Math.max(1, UNIT_CONFIGS[def.type].defense) * (TERRAIN_DATA[tile.terrain]?.defenseBonus ?? 1);
-    if (def.isFortified) d *= 1.5;
+    // Як у бою: літаку в небі рельєф не допомагає, мури — лише проти наземних
+    const inSky = UNIT_CONFIGS[def.type].domain === 'air' && !tile.cityId;
+    let d = Math.max(1, UNIT_CONFIGS[def.type].defense) * (inSky ? 1 : TERRAIN_DATA[tile.terrain]?.defenseBonus ?? 1);
+    if (def.isFortified && !inSky) d *= 1.5;
     const city = tile.cityId ? w.cities.get(tile.cityId) : undefined;
-    if (city && (city.buildings.includes(BuildingTypeKey.CityWalls) || w.ownerWonders(city.playerId).has(BuildingTypeKey.GreatWall))) d *= 3;
+    const walls = city && (city.buildings.includes(BuildingTypeKey.CityWalls) || w.ownerWonders(city.playerId).has(BuildingTypeKey.GreatWall));
+    if (walls && UNIT_CONFIGS[unit.type].domain === 'land') d *= 3;
     const a = Math.max(1, UNIT_CONFIGS[unit.type].attack);
     return a / (a + d);
   }
@@ -498,7 +574,7 @@ export class AiController {
   }
 
   /** Іде до цілі, поки є рух; з allowTarget — останній крок може бути атакою. */
-  private walkTo(unit: Unit, target: Step, allowTarget = false): void {
+  public walkTo(unit: Unit, target: Step, allowTarget = false): void {
     for (let guard = 0; guard < 6 && unit.movesLeft > 0 && this.world.units.has(unit.id); guard++) {
       const step = this.pathStep(unit, target, allowTarget);
       if (!step) return;
@@ -556,7 +632,7 @@ export class AiController {
 
   // ---------- Допоміжне ----------
 
-  private isCoastal(city: City): boolean {
+  public isCoastal(city: City): boolean {
     for (let dy = -1; dy <= 1; dy++) {
       for (let dx = -1; dx <= 1; dx++) {
         const y = city.y + dy;
@@ -567,7 +643,7 @@ export class AiController {
     return false;
   }
 
-  private citiesOf(playerId: number): City[] {
+  public citiesOf(playerId: number): City[] {
     return [...this.world.cities.values()].filter((c) => c.playerId === playerId);
   }
 
@@ -595,7 +671,7 @@ export class AiController {
   }
 
   /** Варварів б'ємо завжди; інших — коли настав час війни за характером лідера. */
-  private mayAttack(player: Player, targetId: number): boolean {
+  public mayAttack(player: Player, targetId: number): boolean {
     if (this.world.players[targetId].isBarbarian) return true;
     // Рада безпеки ООН: власника не чіпають, поки він сам не напав
     if (this.world.ownerWonders(targetId).has(BuildingTypeKey.UnitedNations) && !this.world.attackedRecently(targetId, player.id)) return false;

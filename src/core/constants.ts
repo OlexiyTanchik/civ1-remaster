@@ -534,23 +534,23 @@ export const FAT_CROSS_OFFSETS = [
 // Державні устрої (Civ 1)
 export const GOVERNMENTS: Record<GovernmentKey, GovernmentConfig> = {
   anarchy: {
-    key: 'anarchy', nameUa: 'Анархія', maxRate: 0, corruptionPerTile: 0.05, tilePenalty: true, tradeBonus: false, martialLaw: 0,
+    key: 'anarchy', nameUa: 'Анархія', maxRate: 0, corruptionPerTile: 0.05, tilePenalty: true, tradeBonus: false, martialLaw: 0, freeUnits: 3, settlerFood: 1,
     descriptionUa: 'Перехід між устроями: ні податків, ні науки, вся торгівля йде на розкіш.',
   },
   despotism: {
-    key: 'despotism', nameUa: 'Деспотизм', maxRate: 6, corruptionPerTile: 0.03, tilePenalty: true, tradeBonus: false, martialLaw: 0,
+    key: 'despotism', nameUa: 'Деспотизм', maxRate: 6, corruptionPerTile: 0.03, tilePenalty: true, tradeBonus: false, martialLaw: 0, freeUnits: 3, settlerFood: 1,
     descriptionUa: 'Влада одного. Клітинки дають не більше 2 кожного ресурсу (понад 2 — мінус 1). Ставки до 60%.',
   },
   monarchy: {
-    key: 'monarchy', nameUa: 'Монархія', prereqTech: 'monarchy', maxRate: 7, corruptionPerTile: 0.02, tilePenalty: false, tradeBonus: false, martialLaw: 3,
+    key: 'monarchy', nameUa: 'Монархія', prereqTech: 'monarchy', maxRate: 7, corruptionPerTile: 0.02, tilePenalty: false, tradeBonus: false, martialLaw: 3, freeUnits: 3, settlerFood: 1,
     descriptionUa: 'Без штрафу до клітинок. Військові в місті заспокоюють до 3 невдоволених. Ставки до 70%.',
   },
   democracy: {
-    key: 'democracy', nameUa: 'Демократія', prereqTech: 'democracy', maxRate: 9, corruptionPerTile: 0, tilePenalty: false, tradeBonus: true, martialLaw: 0,
+    key: 'democracy', nameUa: 'Демократія', prereqTech: 'democracy', maxRate: 9, corruptionPerTile: 0, tilePenalty: false, tradeBonus: true, martialLaw: 0, freeUnits: 0, settlerFood: 2,
     descriptionUa: '+1 торгівлі на клітинках, що вже її дають. Корупції немає. Ставки до 90%.',
   },
   republic: {
-    key: 'republic', nameUa: 'Республіка', prereqTech: 'the_republic', maxRate: 8, corruptionPerTile: 0.01, tilePenalty: false, tradeBonus: true, martialLaw: 0,
+    key: 'republic', nameUa: 'Республіка', prereqTech: 'the_republic', maxRate: 8, corruptionPerTile: 0.01, tilePenalty: false, tradeBonus: true, martialLaw: 0, freeUnits: 0, settlerFood: 2,
     descriptionUa: '+1 торгівлі на клітинках, що вже її дають. Найменша корупція. Ставки до 80%. Військовий стан не діє.',
   },
 };

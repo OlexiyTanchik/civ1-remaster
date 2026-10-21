@@ -222,6 +222,13 @@ async function bootstrap() {
 
   hud.onOpenGameMenu = () => gameMenu.show();
 
+  hud.onRehome = () => {
+    if (!selectedUnit) return;
+    const city = world.rehome(selectedUnit.id);
+    if (city) hud.addLogMessage(`🏠 ${UNIT_CONFIGS[selectedUnit.type].nameUa}: тепер утримує місто ${city.name}`);
+    hud.update(selectedUnit);
+  };
+
   hud.onOpenSpace = () => {
     spaceDialog.show(() => {
       hud.addLogMessage(`🚀 Космічний корабель стартував до Альфи Центавра! Прибуття — ${TurnManager.formatYear(world.players[0].spaceship?.arrivalYear ?? 0)}`);

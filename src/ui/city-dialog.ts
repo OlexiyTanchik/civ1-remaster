@@ -4,7 +4,7 @@
 import { City, UnitTypeKey, BuildingTypeKey } from '../core/types';
 import { World } from '../core/world';
 import { CityLogic } from '../core/city';
-import { UNIT_CONFIGS, BUILDING_CONFIGS } from '../core/constants';
+import { UNIT_CONFIGS, BUILDING_CONFIGS, GOVERNMENTS } from '../core/constants';
 import { drawCityPanorama, PANORAMA_W, PANORAMA_H } from './city-panorama';
 
 export class CityDialog {
@@ -67,6 +67,20 @@ export class CityDialog {
     return [...units, ...buildings];
   }
 
+  /** Хто на утриманні міста і скільки це коштує (Civ 1). */
+  private supportLine(city: City, yields: { upkeepShields: number; upkeepFood: number; shieldsGross: number }): string {
+    const units = this.world.supportedUnits(city);
+    if (!units.length) return '';
+    const free = GOVERNMENTS[this.world.players[city.playerId].government].freeUnits;
+    const names = units.map((u) => UNIT_CONFIGS[u.type].nameUa).join(', ');
+    return `
+            <div class="city-stat" title="${names}">
+              <span>🪖 На утриманні ${units.length} юн. (безкоштовно ${free})</span>
+              <span class="stat-val ${yields.upkeepShields ? 'bad' : 'good'}">${yields.upkeepShields ? `−${yields.upkeepShields} щит.` : 'без витрат'}</span>
+              <span class="dim">виробляє ${yields.shieldsGross}</span>
+            </div>`;
+  }
+
   /** Палац будується лише тоді, коли його немає в жодному місті гравця (втрачено столицю). */
   private hasPalace(playerId: number): boolean {
     return [...this.world.cities.values()].some((c) => c.playerId === playerId && c.buildings.includes(BuildingTypeKey.Palace));
@@ -109,7 +123,7 @@ export class CityDialog {
             <canvas id="city-panorama" class="city-panorama" width="${PANORAMA_W}" height="${PANORAMA_H}"></canvas>
 
             <div class="city-stat">
-              <span>🌾 Їжа ${yields.food} − ${city.size * 2}</span>
+              <span>🌾 Їжа ${yields.food} − ${city.size * 2}${yields.upkeepFood ? ` − ${yields.upkeepFood} <span class="dim">(поселенці)</span>` : ''}</span>
               <span class="stat-val ${yields.foodSurplus >= 0 ? 'good' : 'bad'}">${yields.foodSurplus >= 0 ? '+' : ''}${yields.foodSurplus}/хід</span>
               <span class="dim">${city.foodStored}/${city.foodNeeded}</span>
             </div>
@@ -121,6 +135,7 @@ export class CityDialog {
               <span class="dim">${city.shieldsStored}/${prodCost}</span>
             </div>
             <div class="progress-bar"><div class="progress-fill shields" style="width: ${pct(city.shieldsStored, prodCost)}%"></div></div>
+            ${this.supportLine(city, yields)}
 
             <div class="city-stat">
               <span>💰 Торгівля ${yields.trade}${yields.corruption ? ` <span class="dim">(корупція −${yields.corruption})</span>` : ''}</span>

@@ -36,6 +36,7 @@ export class Hud {
   public onOpenGovernment?: () => void;
   public onOpenSpace?: () => void;
   public onOpenGameMenu?: () => void;
+  public onRehome?: () => void;
 
   constructor(
     private container: HTMLElement,
@@ -96,6 +97,7 @@ export class Hud {
           <button class="civ-btn" id="btn-build-city" title="Заснувати місто [B]">🏛️ Місто [B]</button>
           ${TERRAFORM_KINDS.map((k) => `<button class="civ-btn" id="btn-tf-${k}"></button>`).join('')}
           <button class="civ-btn" id="btn-help-wonder">🌟 На чудо [H]</button>
+          <button class="civ-btn" id="btn-rehome" title="Переписати юніт на це місто: воно його утримуватиме">🏠 Дім</button>
           <button class="civ-btn" id="btn-fortify" title="Укріпитися: +50% захисту [F]">🛡️ Укріпити [F]</button>
           <button class="civ-btn" id="btn-wait" title="Чекати: наступний юніт [W]">⏳ Чекати [W]</button>
           <button class="civ-btn" id="btn-toggle-grid" title="Сітка клітинок [G]">📐 Сітка ✓ [G]</button>
@@ -120,6 +122,7 @@ export class Hud {
     document.getElementById('hud-gov')?.addEventListener('click', () => this.onOpenGovernment?.());
     document.getElementById('hud-space')?.addEventListener('click', () => this.onOpenSpace?.());
     document.getElementById('btn-game-menu')?.addEventListener('click', () => this.onOpenGameMenu?.());
+    document.getElementById('btn-rehome')?.addEventListener('click', () => this.onRehome?.());
     // Ставки: податки й розкіш ±10%, наука — решта (межа залежить від устрою)
     this.sidebarEl.querySelectorAll<HTMLButtonElement>('.rate-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -229,6 +232,7 @@ export class Hud {
           selectedUnit.carriedBy && cfg.domain === 'air' ? 'На авіаносці' : '',
           cfg.capacity ? `Пасажирів ${this.world.cargoOf(selectedUnit.id).length}/${cfg.capacity}` : '',
           cfg.airCapacity ? `Літаків ${this.world.cargoOf(selectedUnit.id).length}/${cfg.airCapacity}` : '',
+          selectedUnit.homeCityId ? `🏠 ${this.world.cities.get(selectedUnit.homeCityId)?.name ?? '—'}` : '',
           cfg.fuel ? `⛽ Пальне: ${selectedUnit.fuel ?? cfg.fuel}/${cfg.fuel} ход. — сідайте в місті чи на авіаносці` : '',
         ].filter(Boolean).join(' • ');
         terrainEl.textContent = `Рельєф: ${currentTile.terrain} (Захист: x${terrainYield.defenseBonus})${notes ? ' • ' + notes : ''}`;
@@ -269,6 +273,15 @@ export class Hud {
 
   /** Кнопки робіт поселенця: показуємо лише поселенцям, неможливі — вимкнені з поясненням. */
   private updateTerraformButtons(unit?: Unit): void {
+    // «Дім»: лише у своєму місті, яке ще не утримує цей юніт
+    const rehomeBtn = document.getElementById('btn-rehome') as HTMLButtonElement | null;
+    if (rehomeBtn) {
+      const cityId = unit && this.world.tiles[unit.y][unit.x].cityId;
+      const city = cityId ? this.world.cities.get(cityId) : undefined;
+      const show = !!unit && !!city && city.playerId === unit.playerId && unit.homeCityId !== city.id;
+      rehomeBtn.style.display = show ? 'block' : 'none';
+      if (show) rehomeBtn.textContent = `🏠 Дім: ${city!.name}`;
+    }
     const helpBtn = document.getElementById('btn-help-wonder') as HTMLButtonElement | null;
     if (helpBtn) {
       helpBtn.style.display = unit?.type === UnitTypeKey.Caravan ? 'block' : 'none';

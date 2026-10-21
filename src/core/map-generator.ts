@@ -6,6 +6,9 @@
 import { MAP_WIDTH, MAP_HEIGHT } from './constants';
 import { TerrainType, ResourceType, TileData } from './types';
 
+/** Ширина протоки між континентами (різниця відстаней до двох найближчих ядер, клітинок). */
+const STRAIT_WIDTH = 3;
+
 export class MapGenerator {
   public static generateWorld(seed: number = Date.now()): TileData[][] {
     const tiles: TileData[][] = [];
@@ -45,29 +48,40 @@ export class MapGenerator {
   private static generateContinents(seed: number): boolean[][] {
     let grid: boolean[][] = Array.from({ length: MAP_HEIGHT }, () => Array(MAP_WIDTH).fill(false));
 
-    // 5 великих континентальних ядер (розставлені для 80×50, масштабуються під розмір мапи)
+    // 5 великих континентальних ядер (розставлені для 80×50, масштабуються під розмір мапи);
+    // кожна мапа зсуває їх по-своєму, щоб світи не були однакові
     const sx = MAP_WIDTH / 80;
     const sy = MAP_HEIGHT / 50;
     const ss = Math.sqrt(sx * sy);
+    const rand = (i: number) => {
+      const v = Math.sin(seed * 0.0001 + i * 12.9898) * 43758.5453;
+      return v - Math.floor(v);
+    };
     const centers = [
       { x: 16, y: 18, size: 16 },
       { x: 38, y: 32, size: 18 },
       { x: 62, y: 20, size: 17 },
       { x: 25, y: 36, size: 15 },
       { x: 70, y: 34, size: 14 },
-    ].map((c) => ({ x: Math.round(c.x * sx), y: Math.round(c.y * sy), size: c.size * ss }));
+    ].map((c, i) => ({
+      x: Math.round((c.x + (rand(i) * 2 - 1) * 5) * sx),
+      y: Math.round((c.y + (rand(i + 10) * 2 - 1) * 3) * sy),
+      size: c.size * ss,
+    }));
 
     for (let y = 3; y < MAP_HEIGHT - 3; y++) {
       for (let x = 0; x < MAP_WIDTH; x++) {
         const noise = this.smoothNoise(x, y, 0.08, seed) * 10 - 5;
-        for (const c of centers) {
-          const dx = Math.min(Math.abs(x - c.x), MAP_WIDTH - Math.abs(x - c.x));
-          const dy = (y - c.y) * 1.4;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist + noise < c.size) {
-            grid[y][x] = true;
-          }
-        }
+        // Найближче й друге найближче ядро: біля межі між ними — протока, тож континенти не зливаються
+        const dists = centers
+          .map((c) => {
+            const dx = Math.min(Math.abs(x - c.x), MAP_WIDTH - Math.abs(x - c.x));
+            const dy = (y - c.y) * 1.4;
+            return { c, d: Math.sqrt(dx * dx + dy * dy) };
+          })
+          .sort((a, b) => a.d - b.d);
+        const strait = dists[1].d - dists[0].d < STRAIT_WIDTH * ss;
+        if (!strait && dists[0].d + noise < dists[0].c.size) grid[y][x] = true;
       }
     }
 
