@@ -187,8 +187,9 @@ export class AiController {
     if (hostile && city.size >= 4 && canBuild(BuildingTypeKey.Barracks)) return set(true, BuildingTypeKey.Barracks);
     // Утримання: нові війська — лише там, де лишаються щити після утримання
     const canUpkeep = yields.shields >= 3;
-    // Дипломат — знайомитись і відкривати посольства
-    if (canUpkeep && city.size >= 3 && player.knownTechs.includes('writing') && count(UnitTypeKey.Diplomat) < 1 && this.needEmbassy(player).length) {
+    // Дипломат — знайомитись і відкривати посольства; з повною скарбницею на війні — підкуповувати міста
+    const bribe = hostile && player.gold >= 600;
+    if (canUpkeep && city.size >= 3 && player.knownTechs.includes('writing') && count(UnitTypeKey.Diplomat) < 1 && (this.needEmbassy(player).length || bribe)) {
       return set(false, UnitTypeKey.Diplomat);
     }
     if (hostile && !armyFull && canUpkeep && count(attacker as UnitTypeKey) < Math.ceil(cities / 2)) return set(false, attacker);
@@ -433,13 +434,13 @@ export class AiController {
       .map((p) => p.id);
   }
 
-  /** Дипломат: до найближчого міста цивілізації без посольства; на війні — красти технології. */
+  /** Дипломат: до найближчого міста цивілізації без посольства; на війні — підкуп, крадіжка чи саботаж. */
   private diplomat(unit: Unit): void {
     const w = this.world;
     const player = w.players[unit.playerId];
     const want = new Set(this.needEmbassy(player));
     const targets = [...w.cities.values()].filter((c) => c.playerId !== unit.playerId
-      && (want.has(c.playerId) || (w.diplomacy.atWar(unit.playerId, c.playerId) && !w.players[c.playerId].isBarbarian && !(c.stolenBy ?? []).includes(unit.playerId))))
+      && (want.has(c.playerId) || (w.diplomacy.atWar(unit.playerId, c.playerId) && !w.players[c.playerId].isBarbarian && !c.buildings.includes(BuildingTypeKey.Palace))))
       .sort((a, b) => w.distance(a.x, a.y, unit.x, unit.y) - w.distance(b.x, b.y, unit.x, unit.y));
     const target = targets.find((c) => w.distance(c.x, c.y, unit.x, unit.y) <= 20 && this.pathStep(unit, c, true) !== null);
     if (!target) {

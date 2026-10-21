@@ -5,8 +5,8 @@
  * Пропозиції AI людині не виконуються одразу, а стають «зустрічами», які людина приймає чи відхиляє.
  */
 import type { World } from './world';
-import { BuildingTypeKey, Player, Tech, UnitTypeKey } from './types';
-import { UNIT_CONFIGS, MAP_WIDTH, MAP_HEIGHT } from './constants';
+import { BuildingTypeKey, City, Player, Tech, UnitTypeKey } from './types';
+import { UNIT_CONFIGS, BUILDING_CONFIGS, MAP_WIDTH, MAP_HEIGHT } from './constants';
 import { TurnManager } from './turn-manager';
 
 export interface Relation {
@@ -15,6 +15,9 @@ export interface Relation {
   /** Хід, з якого діє поточний стан */
   since: number;
 }
+
+/** Доручення дипломата: посольство, крадіжка технології, підкуп міста, саботаж. */
+export type DiplomatAction = 'embassy' | 'steal' | 'incite' | 'sabotage';
 
 export type MeetingKind = 'contact' | 'peace' | 'tribute' | 'trade' | 'war';
 
@@ -412,8 +415,33 @@ export class Diplomacy {
     this.lastOffer = new Map(d.lastOffer);
   }
 
-  /** Дипломат у чужому місті: посольство або крадіжка технології. */
-  public diplomatAct(unitId: string, cityId: string, action: 'embassy' | 'steal'): string {
+  /**
+   * Ціна підкупу міста (Civ 1): (скарбниця власника + 1000) × жителі / (відстань до його столиці + 3);
+   * місто в безладі — удвічі дешевше. Столицю не підкупити (Infinity).
+   */
+  public inciteCost(city: City): number {
+    const w = this.world;
+    if (city.buildings.includes(BuildingTypeKey.Palace)) return Infinity;
+    const owner = this.civ(city.playerId);
+    const capital = [...w.cities.values()].find((c) => c.playerId === owner.id && c.buildings.includes(BuildingTypeKey.Palace));
+    // Без столиці — як найдальша провінція
+    const dist = capital ? w.distance(capital.x, capital.y, city.x, city.y) : 32;
+    let cost = (owner.gold + 1000) * city.size / (dist + 3);
+    if (w.cityYields(city).disorder) cost /= 2;
+    return Math.round(cost);
+  }
+
+  /** AI-дипломат: посольство; на війні — підкуп, якщо по кишені, інакше крадіжка чи саботаж. */
+  public aiDiplomatChoice(me: number, city: City): DiplomatAction {
+    if (!this.hasEmbassy(me, city.playerId) && !this.civ(city.playerId).isBarbarian) return 'embassy';
+    if (!this.atWar(me, city.playerId)) return 'steal';
+    if (this.inciteCost(city) <= this.civ(me).gold * 0.6) return 'incite';
+    if (!(city.stolenBy ?? []).includes(me) && this.tradeable(city.playerId, me).length) return 'steal';
+    return 'sabotage';
+  }
+
+  /** Дипломат у чужому місті: посольство, крадіжка технології, підкуп чи саботаж. */
+  public diplomatAct(unitId: string, cityId: string, action: DiplomatAction): string {
     const w = this.world;
     const unit = w.units.get(unitId);
     const city = w.cities.get(cityId);
@@ -421,12 +449,31 @@ export class Diplomacy {
     if (w.distance(unit.x, unit.y, city.x, city.y) > 1) return '';
     const me = this.civ(unit.playerId);
     const them = this.civ(city.playerId);
+    const cost = action === 'incite' ? this.inciteCost(city) : 0;
+    if (cost > me.gold) return `💰 Підкуп міста ${city.name} коштує ${cost === Infinity ? 'більше, ніж є золота у світі' : cost + ' 💰'}.`;
+    // Підкуп і саботаж — ворожі дії: у мирі це віроломний напад (до знайомства — просто війна)
+    if (action === 'incite' || action === 'sabotage') w.noteAggression(me.id, them.id);
     this.meet(me.id, them.id);
     w.removeUnit(unit.id);
     if (action === 'embassy') {
       me.embassies = [...new Set([...(me.embassies ?? []), them.id])];
       this.mood(them.id, me.id, 0.5);
       return `🏛️ Відкрито посольство: ${them.nameUa}. Тепер ви бачите їхні технології й скарбницю.`;
+    }
+    if (action === 'incite') {
+      me.gold -= cost;
+      return w.captureCity(city, me.id, true);
+    }
+    if (action === 'sabotage') {
+      // Як у Civ 1: навмання або згорає накопичене виробництво, або руйнується звичайна будівля
+      const pool = city.buildings.filter((b) => b !== BuildingTypeKey.Palace && !BUILDING_CONFIGS[b].isWonder);
+      const pick = Math.floor(Math.random() * (pool.length + 1));
+      if (pick === pool.length) {
+        city.shieldsStored = 0;
+        return `💣 Саботаж у місті ${city.name}: виробництво знищено.`;
+      }
+      city.buildings = city.buildings.filter((b) => b !== pool[pick]);
+      return `💣 Саботаж у місті ${city.name}: зруйновано «${BUILDING_CONFIGS[pool[pick]].nameUa}».`;
     }
     const options = this.tradeable(them.id, me.id);
     city.stolenBy = [...(city.stolenBy ?? [])];
