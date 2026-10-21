@@ -314,9 +314,35 @@ export class Hud {
     }
   }
 
+  /** Журнал подій: усі повідомлення з роком (найновіші зверху). */
+  private journal: { year: string; text: string }[] = [];
+
   public addLogMessage(msg: string): void {
+    this.journal.unshift({ year: this.world.turnManager.getYearString(), text: msg });
+    if (this.journal.length > 300) this.journal.length = 300;
     const logBox = document.getElementById('message-log');
     if (!logBox) return;
-    logBox.innerHTML = `<span class="log-entry">${msg}</span>`;
+    logBox.innerHTML = `<span class="log-entry">${msg}</span> <span class="log-more" title="Журнал подій">📜 ${this.journal.length}</span>`;
+    logBox.querySelector('.log-more')?.addEventListener('click', () => this.showJournal());
+  }
+
+  /** Вікно з історією повідомлень (клік по стрічці). */
+  private showJournal(): void {
+    let overlay = document.getElementById('journal-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'journal-overlay';
+      overlay.className = 'modal-overlay';
+      this.container.appendChild(overlay);
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay!.classList.add('hidden'); });
+      window.addEventListener('keydown', (e) => { if (e.key === 'Escape') overlay!.classList.add('hidden'); });
+    }
+    overlay.innerHTML = `
+      <div class="tech-modal diplo-modal">
+        <div class="city-header"><h2>📜 Журнал подій</h2><button class="btn-close" id="journal-close">✖</button></div>
+        <div class="journal-list">${this.journal.map((j) => `<div class="journal-row"><span class="dim">${j.year}</span> ${j.text}</div>`).join('')}</div>
+      </div>`;
+    overlay.classList.remove('hidden');
+    overlay.querySelector('#journal-close')?.addEventListener('click', () => overlay!.classList.add('hidden'));
   }
 }
