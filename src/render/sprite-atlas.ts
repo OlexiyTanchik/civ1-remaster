@@ -49,7 +49,8 @@ export class SpriteAtlas {
   private static warned = new Set<string>();
 
   public static async load(): Promise<void> {
-    const base = '/assets/sprites/';
+    // Від BASE_URL: гра працює й з підкаталогу (GitHub Pages) чи будь-якого статичного хостингу
+    const base = `${import.meta.env.BASE_URL}assets/sprites/`;
     const json = await fetch(`${base}atlas.json`).then((r) => r.json());
     this.frames = json.frames;
     this.image = await new Promise<HTMLImageElement>((resolve, reject) => {
