@@ -302,7 +302,7 @@ export class World {
     }
 
     // Літак летить над будь-чим по 1 руху за клітинку
-    const cost = air ? 1 : UnitLogic.getMovementCost(fromTile, toTile);
+    const cost = air ? 1 : UnitLogic.getMovementCost(fromTile, toTile, cfg.allTerrainAsRoad);
     unit.movesLeft = Math.max(0, unit.movesLeft - cost);
     unit.isFortified = false;
     unit.task = undefined;
@@ -315,7 +315,7 @@ export class World {
     // Корабель везе пасажирів із собою; у порту вони сходять на берег
     const cargo = cfg.domain === 'sea' ? this.cargoOf(unit.id) : [];
     this.relocateUnit(unit, destX, destY);
-    this.revealFog(unit.playerId, destX, destY, 2);
+    this.revealFog(unit.playerId, destX, destY, cfg.vision ?? 2);
     for (const c of cargo) {
       this.relocateUnit(c, destX, destY);
       if (toTile.terrain !== TerrainType.Ocean) c.carriedBy = undefined;
@@ -693,8 +693,17 @@ export class World {
     if (city.shieldsStored < total) return undefined;
     city.shieldsStored -= total;
     const unit = this.createUnit(city.playerId, city.currentProduction.key as UnitTypeKey, city.x, city.y, city.id);
-    if (city.buildings.includes(BuildingTypeKey.Barracks) && UNIT_CONFIGS[unit.type].domain !== 'air') unit.veteran = true;
+    if (this.trainsVeteran(city, unit.type)) unit.veteran = true;
     return unit;
+  }
+
+  /** Чи новий юніт міста — ветеран: казарми (наземні й кораблі), аеропорт (літаки), Сунь-цзи (наземні всюди). */
+  public trainsVeteran(city: City, type: UnitTypeKey): boolean {
+    const cfg = UNIT_CONFIGS[type];
+    if (cfg.attack === 0 || type === UnitTypeKey.Nuclear) return false;
+    if (cfg.domain === 'air') return city.buildings.includes(BuildingTypeKey.Airport);
+    if (cfg.domain === 'land' && this.ownerWonders(city.playerId).has(BuildingTypeKey.SunTzu)) return true;
+    return city.buildings.includes(BuildingTypeKey.Barracks);
   }
 
   /** Продаж споруди людиною: одна на місто за хід, за її ціну; палац і чудеса не продаються. Повертає виручку. */
@@ -826,9 +835,7 @@ export class World {
       if (!res.completedProduction.isBuilding) {
         const newUnit = this.createUnit(city.playerId, res.completedProduction.key as UnitTypeKey, city.x, city.y, city.id);
         // Казарми — ветерани серед наземних і кораблів, аеропорт — серед літаків
-        const newCfg = UNIT_CONFIGS[newUnit.type];
-        const school = newCfg.domain === 'air' ? BuildingTypeKey.Airport : BuildingTypeKey.Barracks;
-        if (city.buildings.includes(school) && newCfg.attack > 0 && newUnit.type !== UnitTypeKey.Nuclear) newUnit.veteran = true;
+        if (this.trainsVeteran(city, newUnit.type)) newUnit.veteran = true;
         if (mine) completedItems.push(`${city.name} створило юніт: ${UNIT_CONFIGS[newUnit.type].nameUa}${newUnit.veteran ? ' (ветеран)' : ''}`);
       } else {
         const cfg = BUILDING_CONFIGS[res.completedProduction.key as BuildingTypeKey];
@@ -1456,5 +1463,6 @@ const UPGRADES: Partial<Record<UnitTypeKey, UnitTypeKey>> = {
   [UnitTypeKey.Sail]: UnitTypeKey.Caravel,
   [UnitTypeKey.Caravel]: UnitTypeKey.Frigate,
   [UnitTypeKey.Frigate]: UnitTypeKey.Ironclad,
+  [UnitTypeKey.Galleon]: UnitTypeKey.Transport,
   [UnitTypeKey.Ironclad]: UnitTypeKey.Cruiser,
 };

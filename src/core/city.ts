@@ -115,7 +115,9 @@ export class CityLogic {
     // Утримання армії (Civ 1): понад безкоштовних — по щиту за юніт; поселенці ще й їдять
     const gov = GOVERNMENTS[env.government];
     const support = env.support ?? { units: 0, settlers: 0 };
-    const upkeepShields = Math.max(0, support.units - gov.freeUnits);
+    // Статуя Зевса — ще один юніт на місто без утримання
+    const free = gov.freeUnits + (env.ownerWonders.has(BuildingTypeKey.StatueOfZeus) ? 1 : 0);
+    const upkeepShields = Math.max(0, support.units - free);
     const upkeepFood = support.settlers * gov.settlerFood;
 
     // Корупція: зростає з відстанню до столиці (за Комунізму — однакова); суд зменшує вдвічі; столиця не корумпована
@@ -158,7 +160,7 @@ export class CityLogic {
     let unhappy = citizens - content;
     // Храм/колізей/чудеса заспокоюють невдоволених
     let calm = 0;
-    if (has(BuildingTypeKey.Temple)) calm += env.ownerWonders.has(BuildingTypeKey.Oracle) ? 4 : 2;
+    if (has(BuildingTypeKey.Temple)) calm += (env.ownerWonders.has(BuildingTypeKey.Oracle) ? 4 : 2) + (env.ownerWonders.has(BuildingTypeKey.TempleOfArtemis) ? 2 : 0);
     if (has(BuildingTypeKey.Colosseum)) calm += 3;
     if (has(BuildingTypeKey.Cathedral) || env.ownerWonders.has(BuildingTypeKey.Michelangelo)) calm += 3;
     if (env.ownerWonders.has(BuildingTypeKey.HangingGardens)) calm += 1;
@@ -175,7 +177,8 @@ export class CityLogic {
     content += calmed;
     // Армія за кордоном (Республіка 1, Демократія 2 за юніт); Жіноче виборче право — поліція, −1 за юніт
     const perUnit = Math.max(0, (gov.abroadUnhappy ?? 0) - (env.ownerWonders.has(BuildingTypeKey.WomensSuffrage) ? 1 : 0));
-    const abroadUnhappy = Math.min(content, (support.abroad ?? 0) * perUnit);
+    const abroad = Math.max(0, (support.abroad ?? 0) - (env.ownerWonders.has(BuildingTypeKey.StatueOfZeus) ? 1 : 0));
+    const abroadUnhappy = Math.min(content, abroad * perUnit);
     content -= abroadUnhappy;
     unhappy += abroadUnhappy;
     // Розкіш: кожні 2 — задоволений стає щасливим, а як задоволених нема — невдоволений задоволеним

@@ -15,7 +15,7 @@ import { FleetAi } from './ai-fleet';
 const RESEARCH_ORDER = [
   'bronze_working', 'alphabet', 'ceremonial_burial', 'pottery', 'masonry', 'horseback_riding',
   'writing', 'map_making', 'currency', 'code_of_laws', 'iron_working', 'the_wheel', 'mathematics', 'mysticism',
-  'literacy', 'construction', 'monarchy', 'warrior_code', 'trade', 'philosophy', 'astronomy',
+  'literacy', 'construction', 'monarchy', 'warrior_code', 'trade', 'philosophy', 'astronomy', 'seafaring',
   'feudalism', 'the_republic', 'monotheism', 'university', 'bridge_building', 'banking', 'chivalry',
   'navigation', 'invention', 'gunpowder',
   'physics', 'medicine', 'economics', 'theory_of_gravity', 'democracy', 'metallurgy', 'magnetism',
@@ -204,6 +204,10 @@ export class AiController {
     if (cities + count(UnitTypeKey.Settlers) < MAX_CITIES && count(UnitTypeKey.Settlers) < 2 && city.size >= 2 && !threat && !capitalOnWonders && fedSettlers) {
       return set(false, UnitTypeKey.Settlers);
     }
+    // Дослідник: дешевий і швидкий — знаходить хатки й сусідів раніше за воїнів
+    if (player.knownTechs.includes('seafaring') && count(UnitTypeKey.Explorer) < 1 && cities <= 6 && this.unexploredNear(city, player.id)) {
+      return set(false, UnitTypeKey.Explorer);
+    }
     // Робітники: від двох міст, а єдиному місту, що не росте, — одразу (зрошення)
     if ((cities >= 2 || yields.foodSurplus <= 0) && count(UnitTypeKey.Workers) < Math.ceil(cities / 2)) return set(false, UnitTypeKey.Workers);
     if (garrison < this.garrisonNeed(city)) return set(false, defender);
@@ -364,6 +368,7 @@ export class AiController {
     if (unit.type === UnitTypeKey.Workers) return this.work(unit);
     if (unit.type === UnitTypeKey.Caravan) return this.caravan(unit);
     if (unit.type === UnitTypeKey.Diplomat) return this.diplomat(unit);
+    if (unit.type === UnitTypeKey.Explorer) return this.scoutLand(unit);
     if (cfg.domain === 'air') return this.fleet.moveAir(unit);
     if (cfg.domain === 'sea') return this.fleet.moveShip(unit);
     if (cfg.attack > cfg.defense) return this.attack(unit);
@@ -599,6 +604,22 @@ export class AiController {
     this.explore(unit);
   }
 
+  /** Чи лишилось у радіусі 10 від міста понад 20 нерозвіданих клітинок суші. */
+  private unexploredNear(city: City, playerId: number): boolean {
+    const fog = this.world.playerFogs.get(playerId);
+    if (!fog) return false;
+    let n = 0;
+    for (let dy = -10; dy <= 10; dy++) {
+      const y = city.y + dy;
+      if (y < 0 || y >= MAP_HEIGHT) continue;
+      for (let dx = -10; dx <= 10; dx++) {
+        const x = (city.x + dx + MAP_WIDTH) % MAP_WIDTH;
+        if (!fog.explored[y][x] && this.world.tiles[y][x].terrain !== TerrainType.Ocean && ++n > 20) return true;
+      }
+    }
+    return false;
+  }
+
   private garrisonNeed(city: City): number {
     const important = city.size >= 3 || city.buildings.includes(BuildingTypeKey.Palace);
     return important || this.threatNear(city.x, city.y, city.playerId, 7) ? 2 : 1;
@@ -665,8 +686,18 @@ export class AiController {
     return a / (a + d);
   }
 
-  /** Розвідка: до найближчої хатки чи нерозвіданої суші. */
-  private explore(unit: Unit): void {
+  /** Дослідник: розвідує, а коли на континенті нічого не лишилось — розпускається (не їсть щитів даремно). */
+  private scoutLand(unit: Unit): void {
+    for (let i = 0; i < 3 && unit.movesLeft > 0 && this.world.units.has(unit.id); i++) {
+      if (!this.explore(unit, false)) {
+        this.world.removeUnit(unit.id);
+        return;
+      }
+    }
+  }
+
+  /** Розвідка: до найближчої хатки чи нерозвіданої суші. Повертає false, коли цілі нема. */
+  private explore(unit: Unit, wander = true): boolean {
     const w = this.world;
     const fog = w.playerFogs.get(unit.playerId);
     let best: Step | undefined;
@@ -686,7 +717,8 @@ export class AiController {
       }
     }
     if (best) this.walkTo(unit, best);
-    else this.wander(unit);
+    else if (wander) this.wander(unit);
+    return !!best;
   }
 
   private wander(unit: Unit): void {

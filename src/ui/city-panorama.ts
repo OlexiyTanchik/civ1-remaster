@@ -63,6 +63,10 @@ const BUILDING_SLOTS: Partial<Record<BuildingTypeKey, { x: number; y: number; sc
   [BuildingTypeKey.Seti]: { x: 132, y: 92, scale: 0.5 },
   [BuildingTypeKey.CureForCancer]: { x: 290, y: 176, scale: 0.5 },
   [BuildingTypeKey.MarcoPolo]: { x: 266, y: 130, scale: 0.5 },
+  // Етап 8: античні чудеса — у прогалинах між спорудами (на горизонті їх ховав палац)
+  [BuildingTypeKey.TempleOfArtemis]: { x: 174, y: 150, scale: 0.5 },
+  [BuildingTypeKey.StatueOfZeus]: { x: 370, y: 156, scale: 0.45 },
+  [BuildingTypeKey.SunTzu]: { x: 52, y: 130, scale: 0.5 },
 };
 
 const hash = (a: number, b: number) => {

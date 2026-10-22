@@ -53,6 +53,7 @@
 - Складність: `cityEnv` дає `baseContent` (людині) і `costFactor` (AI); `player.researchFactor` (людині).
 - `Unit`: `task` (робота R/I/M/P), `veteran`, `carriedBy` (id корабля чи авіаносця), `fuel` (літаки), `aiTarget`. Пасажири стоять на клітинці корабля, але сховані.
 - `UnitConfig`: `capacity` (сухопутні пасажири), `airCapacity` (літаки на авіаносці), `fuel` (ходів у повітрі), `requiresWonder` (ядерна ракета — Мангеттен будь-де).
+  Етап 8: `allTerrainAsRoad` (будь-який рельєф — 1/3 руху, Дослідник), `vision` (радіус огляду, типово 2). Ветеран новому юніту — лише через `World.trainsVeteran` (казарми, аеропорт, Сунь-цзи).
 - `TileData`: `hasRoad/hasRailroad/hasIrrigation/hasMine/hasRiver/hasHut/hasPollution`, `cityId`, `unitIds`.
 - Ідентифікатори спрайтів: `t_` рельєф, `o_` накладки, `u_<UnitTypeKey>`, `c_tier1..3`, `r_` ресурси, `i_` покращення, `b_<BuildingTypeKey>`, `w_<BuildingTypeKey>` (чудеса), `h_` житла, `bd_` фон панорами.
 

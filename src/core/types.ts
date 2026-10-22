@@ -86,6 +86,9 @@ export enum UnitTypeKey {
   Carrier = 'carrier',
   Nuclear = 'nuclear',
   Diplomat = 'diplomat',
+  // Етап 8: Античність
+  Explorer = 'explorer',
+  Galleon = 'galleon',
 }
 
 export interface UnitConfig {
@@ -103,6 +106,10 @@ export interface UnitConfig {
   airCapacity?: number;
   /** Літак: скільки ходів може бути в повітрі (поза своїм містом чи авіаносцем) */
   fuel?: number;
+  /** Будь-який рельєф — як дорога (1/3 руху) */
+  allTerrainAsRoad?: boolean;
+  /** Радіус огляду (типово 2) */
+  vision?: number;
   /** Виробляється лише тоді, коли це чудо збудоване будь-де у світі */
   requiresWonder?: BuildingTypeKey;
   prereqTech?: string;
@@ -196,6 +203,10 @@ export enum BuildingTypeKey {
   SpaceComponent = 'space_component',
   SpaceModule = 'space_module',
   SdiDefense = 'sdi_defense',
+  // Етап 8: Античність
+  TempleOfArtemis = 'temple_artemis',
+  StatueOfZeus = 'statue_zeus',
+  SunTzu = 'sun_tzu',
 }
 
 /** Частина космічного корабля: каркас тримає двигуни й модулі. */

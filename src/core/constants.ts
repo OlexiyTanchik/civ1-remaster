@@ -244,6 +244,16 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
     prereqTech: 'rocketry', requiresWonder: BuildingTypeKey.Manhattan,
     descriptionUa: 'Знищує все живе на 3×3 клітинки, міста втрачають половину жителів. Потрібен Мангеттенський проєкт (будь-чий).',
   },
+  // Етап 8: Античність
+  [UnitTypeKey.Explorer]: {
+    key: UnitTypeKey.Explorer, name: 'Explorer', nameUa: 'Дослідник', attack: 0, defense: 1, moves: 1, cost: 30, domain: 'land',
+    allTerrainAsRoad: true, vision: 3,
+    prereqTech: 'seafaring', descriptionUa: 'Будь-який рельєф проходить, як дорогою (3 клітинки за хід), і бачить на 3 клітинки. Не воює.',
+  },
+  [UnitTypeKey.Galleon]: {
+    key: UnitTypeKey.Galleon, name: 'Galleon', nameUa: 'Галеон', attack: 0, defense: 2, moves: 4, cost: 40, domain: 'sea', capacity: 4,
+    prereqTech: 'magnetism', descriptionUa: 'Вантажне вітрильне судно: везе 4 юніти, але не воює.',
+  },
 };
 
 // Будівлі міст Civ 1
@@ -466,6 +476,19 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
     requiresWonder: BuildingTypeKey.Apollo, spacePart: 'module',
     descriptionUa: 'Частина космічного корабля: житло й життєзабезпечення колоністів. Кожен — +20% шансу долетіти.',
   },
+  // Етап 8: Античність
+  [BuildingTypeKey.TempleOfArtemis]: {
+    key: BuildingTypeKey.TempleOfArtemis, nameUa: 'Храм Артеміди', cost: 300, maintenance: 0, prereqTech: 'philosophy', isWonder: true,
+    descriptionUa: 'Чудо світу. Кожен ваш храм заспокоює ще двох невдоволених.',
+  },
+  [BuildingTypeKey.StatueOfZeus]: {
+    key: BuildingTypeKey.StatueOfZeus, nameUa: 'Статуя Зевса', cost: 200, maintenance: 0, prereqTech: 'bronze_working', isWonder: true,
+    descriptionUa: 'Чудо світу. Кожне ваше місто утримує ще один юніт безкоштовно, а один загін за кордоном не засмучує жителів.',
+  },
+  [BuildingTypeKey.SunTzu]: {
+    key: BuildingTypeKey.SunTzu, nameUa: 'Військова академія Сунь-цзи', cost: 300, maintenance: 0, prereqTech: 'feudalism', isWonder: true,
+    descriptionUa: 'Чудо світу. Нові наземні війська в усіх ваших містах — ветерани, як із казарм.',
+  },
 };
 
 /** Найбільше частин одного виду на кораблі. */
@@ -479,6 +502,7 @@ export const FUTURE_TECH: Tech = {
 
 // Дерево технологій стародавньої епохи (у дусі Civ 1). Ціна дослідження — TurnManager.researchCost.
 export const TECH_TREE: Record<string, Tech> = {
+  seafaring: { id: 'seafaring', nameUa: 'Мореплавство', era: 1, prereqs: ['pottery', 'map_making'], descriptionUa: 'Далекі береги кличуть: дослідники й нові мапи.' },
   alphabet: { id: 'alphabet', nameUa: 'Алфавіт', era: 1, prereqs: [], descriptionUa: 'Перші знаки для запису слів.' },
   bronze_working: { id: 'bronze_working', nameUa: 'Обробка бронзи', era: 1, prereqs: [], descriptionUa: 'Перший сплав: зброя і обладунки.' },
   ceremonial_burial: { id: 'ceremonial_burial', nameUa: 'Поховальний обряд', era: 1, prereqs: [], descriptionUa: 'Віра в потойбічне згуртовує людей.' },

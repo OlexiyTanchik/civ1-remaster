@@ -11,7 +11,7 @@ export class UnitLogic {
   /**
    * Обчислює витрати очок руху на вхід у клітинку.
    */
-  public static getMovementCost(fromTile: TileData, toTile: TileData): number {
+  public static getMovementCost(fromTile: TileData, toTile: TileData, asRoad = false): number {
     // Дороги знижують вартість пересування до 1/3 очка руху
     // Місто в Civ 1 діє як клітинка з дорогою
     const fromRoad = fromTile.hasRoad || !!fromTile.cityId;
@@ -19,7 +19,8 @@ export class UnitLogic {
     if (fromTile.hasRailroad && toTile.hasRailroad) {
       return 0;
     }
-    if (fromRoad && toRoad) {
+    // Дослідник проходить будь-який рельєф, як дорогою
+    if ((fromRoad && toRoad) || asRoad) {
       return 1 / 3;
     }
 

@@ -254,6 +254,12 @@ export class Hud {
     if (buyable) {
       return `Золота вдосталь (${human.gold} зл.): в екрані міста ${buyable.name} «💰 Купити» завершить виробництво за ${w.buyCost(buyable)} зл.`;
     }
+    // Дослідник з Мореплавства: без підказки новачок і не знає, що туман можна зняти за кілька ходів
+    const fog = w.playerFogs.get(0);
+    if (human.knownTechs.includes('seafaring') && !units.some((u) => u.type === UnitTypeKey.Explorer) && fog
+      && fog.explored.reduce((n, row) => n + row.filter((e) => !e).length, 0) > fog.explored.length * fog.explored[0].length / 2) {
+      return 'Більша частина світу ще в тумані. Дослідник (Мореплавство) проходить 3 клітинки за хід будь-яким рельєфом і бачить далеко — збудуйте одного.';
+    }
     if (cities.length < 4 && w.turnManager.turnNumber > 10) {
       return 'Більше міст — більше їжі, щитів і науки. Будуйте поселенців у містах розміру 2+ і засновуйте нові міста за 3–4 клітинки.';
     }

@@ -571,6 +571,96 @@
       "id": "sp_module",
       "kind": "improvement",
       "prompt": "a spaceship habitation module: a white cylinder with small round windows and blue solar panels on both sides"
+    },
+    {
+      "id": "u_explorer",
+      "kind": "unit",
+      "prompt": "an explorer on foot with a wide-brimmed hat, backpack and walking staff, striding forward"
+    },
+    {
+      "id": "u_galleon",
+      "kind": "unit",
+      "prompt": "a large galleon sailing ship with three masts, square sails and a high wooden stern castle, side view"
+    },
+    {
+      "id": "u_engineers",
+      "kind": "unit",
+      "prompt": "two engineers in hard hats with a shovel and a surveying tripod"
+    },
+    {
+      "id": "u_dragoons",
+      "kind": "unit",
+      "prompt": "a dragoon: a mounted soldier in a blue coat and tall helmet holding a musket on a galloping horse"
+    },
+    {
+      "id": "u_alpine_troops",
+      "kind": "unit",
+      "prompt": "an alpine trooper in white winter uniform with skis on his back and a rifle"
+    },
+    {
+      "id": "u_spy",
+      "kind": "unit",
+      "prompt": "a spy in a long trench coat and fedora hat holding a small camera"
+    },
+    {
+      "id": "u_paratroopers",
+      "kind": "unit",
+      "prompt": "a paratrooper in green uniform descending under a round white parachute"
+    },
+    {
+      "id": "u_marines",
+      "kind": "unit",
+      "prompt": "a marine soldier in camouflage uniform with a rifle stepping off a small landing boat"
+    },
+    {
+      "id": "u_partisans",
+      "kind": "unit",
+      "prompt": "a partisan guerrilla fighter in a cap and rough clothes with a rifle, crouching in the bushes"
+    },
+    {
+      "id": "w_temple_artemis",
+      "kind": "building",
+      "prompt": "the Temple of Artemis: a large ancient Greek temple with many tall white marble columns and a red tiled roof"
+    },
+    {
+      "id": "w_statue_zeus",
+      "kind": "building",
+      "prompt": "the Statue of Zeus: a huge seated golden and ivory statue of Zeus on a throne inside an open Greek shrine"
+    },
+    {
+      "id": "w_sun_tzu",
+      "kind": "building",
+      "prompt": "Sun Tzu war academy: an ancient Chinese pagoda-style hall with red pillars, curved roof and war banners"
+    },
+    {
+      "id": "b_coastal_defense",
+      "kind": "building",
+      "prompt": "coastal defense: a grey concrete gun battery with two big cannons on a seaside rock"
+    },
+    {
+      "id": "b_port_facility",
+      "kind": "building",
+      "prompt": "port facility: a dock with a crane, a dry dock and stacked crates by the water"
+    },
+    {
+      "id": "b_police_station",
+      "kind": "building",
+      "prompt": "a small police station: a blue brick building with a lamp over the door and a police car"
+    },
+    {
+      "id": "w_statue_liberty",
+      "kind": "building",
+      "prompt": "the Statue of Liberty: a green copper statue holding up a torch on a stone pedestal"
+    },
+    {
+      "id": "w_eiffel_tower",
+      "kind": "building",
+      "prompt": "the Eiffel Tower: a tall iron lattice tower"
+    },
+    {
+      "id": "b_supermarket",
+      "kind": "building",
+      "prompt": "a supermarket: a wide modern store with a flat roof, big glass front and shopping carts"
     }
   ]
 }
