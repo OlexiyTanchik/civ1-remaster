@@ -956,6 +956,81 @@
       "id": "w_uffizi",
       "kind": "building",
       "prompt": "the Uffizi Gallery in Florence: a long Renaissance arcade building with a loggia of columns, statues in niches and a small tower"
+    },
+    {
+      "id": "u_machine_gunners",
+      "kind": "unit",
+      "prompt": "a WW1 soldier in a steel helmet crouching behind a water-cooled Maxim machine gun on a wheeled carriage with a small shield"
+    },
+    {
+      "id": "u_armored_car",
+      "kind": "unit",
+      "prompt": "an early 20th century four-wheeled armored car with riveted green plates and a small machine gun turret"
+    },
+    {
+      "id": "u_dreadnought",
+      "kind": "unit",
+      "prompt": "a grey early 20th century dreadnought battleship with two tall funnels and big twin gun turrets, side view"
+    },
+    {
+      "id": "u_anti_tank_gun",
+      "kind": "unit",
+      "prompt": "a WW2 anti-tank gun with a long barrel, a gun shield and split trail legs, olive green"
+    },
+    {
+      "id": "u_rocket_artillery",
+      "kind": "unit",
+      "prompt": "a Soviet WW2 Katyusha rocket launcher truck with a rack of rockets on the back, olive green"
+    },
+    {
+      "id": "b_cinema",
+      "kind": "building",
+      "prompt": "an art deco cinema building with a lit marquee of bulbs, a film reel sign and posters by the entrance"
+    },
+    {
+      "id": "b_hospital",
+      "kind": "building",
+      "prompt": "a white three-storey hospital building with a red cross on the front, an ambulance at the entrance"
+    },
+    {
+      "id": "b_tv_station",
+      "kind": "building",
+      "prompt": "a TV station: a modern low building with a tall red-white lattice transmitter tower and satellite dishes"
+    },
+    {
+      "id": "b_railway_station",
+      "kind": "building",
+      "prompt": "a 19th century railway station with an arched glass roof over the platforms, a clock tower and a steam locomotive"
+    },
+    {
+      "id": "b_department_store",
+      "kind": "building",
+      "prompt": "a grand early 20th century department store with big shop windows, awnings and a corner dome"
+    },
+    {
+      "id": "b_skyscraper",
+      "kind": "building",
+      "prompt": "a tall art deco skyscraper with a stepped spire and many lit windows"
+    },
+    {
+      "id": "b_grain_elevator",
+      "kind": "building",
+      "prompt": "a tall concrete grain elevator with a row of cylindrical silos and a conveyor tower"
+    },
+    {
+      "id": "w_big_ben",
+      "kind": "building",
+      "prompt": "Big Ben: the tall Gothic Revival clock tower of the Houses of Parliament with a golden clock face and a spire"
+    },
+    {
+      "id": "w_hollywood",
+      "kind": "building",
+      "prompt": "Hollywood: a film studio lot on green hills with two crossing searchlight beams, a big film camera on a crane, a giant film reel and white studio hangars"
+    },
+    {
+      "id": "w_panama_canal",
+      "kind": "building",
+      "prompt": "the Panama Canal locks: concrete lock chambers with huge steel gates, water and a cargo ship passing between them"
     }
   ]
 }

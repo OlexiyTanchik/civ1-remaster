@@ -702,6 +702,92 @@ export class World {
    * Глобальне потепління (Civ 1): кожна забруднена клітинка понад норму наближає зміну клімату,
    * чиста планета повільно остигає. На межі — узбережжя заболочуються, поля висихають, ліси дичавіють.
    */
+  /**
+   * Випадкові події, щоб партії відрізнялись: у середньому раз на 80 ходів на цивілізацію, з 30-го ходу.
+   * Людина бачить свої в стрічці; події AI лишаються тихими, щоб не засмічувати новини.
+   */
+  private randomEvents(out: string[]): void {
+    if (this.turnManager.turnNumber < 30) return;
+    for (const p of this.players) {
+      if (p.isBarbarian || !p.alive || Math.random() >= 1 / 80) continue;
+      const cities = [...this.cities.values()].filter((c) => c.playerId === p.id);
+      if (!cities.length) continue;
+      const msg = this.randomEvent(p, cities[Math.floor(Math.random() * cities.length)]);
+      if (msg && p.id === 0) out.push(msg);
+    }
+  }
+
+  /** Одна подія в місті; undefined — обставини не ті (подія не відбулась). */
+  private randomEvent(p: Player, city: City): string | undefined {
+    const around = (test: (t: TileData) => boolean) => {
+      for (let dy = -1; dy <= 1; dy++) {
+        const row = this.tiles[city.y + dy];
+        if (!row) continue;
+        for (let dx = -1; dx <= 1; dx++) if (test(row[(city.x + dx + MAP_WIDTH) % MAP_WIDTH])) return true;
+      }
+      return false;
+    };
+    const has = (b: BuildingTypeKey) => city.buildings.includes(b);
+    const kinds = ['plague', 'famine', 'fire', 'quake', 'flood', 'gold', 'harvest', 'scientist', 'artist'] as const;
+    switch (kinds[Math.floor(Math.random() * kinds.length)]) {
+      case 'plague': {
+        if (city.size < 5) return undefined;
+        // Акведук (чиста вода) чи лікарня стримують пошесть
+        const loss = has(BuildingTypeKey.Aqueduct) || has(BuildingTypeKey.Hospital) ? 1 : 2;
+        city.size -= loss;
+        city.foodNeeded = city.size * 10;
+        city.foodStored = Math.min(city.foodStored, city.foodNeeded);
+        CityLogic.autoAssignWorkers(city, this.tiles, this.cityEnv(city));
+        return `🦠 Чума в місті ${city.name}: −${loss} ${loss === 1 ? 'рівень' : 'рівні'} населення${loss === 1 ? ' (акведук чи лікарня стримали пошесть)' : '. Акведук чи лікарня стримали б її'}.`;
+      }
+      case 'famine':
+        if (has(BuildingTypeKey.Granary)) return `🌾 Неврожай біля міста ${city.name}, але комора зберегла запаси.`;
+        city.foodStored = 0;
+        return `🥀 Неврожай біля міста ${city.name}: запаси їжі пропали. Комора вберегла б їх.`;
+      case 'fire':
+        if (city.shieldsStored < 10 || !city.currentProduction.isBuilding) return undefined;
+        city.shieldsStored = Math.floor(city.shieldsStored / 2);
+        return `🔥 Пожежа на будові в місті ${city.name}: половина щитів згоріла.`;
+      case 'quake': {
+        if (!around((t) => t.terrain === TerrainType.Hills || t.terrain === TerrainType.Mountains)) return undefined;
+        const pool = city.buildings.filter((b) => b !== BuildingTypeKey.Palace && !BUILDING_CONFIGS[b].isWonder);
+        if (!pool.length) return undefined;
+        const lost = pool[Math.floor(Math.random() * pool.length)];
+        city.buildings = city.buildings.filter((b) => b !== lost);
+        return `🌋 Землетрус біля міста ${city.name} зруйнував «${BUILDING_CONFIGS[lost].nameUa}».`;
+      }
+      case 'flood':
+        if (!around((t) => t.hasRiver)) return undefined;
+        city.foodStored = 0;
+        return `🌊 Повінь на річці біля міста ${city.name}: запаси їжі змило.`;
+      case 'gold': {
+        const gold = 30 + this.turnManager.turnNumber;
+        p.gold += gold;
+        return `💰 Золота лихоманка біля міста ${city.name}: +${gold} зл. до скарбниці!`;
+      }
+      case 'harvest':
+        city.foodStored = Math.max(city.foodStored, city.foodNeeded - 1);
+        return `🌻 Багатий урожай біля міста ${city.name}: комори повні, місто от-от виросте.`;
+      case 'scientist': {
+        if (!p.currentTechId) return undefined;
+        const add = Math.round(TurnManager.researchCost(p) / 2);
+        p.researchProgress += add;
+        return `🧪 У місті ${city.name} народився великий учений: +${add} колб до дослідження.`;
+      }
+      case 'artist': {
+        // Подарунок — найдешевша ще не збудована споруда, що заспокоює людей
+        const gift = Object.values(BUILDING_CONFIGS)
+          .filter((b) => !b.isWonder && !b.coastal && !b.highland && !has(b.key) && (!b.requires || has(b.requires))
+            && (!b.prereqTech || p.knownTechs.includes(b.prereqTech))
+            && ((b.effects?.content ?? 0) > 0 || b.key === BuildingTypeKey.Temple || b.key === BuildingTypeKey.Colosseum || b.key === BuildingTypeKey.Cathedral))
+          .sort((a, b) => a.cost - b.cost)[0];
+        if (!gift) return undefined;
+        city.buildings.push(gift.key);
+        return `🎨 Великий митець прикрасив місто ${city.name}: «${gift.nameUa}» у подарунок.`;
+      }
+    }
+  }
+
   private globalWarming(): void {
     let polluted = 0;
     for (const row of this.tiles) for (const t of row) if (t.hasPollution) polluted++;
@@ -1144,6 +1230,7 @@ export class World {
       if (msg && city.playerId === human.id) completedItems.push(msg);
     }
     this.globalWarming();
+    this.randomEvents(completedItems);
 
     // 4. Хід AI і навала варварів
     // Знайомства (юніти й міста поруч), потім дипломатія й ходи AI
@@ -1755,4 +1842,9 @@ const UPGRADES: Partial<Record<UnitTypeKey, UnitTypeKey>> = {
   [UnitTypeKey.Cuirassiers]: UnitTypeKey.Armor,
   [UnitTypeKey.ShipOfTheLine]: UnitTypeKey.Ironclad,
   [UnitTypeKey.Privateer]: UnitTypeKey.Destroyer,
+  [UnitTypeKey.MachineGunners]: UnitTypeKey.MechInf,
+  [UnitTypeKey.ArmoredCar]: UnitTypeKey.Armor,
+  [UnitTypeKey.Dreadnought]: UnitTypeKey.Battleship,
+  [UnitTypeKey.AntiTankGun]: UnitTypeKey.MechInf,
+  [UnitTypeKey.RocketArtillery]: UnitTypeKey.Howitzer,
 };

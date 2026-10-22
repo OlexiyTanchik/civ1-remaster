@@ -106,6 +106,17 @@ const BUILDING_SLOTS: Partial<Record<BuildingTypeKey, { x: number; y: number; sc
   [BuildingTypeKey.TajMahal]: { x: 270, y: 90, scale: 0.5 },
   [BuildingTypeKey.Versailles]: { x: 40, y: 140, scale: 0.5 },
   [BuildingTypeKey.Uffizi]: { x: 320, y: 110, scale: 0.45 },
+  // Етап 10, Індустрія і XX століття
+  [BuildingTypeKey.Cinema]: { x: 226, y: 182, scale: 0.4 },
+  [BuildingTypeKey.Hospital]: { x: 152, y: 150, scale: 0.45 },
+  [BuildingTypeKey.TvStation]: { x: 344, y: 96, scale: 0.4 },
+  [BuildingTypeKey.RailwayStation]: { x: 64, y: 206, scale: 0.45 },
+  [BuildingTypeKey.DepartmentStore]: { x: 262, y: 140, scale: 0.45 },
+  [BuildingTypeKey.Skyscraper]: { x: 300, y: 100, scale: 0.5 },
+  [BuildingTypeKey.GrainElevator]: { x: 24, y: 120, scale: 0.45 },
+  [BuildingTypeKey.BigBen]: { x: 210, y: 92, scale: 0.5 },
+  [BuildingTypeKey.Hollywood]: { x: 352, y: 150, scale: 0.45 },
+  [BuildingTypeKey.PanamaCanal]: { x: 120, y: 208, scale: 0.45 },
 };
 
 const hash = (a: number, b: number) => {

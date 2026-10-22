@@ -132,6 +132,12 @@ export enum UnitTypeKey {
   ShipOfTheLine = 'ship_of_the_line',
   Privateer = 'privateer',
   Landsknechts = 'landsknechts',
+  // Етап 10, Індустрія і XX століття
+  MachineGunners = 'machine_gunners',
+  ArmoredCar = 'armored_car',
+  Dreadnought = 'dreadnought',
+  AntiTankGun = 'anti_tank_gun',
+  RocketArtillery = 'rocket_artillery',
 }
 
 export interface UnitConfig {
@@ -314,6 +320,17 @@ export enum BuildingTypeKey {
   TajMahal = 'taj_mahal',
   Versailles = 'versailles',
   Uffizi = 'uffizi',
+  // Етап 10, Індустрія і XX століття
+  Cinema = 'cinema',
+  Hospital = 'hospital',
+  TvStation = 'tv_station',
+  RailwayStation = 'railway_station',
+  DepartmentStore = 'department_store',
+  Skyscraper = 'skyscraper',
+  GrainElevator = 'grain_elevator',
+  BigBen = 'big_ben',
+  Hollywood = 'hollywood',
+  PanamaCanal = 'panama_canal',
 }
 
 /** Частина космічного корабля: каркас тримає двигуни й модулі. */

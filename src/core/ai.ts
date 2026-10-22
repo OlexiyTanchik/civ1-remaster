@@ -20,13 +20,13 @@ const RESEARCH_ORDER = [
   'feudalism', 'the_republic', 'monotheism', 'university', 'bridge_building', 'banking', 'guilds', 'chivalry',
   'navigation', 'invention', 'printing_press', 'gunpowder',
   'physics', 'optics', 'medicine', 'economics', 'humanism', 'theory_of_gravity', 'democracy', 'metallurgy', 'magnetism',
-  'steam_engine', 'railroad', 'industrialization', 'communism', 'chemistry', 'electricity', 'conscription', 'leadership',
+  'steam_engine', 'railroad', 'industrialization', 'communism', 'chemistry', 'photography', 'electricity', 'conscription', 'leadership',
   'the_corporation', 'steel', 'electronics', 'sanitation', 'explosives', 'refining', 'theology',
   'combustion', 'automobile', 'mass_production', 'recycling', 'machine_tools', 'mobile_warfare', 'labor_union',
-  'atomic_theory', 'flight', 'nuclear_fission', 'nuclear_power', 'radio', 'advanced_flight', 'rocketry',
+  'atomic_theory', 'flight', 'nuclear_fission', 'nuclear_power', 'radio', 'television', 'advanced_flight', 'rocketry',
   'computers', 'space_flight', 'robotics', 'plastics', 'superconductor',
   // Гірська піхота й шпигуни — після космічних технологій: кожна зайва технологія дорожчає наступні, і космос не встигав до 2100
-  'tactics', 'espionage', 'refrigeration', 'miniaturization', 'combined_arms', 'amphibious_warfare', 'guerrilla_warfare', 'genetic_engineering', 'environmentalism', 'stealth', 'fundamentalism', 'polytheism',
+  'tactics', 'espionage', 'refrigeration', 'antibiotics', 'miniaturization', 'combined_arms', 'amphibious_warfare', 'guerrilla_warfare', 'genetic_engineering', 'environmentalism', 'stealth', 'fundamentalism', 'polytheism',
 ];
 
 /** Корабель, який AI вважає готовим до старту: 3 двигуни, 3 модулі, 6 каркасів (політ 14 р., успіх 100%). */
@@ -174,7 +174,10 @@ export class AiController {
     const garrison = this.garrisonAt(city);
     const threat = this.threatNear(city.x, city.y, player.id, 7);
     const defender = this.bestUnit(player, 'defense');
-    const attacker = this.bestUnit(player, 'attack');
+    // Змішана армія: швидких ударних (кіннота, броня) — не менше, ніж повільних облогових
+    const strikers = myUnits.filter((u) => UNIT_CONFIGS[u.type].domain === 'land' && UNIT_CONFIGS[u.type].attack > UNIT_CONFIGS[u.type].defense);
+    const fast = strikers.filter((u) => UNIT_CONFIGS[u.type].moves >= 2).length;
+    const attacker = this.bestUnit(player, fast < strikers.length - fast ? 'mobile' : 'attack');
     const hostile = this.isHostilePhase(player);
 
     if (garrison < 1) {
@@ -412,19 +415,19 @@ export class AiController {
   }
 
   /** Найкращий доступний сухопутний юніт за атакою або обороною. */
-  private bestUnit(player: Player, by: 'attack' | 'defense'): UnitTypeKey {
+  private bestUnit(player: Player, by: 'attack' | 'defense' | 'mobile'): UnitTypeKey {
     const units = Object.values(UNIT_CONFIGS).filter(
       (u) => u.domain === 'land' && u.attack > 0 && (!u.prereqTech || player.knownTechs.includes(u.prereqTech))
         && (!u.requiresGovernment || u.requiresGovernment === player.government) && unitForCiv(u, player.civ)
     );
-    const pool = units.filter((u) => (by === 'attack' ? u.attack > u.defense : u.defense >= u.attack));
+    const pool = units.filter((u) => (by === 'defense' ? u.defense >= u.attack : u.attack > u.defense && (by === 'attack' || u.moves >= 2)));
     const list = pool.length ? pool : units;
     // Рівні за обороною — беремо Пікінерів (бонус проти вершників)
     const def = (u: { key: UnitTypeKey; defense: number }) => u.defense + (u.key === UnitTypeKey.Pikemen || u.key === UnitTypeKey.ChuKoNu ? 0.5 : 0);
     // Рівні за атакою — беремо міцнішого (Танки, а не Артилерію)
     // Свій унікальний юніт — гордість нації: AI бере його, поки він не надто відстав від новітніх
     const atk = (u: { attack: number; civ?: string }) => u.attack + (u.civ ? 2.5 : 0);
-    list.sort((a, b) => (by === 'attack' ? atk(b) - atk(a) || b.defense - a.defense : def(b) + (b.civ ? 1 : 0) - def(a) - (a.civ ? 1 : 0)) || a.cost - b.cost);
+    list.sort((a, b) => (by !== 'defense' ? atk(b) - atk(a) || b.defense - a.defense : def(b) + (b.civ ? 1 : 0) - def(a) - (a.civ ? 1 : 0)) || a.cost - b.cost);
     return list[0]?.key ?? UnitTypeKey.Militia;
   }
 

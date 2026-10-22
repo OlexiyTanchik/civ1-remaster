@@ -413,6 +413,27 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
     key: UnitTypeKey.Privateer, name: 'Privateer', nameUa: 'Капер', attack: 4, defense: 2, moves: 5, cost: 50, domain: 'sea',
     prereqTech: 'navigation', descriptionUa: 'Швидкий корабель із каперським свідоцтвом — полює на ворожі судна.',
   },
+  // Етап 10, Індустрія і XX століття
+  [UnitTypeKey.MachineGunners]: {
+    key: UnitTypeKey.MachineGunners, name: 'Machine Gunners', nameUa: 'Кулеметники', attack: 3, defense: 6, moves: 1, cost: 60, domain: 'land',
+    prereqTech: 'machine_tools', descriptionUa: 'Кулемет «Максим» в окопі: найміцніша оборона до моторизованої піхоти.',
+  },
+  [UnitTypeKey.ArmoredCar]: {
+    key: UnitTypeKey.ArmoredCar, name: 'Armored Car', nameUa: 'Бронеавтомобіль', attack: 6, defense: 3, moves: 3, cost: 60, domain: 'land',
+    prereqTech: 'automobile', descriptionUa: 'Броньована машина з кулеметом: швидка розвідка й рейди.',
+  },
+  [UnitTypeKey.Dreadnought]: {
+    key: UnitTypeKey.Dreadnought, name: 'Dreadnought', nameUa: 'Дредноут', attack: 12, defense: 8, moves: 4, cost: 120, domain: 'sea',
+    prereqTech: 'steel', descriptionUa: 'Перший великий броненосний лінкор із баштовими гарматами.',
+  },
+  [UnitTypeKey.AntiTankGun]: {
+    key: UnitTypeKey.AntiTankGun, name: 'Anti-Tank Gun', nameUa: 'Протитанкова гармата', attack: 5, defense: 7, moves: 1, cost: 60, domain: 'land',
+    prereqTech: 'mobile_warfare', descriptionUa: 'Тримає оборону проти танків і бронетехніки.',
+  },
+  [UnitTypeKey.RocketArtillery]: {
+    key: UnitTypeKey.RocketArtillery, name: 'Rocket Artillery', nameUa: 'Реактивна артилерія', attack: 12, defense: 1, moves: 2, cost: 80, domain: 'land',
+    prereqTech: 'rocketry', descriptionUa: 'Залп реактивних снарядів з вантажівки, як «Катюша».',
+  },
 };
 
 /** Юніт для цивілізації: унікальні — лише своїй, а звичайний, якого її унікальний замінює, — їй ні. */
@@ -812,6 +833,47 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
     key: BuildingTypeKey.Uffizi, nameUa: 'Галерея Уффіці', cost: 400, maintenance: 0, prereqTech: 'printing_press', isWonder: true, effects: { luxury: 100 }, globalEffects: { science: 10 },
     descriptionUa: 'Чудо світу. Скарбниця Ренесансу: +10% науки в кожному вашому місті, тут — розкіш ×2.',
   },
+  // Етап 10, Індустрія і XX століття
+  [BuildingTypeKey.Cinema]: {
+    key: BuildingTypeKey.Cinema, nameUa: 'Кінотеатр', cost: 100, maintenance: 2, prereqTech: 'photography', effects: { content: 2, luxury: 25 },
+    descriptionUa: 'Кіно на великому екрані: +2 задоволених, +25% розкоші.',
+  },
+  [BuildingTypeKey.Hospital]: {
+    key: BuildingTypeKey.Hospital, nameUa: 'Лікарня', cost: 120, maintenance: 2, prereqTech: 'antibiotics', effects: { content: 1, food: 15 },
+    descriptionUa: 'Лікарі й антибіотики: +1 задоволений, +15% їжі (менше хвороб).',
+  },
+  [BuildingTypeKey.TvStation]: {
+    key: BuildingTypeKey.TvStation, nameUa: 'Телевежа', cost: 120, maintenance: 2, prereqTech: 'television', effects: { content: 2 },
+    descriptionUa: 'Новини й серіали в кожен дім: +2 задоволених.',
+  },
+  [BuildingTypeKey.RailwayStation]: {
+    key: BuildingTypeKey.RailwayStation, nameUa: 'Вокзал', cost: 100, maintenance: 2, prereqTech: 'railroad', effects: { shields: 10, gold: 10, trade: 2 },
+    descriptionUa: 'Потяги везуть товари й людей: +10% щитів і золота, +2 торгівлі.',
+  },
+  [BuildingTypeKey.DepartmentStore]: {
+    key: BuildingTypeKey.DepartmentStore, nameUa: 'Універмаг', cost: 120, maintenance: 2, prereqTech: 'the_corporation', requires: BuildingTypeKey.Marketplace, effects: { gold: 20, content: 1 },
+    descriptionUa: 'Усе під одним дахом: +20% золота, +1 задоволений (потрібен ринок).',
+  },
+  [BuildingTypeKey.Skyscraper]: {
+    key: BuildingTypeKey.Skyscraper, nameUa: 'Хмарочос', cost: 160, maintenance: 3, prereqTech: 'mass_production', effects: { gold: 15, shields: 10 },
+    descriptionUa: 'Офіси до хмар: +15% золота, +10% щитів.',
+  },
+  [BuildingTypeKey.GrainElevator]: {
+    key: BuildingTypeKey.GrainElevator, nameUa: 'Зерновий елеватор', cost: 100, maintenance: 1, prereqTech: 'refrigeration', effects: { food: 15 },
+    descriptionUa: 'Зерно не псується: +15% їжі.',
+  },
+  [BuildingTypeKey.BigBen]: {
+    key: BuildingTypeKey.BigBen, nameUa: 'Біг-Бен', cost: 500, maintenance: 0, prereqTech: 'the_corporation', isWonder: true, effects: { content: 2 }, globalEffects: { gold: 10 },
+    descriptionUa: 'Чудо світу. Годинник над парламентом, за яким звіряє час імперія: +10% золота в кожному вашому місті, тут — +2 задоволених.',
+  },
+  [BuildingTypeKey.Hollywood]: {
+    key: BuildingTypeKey.Hollywood, nameUa: 'Голлівуд', cost: 600, maintenance: 0, prereqTech: 'television', isWonder: true, globalEffects: { content: 1, luxury: 25 },
+    descriptionUa: 'Чудо світу. Фабрика мрій: у кожному вашому місті +1 задоволений і +25% розкоші.',
+  },
+  [BuildingTypeKey.PanamaCanal]: {
+    key: BuildingTypeKey.PanamaCanal, nameUa: 'Панамський канал', cost: 550, maintenance: 0, prereqTech: 'steel', isWonder: true, effects: { gold: 50 }, globalEffects: { trade: 1 },
+    descriptionUa: 'Чудо світу. Шлюзи між океанами: +1 торгівлі в кожному вашому місті, тут — +50% золота.',
+  },
 };
 
 /** Найбільше частин одного виду на кораблі. */
@@ -923,6 +985,10 @@ export const TECH_TREE: Record<string, Tech> = {
   printing_press: { id: 'printing_press', nameUa: 'Друкарство', era: 3, prereqs: ['invention', 'monotheism'], descriptionUa: 'Рухомі літери: книги для всіх.' },
   humanism: { id: 'humanism', nameUa: 'Гуманізм', era: 3, prereqs: ['philosophy', 'printing_press'], descriptionUa: 'Людина — міра всіх речей: мистецтво й театр.' },
   optics: { id: 'optics', nameUa: 'Оптика', era: 3, prereqs: ['physics', 'astronomy'], descriptionUa: 'Лінзи, підзорні труби й телескопи.' },
+  // Етап 10, Індустрія і XX століття
+  photography: { id: 'photography', nameUa: 'Фотографія', era: 4, prereqs: ['electricity', 'chemistry'], descriptionUa: 'Світлопис: мить, збережена назавжди, а згодом і кіно.' },
+  antibiotics: { id: 'antibiotics', nameUa: 'Антибіотики', era: 5, prereqs: ['medicine', 'refrigeration'], descriptionUa: 'Пеніцилін перемагає інфекції.' },
+  television: { id: 'television', nameUa: 'Телебачення', era: 5, prereqs: ['radio', 'mass_production'], descriptionUa: 'Блакитний екран у кожному домі.' },
 };
 
 // 21 клітинка міста (Fat Cross Civ 1)
