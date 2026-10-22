@@ -191,7 +191,7 @@ export function drawCityPanorama(canvas: HTMLCanvasElement, city: City): void {
 
   // Багато споруд — менші спрайти (на тих самих місцях), щоб фасади не налазили один на одного
   const placed = city.buildings.filter((b) => BUILDING_SLOTS[b]);
-  const shrink = placed.length > 45 ? 0.7 : placed.length > 30 ? 0.78 : placed.length > 20 ? 0.88 : 1;
+  const shrink = placed.length > 80 ? 0.6 : placed.length > 45 ? 0.7 : placed.length > 30 ? 0.78 : placed.length > 20 ? 0.88 : 1;
   for (const b of placed) {
     const slot = BUILDING_SLOTS[b]!;
     items.push({ frame: `${BUILDING_CONFIGS[b]?.isWonder ? 'w' : 'b'}_${b}`, ...slot, scale: slot.scale * shrink });
