@@ -50,6 +50,11 @@ async function bootstrap() {
   const terrainChunks = TerrainBaker.bake(world);
   const renderer = new MapRenderer(app, world, terrainChunks);
   const hud = new Hud(appElement, world, renderer);
+  // Вітання з HTML пасує лише новій партії
+  if ('save' in choice) {
+    const first = appElement.querySelector('.log-entry');
+    if (first) first.textContent = `💾 Партію продовжено: ${world.turnManager.getYearString()}, хід ${world.turnManager.turnNumber}.`;
+  }
   const cityDialog = new CityDialog(appElement, world, () => {
     renderer.refreshAll();
     hud.update(selectedUnit);
@@ -248,6 +253,19 @@ async function bootstrap() {
   hud.onOpenGameMenu = () => gameMenu.show();
   hud.onOpenDiplomacy = () => diplomacyDialog.show();
 
+  hud.onDisband = () => {
+    if (!selectedUnit) return;
+    if (world.cargoOf(selectedUnit.id).length) {
+      hud.addLogMessage('⚠️ Спершу висадіть пасажирів');
+      return;
+    }
+    hud.addLogMessage(`🗑️ Розпущено: ${UNIT_CONFIGS[selectedUnit.type].nameUa}`);
+    world.removeUnit(selectedUnit.id);
+    selectedUnit = undefined;
+    renderer.refreshAll();
+    selectNextAvailableUnit();
+  };
+
   hud.onRehome = () => {
     if (!selectedUnit) return;
     const city = world.rehome(selectedUnit.id);
@@ -321,6 +339,10 @@ async function bootstrap() {
     }
     if (e.code === 'KeyH') {
       hud.onHelpWonder?.();
+      return;
+    }
+    if (e.code === 'KeyD' && e.shiftKey) {
+      hud.onDisband?.();
       return;
     }
     if (e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') {

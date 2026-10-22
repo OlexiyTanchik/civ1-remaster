@@ -43,6 +43,7 @@ export class Hud {
   public onOpenSpace?: () => void;
   public onOpenGameMenu?: () => void;
   public onRehome?: () => void;
+  public onDisband?: () => void;
   public onOpenDiplomacy?: () => void;
   public onToggleMusic?: () => void;
   private tipsOn = true;
@@ -108,6 +109,7 @@ export class Hud {
           ${TERRAFORM_KINDS.map((k) => `<button class="civ-btn" id="btn-tf-${k}"></button>`).join('')}
           <button class="civ-btn" id="btn-help-wonder" title="Віддати 50 щитів на чудо світу [H]">🌟 На чудо [H]</button>
           <button class="civ-btn" id="btn-rehome" title="Переписати юніт на це місто: воно його утримуватиме">🏠 Дім</button>
+          <button class="civ-btn" id="btn-disband" title="Розпустити юніт, щоб місто не витрачало на нього щити [Shift+D]">🗑️ Розпустити</button>
           <button class="civ-btn" id="btn-fortify" title="Укріпитися: +50% захисту [F]">🛡️ Укріпити [F]</button>
           <button class="civ-btn" id="btn-wait" title="Чекати: наступний юніт [W]">⏳ Чекати [W]</button>
           <button class="civ-btn" id="btn-toggle-grid" title="Сітка клітинок [G]">📐 Сітка ✓ [G]</button>
@@ -146,6 +148,22 @@ export class Hud {
     document.getElementById('hud-space')?.addEventListener('click', () => this.onOpenSpace?.());
     document.getElementById('btn-game-menu')?.addEventListener('click', () => this.onOpenGameMenu?.());
     document.getElementById('btn-rehome')?.addEventListener('click', () => this.onRehome?.());
+    // Мишею — у два кліки, щоб не розпустити юніт випадково
+    const disbandBtn = document.getElementById('btn-disband') as HTMLButtonElement | null;
+    disbandBtn?.addEventListener('click', () => {
+      if (disbandBtn.dataset.armed) {
+        delete disbandBtn.dataset.armed;
+        disbandBtn.textContent = '🗑️ Розпустити';
+        this.onDisband?.();
+        return;
+      }
+      disbandBtn.dataset.armed = '1';
+      disbandBtn.textContent = '🗑️ Точно? Клікніть ще';
+      setTimeout(() => {
+        delete disbandBtn.dataset.armed;
+        disbandBtn.textContent = '🗑️ Розпустити';
+      }, 3000);
+    });
     document.getElementById('btn-diplomacy')?.addEventListener('click', () => this.onOpenDiplomacy?.());
     document.getElementById('btn-music')?.addEventListener('click', () => this.onToggleMusic?.());
     document.getElementById('btn-tips')?.addEventListener('click', () => this.setTips(!this.tipsOn));
@@ -390,6 +408,8 @@ export class Hud {
       rehomeBtn.style.display = show ? 'block' : 'none';
       if (show) rehomeBtn.textContent = `🏠 Дім: ${city!.name}`;
     }
+    const disbandBtn = document.getElementById('btn-disband') as HTMLButtonElement | null;
+    if (disbandBtn) disbandBtn.style.display = unit ? 'block' : 'none';
     const helpBtn = document.getElementById('btn-help-wonder') as HTMLButtonElement | null;
     if (helpBtn) {
       helpBtn.style.display = unit?.type === UnitTypeKey.Caravan ? 'block' : 'none';
