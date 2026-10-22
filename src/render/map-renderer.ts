@@ -35,6 +35,7 @@ export class MapRenderer {
   public cameraX: number = 0;
   public cameraY: number = 0;
   private isDragging: boolean = false;
+  private dragMoved = false;
   private dragStartX: number = 0;
   private dragStartY: number = 0;
 
@@ -128,24 +129,36 @@ export class MapRenderer {
   private setupInteractions(): void {
     const canvas = this.app.canvas;
 
-    canvas.addEventListener('mousedown', (e) => {
+    // Pointer-події: однаково для миші й пальця (тап — клік, протяг — прокрутка мапи)
+    canvas.style.touchAction = 'none';
+    let downX = 0;
+    let downY = 0;
+    canvas.addEventListener('pointerdown', (e) => {
       if (e.button === 0 || e.button === 1) {
         this.isDragging = true;
+        this.dragMoved = false;
+        downX = e.clientX;
+        downY = e.clientY;
         this.dragStartX = e.clientX - this.cameraX;
         this.dragStartY = e.clientY - this.cameraY;
       }
     });
 
-    window.addEventListener('mousemove', (e) => {
+    window.addEventListener('pointermove', (e) => {
       if (!this.isDragging) return;
+      // Дрібне тремтіння пальця — ще не протяг
+      if (Math.abs(e.clientX - downX) + Math.abs(e.clientY - downY) > 8) this.dragMoved = true;
+      if (!this.dragMoved) return;
       this.cameraX = e.clientX - this.dragStartX;
       this.cameraY = e.clientY - this.dragStartY;
       this.clampCamera();
     });
 
-    window.addEventListener('mouseup', () => {
+    const stop = () => {
       this.isDragging = false;
-    });
+    };
+    window.addEventListener('pointerup', stop);
+    window.addEventListener('pointercancel', stop);
 
     canvas.addEventListener('wheel', (e) => {
       e.preventDefault();
@@ -163,6 +176,11 @@ export class MapRenderer {
     });
 
     canvas.addEventListener('click', (e) => {
+      // Відпустили після протягу мапи — це не наказ юніту
+      if (this.dragMoved) {
+        this.dragMoved = false;
+        return;
+      }
       const rect = canvas.getBoundingClientRect();
       const clickX = (e.clientX - rect.left - this.cameraX) / (TILE_SIZE * this.zoom);
       const clickY = (e.clientY - rect.top - this.cameraY) / (TILE_SIZE * this.zoom);

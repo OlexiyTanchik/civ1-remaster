@@ -25,6 +25,16 @@ import { SpriteAtlas } from './render/sprite-atlas';
 import { TerrainBaker } from './render/terrain-baker';
 import { TerraformKind, TERRAFORM_INFO } from './core/terraform';
 
+/** Заставка з index.html: текст або сховати. Після показу чекаємо кадр — інакше важка генерація світу не дасть її намалювати. */
+async function bootScreen(text?: string): Promise<void> {
+  const el = document.getElementById('boot-loader');
+  if (!el) return;
+  el.classList.toggle('hidden', !text);
+  if (!text) return;
+  document.getElementById('boot-text')!.textContent = text;
+  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+}
+
 async function bootstrap() {
   const container = document.getElementById('canvas-container')!;
   const appElement = document.getElementById('app')!;
@@ -32,7 +42,14 @@ async function bootstrap() {
   // 0. Головне меню; після «Завантажити» в грі сторінка перезапускається одразу з потрібним слотом
   const pending = takePendingLoad();
   const pendingSave = pending ? loadSave(pending) : undefined;
-  const choice: MenuChoice = pendingSave ? { save: pendingSave } : await showMainMenu(appElement);
+  let choice: MenuChoice;
+  if (pendingSave) {
+    choice = { save: pendingSave };
+  } else {
+    await bootScreen();
+    choice = await showMainMenu(appElement);
+  }
+  await bootScreen('save' in choice ? 'Відновлюємо світ…' : 'Творимо світ: континенти, річки, племена…');
 
   // 1. Ініціалізація графічного рушія PixiJS v8
   const app = new Application();
@@ -479,6 +496,11 @@ async function bootstrap() {
   app.ticker.add(() => {
     renderer.renderFrame(selectedUnit);
   });
+  void bootScreen();
 }
 
-bootstrap().catch(console.error);
+bootstrap().catch((e) => {
+  console.error(e);
+  // Відвідувач без WebGL чи з блокованим сховищем має бачити причину, а не чорний екран
+  void bootScreen(`⚠️ Гру не вдалося запустити: ${e instanceof Error ? e.message : e}. Спробуйте інший браузер.`);
+});

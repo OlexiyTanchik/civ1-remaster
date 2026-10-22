@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges">
+  <!-- Піксельний щит із короною: золото на синьому, як заголовок гри -->
+  <rect width="16" height="16" fill="#0a2e5c"/>
+  <path fill="#f1c40f" d="M3 2h2v2h2V2h2v2h2V2h2v5H3z"/>
+  <path fill="#7a2e00" d="M3 7h10v1H3z"/>
+  <path fill="#54fcfc" d="M4 8h8v4h-1v1h-1v1H6v-1H5v-1H4z"/>
+  <path fill="#1e3a68" d="M7 9h2v3H7z"/>
+</svg>

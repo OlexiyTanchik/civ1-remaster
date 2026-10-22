@@ -3,11 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Civilization 1 Remaster (1991) - Ремастер класичної покрокової стратегії</title>
-    <meta name="description" content="Автентичний ремастер Sid Meier's Civilization 1991 року: класичний інтерфейс DOS, покращений безшовний ландшафт, піксельні спрайти юнітів та оригінальні правила." />
+    <title>Civilization — ремастер 1991 у браузері</title>
+    <meta name="description" content="Покрокова стратегія Civilization (1991) у браузері: від одного поселенця до польоту на Альфу Центавра. Піксельна графіка, AI-суперники, дипломатія, космічна гонка. TypeScript + PixiJS." />
+    <meta name="theme-color" content="#050811" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Civilization — ремастер 1991 у браузері" />
+    <meta property="og:description" content="Від одного поселенця до Альфи Центавра: класична покрокова стратегія з AI-суперниками, дипломатією й космічною гонкою. Грати безкоштовно в браузері." />
+    <meta property="og:image" content="./og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="stylesheet" href="./src/style.css" />
   </head>
   <body>
+    <!-- Заставка до першого кадру гри: знімає main.ts -->
+    <div id="boot-loader" class="boot-loader">
+      <div class="boot-title">CIVILIZATION</div>
+      <div class="boot-text" id="boot-text">Завантаження…</div>
+      <div class="boot-bar"><span></span></div>
+    </div>
     <div id="app">
       <div id="sidebar-container"></div>
       <div id="game-main">
