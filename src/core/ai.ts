@@ -25,7 +25,7 @@ const RESEARCH_ORDER = [
   'atomic_theory', 'flight', 'nuclear_fission', 'nuclear_power', 'radio', 'advanced_flight', 'rocketry',
   'computers', 'space_flight', 'robotics', 'plastics', 'superconductor',
   // Гірська піхота й шпигуни — після космічних технологій: кожна зайва технологія дорожчає наступні, і космос не встигав до 2100
-  'tactics', 'espionage', 'refrigeration', 'miniaturization', 'combined_arms', 'amphibious_warfare', 'guerrilla_warfare', 'genetic_engineering', 'environmentalism', 'stealth',
+  'tactics', 'espionage', 'refrigeration', 'miniaturization', 'combined_arms', 'amphibious_warfare', 'guerrilla_warfare', 'genetic_engineering', 'environmentalism', 'stealth', 'fundamentalism',
 ];
 
 /** Корабель, який AI вважає готовим до старту: 3 двигуни, 3 модулі, 6 каркасів (політ 14 р., успіх 100%). */
@@ -125,7 +125,7 @@ export class AiController {
   private chooseGovernment(player: Player): void {
     if (player.government === 'anarchy') return;
     const warlike = (player.hostileFromTurn ?? Infinity) <= 60;
-    const wanted: GovernmentKey[] = warlike ? ['communism', 'monarchy'] : ['democracy', 'republic', 'monarchy'];
+    const wanted: GovernmentKey[] = warlike ? ['fundamentalism', 'communism', 'monarchy'] : ['democracy', 'republic', 'monarchy'];
     const target = wanted.find((g) => g === player.government || this.world.canAdopt(player.id, g));
     if (target && target !== player.government) this.world.startRevolution(player.id, target);
   }
@@ -382,6 +382,7 @@ export class AiController {
   private bestUnit(player: Player, by: 'attack' | 'defense'): UnitTypeKey {
     const units = Object.values(UNIT_CONFIGS).filter(
       (u) => u.domain === 'land' && u.attack > 0 && (!u.prereqTech || player.knownTechs.includes(u.prereqTech))
+        && (!u.requiresGovernment || u.requiresGovernment === player.government)
     );
     const pool = units.filter((u) => (by === 'attack' ? u.attack > u.defense : u.defense >= u.attack));
     const list = pool.length ? pool : units;

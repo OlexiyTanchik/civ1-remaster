@@ -61,6 +61,7 @@
   Нові технології Етапу 8 стоять у `RESEARCH_ORDER` після космічних: кожна зайва технологія дорожчає наступні, і AI не встигав до 2100.
 - Перетворення рельєфу інженерами (`TRANSFORM` у `terraform.ts`, робота `transform`, клавіша O): `World.terrainChanges` → `MapRenderer.rebakeTerrain` перепікає шматки 16×16 (`TerrainBaker.rebake`). Без рендерера (симуляції) список лише росте — не страшно.
 - Торгові маршрути (Етап 9): `City.tradeRoutes` (`{cityId, trade}`, торгівля порахована при заснуванні), `World.establishTradeRoute`/`tradeRouteProblem`/`tradeRouteOffer`; у видобуток — `CityEnv.routeTrade` (`World.routeTrade`: зниклі міста й війна не рахуються). Караван у чужому місті — гілка в `moveUnit`; AI — `routeTarget` в `ai.ts`.
+- Капіталізація — «споруда» `Coinage` з `coinage: true` (ніколи не добудовується, `processTurn` повертає `coinage` → золото). Фундаменталізм: `GovernmentConfig.noUnhappy/scienceFactor/tithes`; Фанатики — `UnitConfig.requiresGovernment` (лише за ним будуються й тоді не на утриманні, `supportOf`).
 - `TileData`: `hasRoad/hasRailroad/hasIrrigation/hasMine/hasRiver/hasHut/hasPollution`, `cityId`, `unitIds`.
 - Ідентифікатори спрайтів: `t_` рельєф, `o_` накладки, `u_<UnitTypeKey>`, `c_tier1..3`, `r_` ресурси, `i_` покращення, `b_<BuildingTypeKey>`, `w_<BuildingTypeKey>` (чудеса), `h_` житла, `bd_` фон панорами.
 

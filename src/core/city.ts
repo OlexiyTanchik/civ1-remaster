@@ -157,7 +157,7 @@ export class CityLogic {
     // Лабораторія (чи Інтернет у місті з університетом) — ще +50%
     if (has(BuildingTypeKey.University) && (has(BuildingTypeKey.ResearchLab) || env.ownerWonders.has(BuildingTypeKey.Internet))) sciBonus += 0.5;
     if (env.ownerWonders.has(BuildingTypeKey.Seti)) sciBonus += 0.5;
-    science = Math.floor(science * sciBonus);
+    science = Math.floor(science * sciBonus * (gov.scienceFactor ?? 1));
 
     // Щастя: серед працюючих перші 4 задоволені, решта невдоволені (артисти не бунтують)
     const citizens = city.size - entertainers;
@@ -175,8 +175,12 @@ export class CityLogic {
     // Жіноче виборче право — поліція: до 2 за будь-якого устрою
     const police = env.ownerWonders.has(BuildingTypeKey.WomensSuffrage) || has(BuildingTypeKey.PoliceStation) ? 2 : 0;
     calm += Math.min(env.garrison, Math.max(GOVERNMENTS[env.government].martialLaw, police));
-    // Театр Шекспіра: у місті немає невдоволених
-    if (has(BuildingTypeKey.Shakespeare)) calm += unhappy;
+    // Театр Шекспіра: у місті немає невдоволених; Фундаменталізм — так у кожному місті
+    if (has(BuildingTypeKey.Shakespeare) || gov.noUnhappy) calm += unhappy;
+    // Десятина: споруди віри й видовищ, яким нема кого заспокоювати, наповнюють скарбницю
+    if (gov.tithes) {
+      gold += (has(BuildingTypeKey.Temple) ? 2 : 0) + (has(BuildingTypeKey.Colosseum) ? 3 : 0) + (has(BuildingTypeKey.Cathedral) ? 3 : 0);
+    }
     const calmed = Math.min(unhappy, calm);
     unhappy -= calmed;
     content += calmed;

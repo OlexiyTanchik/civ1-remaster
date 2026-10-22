@@ -5,7 +5,7 @@ import { World } from '../core/world';
 import { GovernmentKey, BuildingTypeKey } from '../core/types';
 import { GOVERNMENTS, TECH_TREE } from '../core/constants';
 
-const CHOICES: GovernmentKey[] = ['despotism', 'monarchy', 'communism', 'republic', 'democracy'];
+const CHOICES: GovernmentKey[] = ['despotism', 'monarchy', 'communism', 'fundamentalism', 'republic', 'democracy'];
 
 export class GovernmentDialog {
   private overlay: HTMLElement;

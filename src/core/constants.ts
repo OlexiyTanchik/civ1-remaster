@@ -286,6 +286,11 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
     allTerrainAsRoad: true,
     prereqTech: 'guerrilla_warfare', descriptionUa: 'Будь-який рельєф — як дорога. Коли ворог бере ваше місто, довкола нього самі з\'являються партизани.',
   },
+  [UnitTypeKey.Fanatics]: {
+    key: UnitTypeKey.Fanatics, name: 'Fanatics', nameUa: 'Фанатики', attack: 4, defense: 4, moves: 1, cost: 20, domain: 'land',
+    requiresGovernment: 'fundamentalism',
+    prereqTech: 'fundamentalism', descriptionUa: 'Лише за Фундаменталізму: дешеві й без утримання.',
+  },
   [UnitTypeKey.Destroyer]: {
     key: UnitTypeKey.Destroyer, name: 'Destroyer', nameUa: 'Есмінець', attack: 4, defense: 4, moves: 8, cost: 60, domain: 'sea', vision: 3,
     prereqTech: 'combustion', descriptionUa: 'Найшвидший корабель: 8 клітинок за хід, бачить на 3 клітинки.',
@@ -670,6 +675,7 @@ export const TECH_TREE: Record<string, Tech> = {
   industrialization: { id: 'industrialization', nameUa: 'Індустріалізація', era: 3, prereqs: ['railroad', 'banking'], descriptionUa: 'Фабрики, димарі — і смог над містами.' },
   electricity: { id: 'electricity', nameUa: 'Електрика', era: 3, prereqs: ['metallurgy', 'magnetism'], descriptionUa: 'Струм у дротах.' },
   leadership: { id: 'leadership', nameUa: 'Лідерство', era: 3, prereqs: ['chivalry', 'gunpowder'], descriptionUa: 'Офіцери ведуть у бій кінноту з мушкетами.' },
+  fundamentalism: { id: 'fundamentalism', nameUa: 'Фундаменталізм', era: 4, prereqs: ['monotheism', 'conscription'], descriptionUa: 'Віра як закон: покора замість свобод.' },
   conscription: { id: 'conscription', nameUa: 'Загальний призов', era: 3, prereqs: ['democracy', 'metallurgy'], descriptionUa: 'Армія з громадян.' },
   // Сучасність I: війни XX століття
   tactics: { id: 'tactics', nameUa: 'Тактика', era: 4, prereqs: ['conscription', 'leadership'], descriptionUa: 'Маневр і рельєф як зброя: гірська піхота.' },
@@ -741,6 +747,11 @@ export const GOVERNMENTS: Record<GovernmentKey, GovernmentConfig> = {
   communism: {
     key: 'communism', nameUa: 'Комунізм', prereqTech: 'communism', maxRate: 8, corruptionPerTile: 0, flatCorruption: 0.1, tilePenalty: false, tradeBonus: false, martialLaw: 3, freeUnits: 3, settlerFood: 1,
     descriptionUa: 'Корупція однакова в усіх містах (10%), хоч як далеко від столиці. Військові в місті заспокоюють до 3 невдоволених. Ставки до 80%.',
+  },
+  fundamentalism: {
+    key: 'fundamentalism', nameUa: 'Фундаменталізм', prereqTech: 'fundamentalism', maxRate: 8, corruptionPerTile: 0.02, tilePenalty: false, tradeBonus: false, martialLaw: 0, freeUnits: 3, settlerFood: 1,
+    noUnhappy: true, scienceFactor: 0.5, tithes: true,
+    descriptionUa: 'Невдоволених нема зовсім. Храм, колізей і собор замість спокою дають золото (десятина). Наука вдвічі менша. Лише за цього устрою — Фанатики без утримання. Ставки до 80%.',
   },
   democracy: {
     key: 'democracy', nameUa: 'Демократія', prereqTech: 'democracy', maxRate: 9, corruptionPerTile: 0, tilePenalty: false, tradeBonus: true, martialLaw: 0, freeUnits: 0, settlerFood: 2, abroadUnhappy: 2,

@@ -618,6 +618,21 @@
       "prompt": "a partisan guerrilla fighter in a cap and rough clothes with a rifle, crouching in the bushes"
     },
     {
+      "id": "u_fanatics",
+      "kind": "unit",
+      "prompt": "a religious zealot warrior in a white robe and green headband charging with a rifle and a raised banner"
+    },
+    {
+      "id": "u_elephants",
+      "kind": "unit",
+      "prompt": "an ancient war elephant with a small wooden tower on its back carrying a spearman"
+    },
+    {
+      "id": "u_awacs",
+      "kind": "unit",
+      "prompt": "a modern grey AWACS airborne radar plane with a large round radar dish on top of the fuselage, flying"
+    },
+    {
       "id": "w_temple_artemis",
       "kind": "building",
       "prompt": "the Temple of Artemis: a large ancient Greek temple with many tall white marble columns and a red tiled roof"

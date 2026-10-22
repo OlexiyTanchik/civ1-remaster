@@ -440,7 +440,9 @@ export class World {
     let abroad = 0;
     for (const u of this.units.values()) {
       if (u.homeCityId !== cityId) continue;
-      units++;
+      // Фанатики за Фундаменталізму — без утримання
+      const gov = UNIT_CONFIGS[u.type].requiresGovernment;
+      if (!(gov && this.players[u.playerId].government === gov)) units++;
       if (u.type === UnitTypeKey.Settlers) settlers++;
       // За кордоном (Civ 1): військовий поза своїми містами й далі за 3 клітинки від рідного
       const at = this.tiles[u.y][u.x].cityId;

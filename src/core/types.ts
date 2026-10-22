@@ -98,6 +98,7 @@ export enum UnitTypeKey {
   Paratroopers = 'paratroopers',
   Marines = 'marines',
   Partisans = 'partisans',
+  Fanatics = 'fanatics',
   Destroyer = 'destroyer',
   Freight = 'freight',
   Helicopter = 'helicopter',
@@ -125,6 +126,8 @@ export interface UnitConfig {
   fuel?: number;
   /** Будь-який рельєф — як дорога (1/3 руху) */
   allTerrainAsRoad?: boolean;
+  /** Будується лише за цього устрою і тоді ж не потребує утримання (Фанатики) */
+  requiresGovernment?: GovernmentKey;
   /** Радіус огляду (типово 2) */
   vision?: number;
   /** Десант: зі свого міста з повним рухом — стрибок на клітинку за стільки клітинок */
@@ -281,7 +284,7 @@ export interface GameOver {
 }
 
 /** Державний устрій (Civ 1). Анархія — перехідний стан під час революції. */
-export type GovernmentKey = 'despotism' | 'monarchy' | 'republic' | 'democracy' | 'communism' | 'anarchy';
+export type GovernmentKey = 'despotism' | 'monarchy' | 'republic' | 'democracy' | 'communism' | 'fundamentalism' | 'anarchy';
 
 export interface GovernmentConfig {
   key: GovernmentKey;
@@ -305,6 +308,12 @@ export interface GovernmentConfig {
   settlerFood: number;
   /** Скільки невдоволених дає кожен військовий юніт за кордоном (Республіка 1, Демократія 2) */
   abroadUnhappy?: number;
+  /** Фундаменталізм (Civ II): невдоволених нема зовсім */
+  noUnhappy?: boolean;
+  /** Множник науки міст (Фундаменталізм — половина) */
+  scienceFactor?: number;
+  /** Десятина: храм, колізей і собор дають золото, скільки заспокоювали б */
+  tithes?: boolean;
   descriptionUa: string;
 }
 
