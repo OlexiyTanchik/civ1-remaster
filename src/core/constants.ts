@@ -615,10 +615,10 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
     key: BuildingTypeKey.SolarPlant, nameUa: 'Сонячна електростанція', cost: 320, maintenance: 4, prereqTech: 'environmentalism', requires: BuildingTypeKey.Factory,
     descriptionUa: 'Електростанція без диму: з фабрикою ще +25% щитів, а виробництво міста зовсім не забруднює. Потрібна фабрика.',
   },
-  // Сумські чудеса: школа — Новий час, політех — XX століття
+  // Сумські чудеса XX століття: типова радянська школа й політех
   [BuildingTypeKey.SumySchool]: {
-    key: BuildingTypeKey.SumySchool, nameUa: 'Сумська середня школа №1', cost: 400, maintenance: 0, prereqTech: 'economics', isWonder: true,
-    descriptionUa: 'Чудо світу. Червона цегла, дзвоник над входом і вчителі, що пам\'ятають кожного учня. Усі технології на 15% дешевші; у місті +2 задоволених — випускники.',
+    key: BuildingTypeKey.SumySchool, nameUa: 'Сумська спеціалізована школа №1 ім. В. Стрельченка', cost: 450, maintenance: 0, prereqTech: 'sanitation', isWonder: true,
+    descriptionUa: 'Чудо світу. Комунальна установа Сумська спеціалізована школа І-ІІІ ступенів № 1 ім. В. Стрельченка, м. Суми, Сумської області. Довгий світлий фасад, ялини біля ґанку й учителі, що пам\'ятають кожного учня. Усі технології на 15% дешевші; у місті +2 задоволених — випускники.',
   },
   [BuildingTypeKey.SumyPolytech]: {
     key: BuildingTypeKey.SumyPolytech, nameUa: 'Сумський політехнічний університет', cost: 500, maintenance: 0, prereqTech: 'electronics', isWonder: true,
