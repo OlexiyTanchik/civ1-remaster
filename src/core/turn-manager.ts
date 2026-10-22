@@ -59,9 +59,12 @@ export class TurnManager {
   /**
    * Ціна наступного відкриття росте з кількістю відомих технологій (як у Civ 1):
    * перша — 10 колб, десята — 100. Тому епохи змінюються повільно.
+   * Після 30-ї — ще +3,5% за кожну: великі міста пізньої гри закривали все дерево до 1950 р.
    */
   public static researchCost(player: Player): number {
-    return Math.round((player.knownTechs.length + (player.futureTechs ?? 0) + 1) * 10 * (player.researchFactor ?? 1));
+    const n = player.knownTechs.length + (player.futureTechs ?? 0);
+    const late = 1 + Math.max(0, n - 30) * 0.035;
+    return Math.round((n + 1) * 10 * late * (player.researchFactor ?? 1));
   }
 
   /** Технологія за id (включно з технологією майбутнього). */

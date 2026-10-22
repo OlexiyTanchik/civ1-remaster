@@ -175,6 +175,7 @@ export enum BuildingTypeKey {
   StockExchange = 'stock_exchange',
   Sewer = 'sewer',
   MassTransit = 'mass_transit',
+  RecyclingCenter = 'recycling_center',
   HooverDam = 'hoover_dam',
   WomensSuffrage = 'womens_suffrage',
   Bach = 'bach',

@@ -378,6 +378,10 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
     key: BuildingTypeKey.MassTransit, nameUa: 'Масовий транспорт', cost: 120, maintenance: 4, prereqTech: 'mass_production',
     descriptionUa: 'Трамваї й метро: населення міста більше не забруднює довкілля автомобілями.',
   },
+  [BuildingTypeKey.RecyclingCenter]: {
+    key: BuildingTypeKey.RecyclingCenter, nameUa: 'Центр переробки', cost: 200, maintenance: 2, prereqTech: 'recycling',
+    descriptionUa: 'Виробництво міста забруднює довкілля втричі рідше.',
+  },
   [BuildingTypeKey.HooverDam]: {
     key: BuildingTypeKey.HooverDam, nameUa: 'Гребля Гувера', cost: 500, maintenance: 0, prereqTech: 'electronics', isWonder: true,
     descriptionUa: 'Чудо світу. Діє як електростанція в кожному вашому місті з фабрикою.',
@@ -514,6 +518,7 @@ export const TECH_TREE: Record<string, Tech> = {
   combustion: { id: 'combustion', nameUa: 'Двигун внутрішнього згоряння', era: 4, prereqs: ['refining', 'explosives'], descriptionUa: 'Бензиновий мотор: машини без пари.' },
   automobile: { id: 'automobile', nameUa: 'Автомобіль', era: 4, prereqs: ['combustion', 'steel'], descriptionUa: 'Машини на вулицях — і смог від великих міст.' },
   mass_production: { id: 'mass_production', nameUa: 'Масове виробництво', era: 4, prereqs: ['automobile', 'the_corporation'], descriptionUa: 'Конвеєр: усе для всіх.' },
+  recycling: { id: 'recycling', nameUa: 'Переробка', era: 4, prereqs: ['mass_production', 'democracy'], descriptionUa: 'Вторсировина замість звалищ: менше смогу від заводів.' },
   machine_tools: { id: 'machine_tools', nameUa: 'Верстати', era: 4, prereqs: ['steel', 'conscription'], descriptionUa: 'Точні верстати: далекобійні гармати.' },
   mobile_warfare: { id: 'mobile_warfare', nameUa: 'Мобільна війна', era: 4, prereqs: ['automobile', 'machine_tools'], descriptionUa: 'Бліцкриг: броня і мотори.' },
   labor_union: { id: 'labor_union', nameUa: 'Профспілки', era: 4, prereqs: ['mass_production', 'communism'], descriptionUa: 'Робітники об\'єднуються: армія на колесах.' },

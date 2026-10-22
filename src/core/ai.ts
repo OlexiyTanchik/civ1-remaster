@@ -21,7 +21,7 @@ const RESEARCH_ORDER = [
   'physics', 'medicine', 'economics', 'theory_of_gravity', 'democracy', 'metallurgy', 'magnetism',
   'steam_engine', 'railroad', 'industrialization', 'communism', 'chemistry', 'electricity', 'conscription',
   'the_corporation', 'steel', 'electronics', 'sanitation', 'explosives', 'refining', 'theology',
-  'combustion', 'automobile', 'mass_production', 'machine_tools', 'mobile_warfare', 'labor_union',
+  'combustion', 'automobile', 'mass_production', 'recycling', 'machine_tools', 'mobile_warfare', 'labor_union',
   'atomic_theory', 'flight', 'nuclear_fission', 'nuclear_power', 'radio', 'advanced_flight', 'rocketry',
   'computers', 'space_flight', 'plastics', 'superconductor', 'genetic_engineering',
 ];
@@ -220,6 +220,8 @@ export class AiController {
     if (city.size >= 15 && canBuild(BuildingTypeKey.Sewer)) return set(true, BuildingTypeKey.Sewer);
     // З автомобілями великі міста димлять — метро й трамваї
     if (city.size >= 12 && player.knownTechs.includes('automobile') && canBuild(BuildingTypeKey.MassTransit)) return set(true, BuildingTypeKey.MassTransit);
+    // Фабрика з понад 20 щитами вже димить
+    if (has(BuildingTypeKey.Factory) && yields.shieldsGross > 20 && canBuild(BuildingTypeKey.RecyclingCenter)) return set(true, BuildingTypeKey.RecyclingCenter);
     if (wonder && has(BuildingTypeKey.Palace) && !threat && garrison >= 2 && city.size >= 3 && cities >= 3) return set(true, wonder.key);
     // Космічна гонка: столиця й продуктивні міста (від 10 щитів) будують частини корабля
     if ((has(BuildingTypeKey.Palace) || yields.shields >= 10) && city.size >= 5 && !threat) {
@@ -283,7 +285,10 @@ export class AiController {
       .sort((a, b) => a.maintenance - b.maintenance || a.cost - b.cost)[0];
     if (leftover && affordable(leftover.maintenance)) return set(true, leftover.key);
     if (player.knownTechs.includes('trade') && count(UnitTypeKey.Caravan) < 3) return set(false, UnitTypeKey.Caravan); // запас на чудеса
-    return set(false, UnitTypeKey.Workers);
+    // Без межі міста, яким нічого будувати, клепали робітників сотнями (107 на 18 міст)
+    if (count(UnitTypeKey.Workers) < cities * 2) return set(false, UnitTypeKey.Workers);
+    // Караван без чуда сам розпуститься за 20 ходів — тож не накопичується, як робітники
+    return set(false, player.knownTechs.includes('trade') ? UnitTypeKey.Caravan : defender);
   }
 
   /**
@@ -445,8 +450,13 @@ export class AiController {
    */
   private work(unit: Unit): void {
     const w = this.world;
-    const here = this.bestTaskAt(unit, unit.x, unit.y);
-    if (here && (this.isWorkedByOwn(unit.playerId, unit.x, unit.y) || (here === 'irrigation' && this.inOwnRadius(unit.playerId, unit.x, unit.y)))) {
+    // Де вже хтось працює — шукаємо іншу клітинку: інакше всі йшли на найближчу (22 на одній)
+    const busy = (x: number, y: number) => w.tiles[y][x].unitIds.some((id) => id !== unit.id && !!w.units.get(id)?.task);
+    const here = busy(unit.x, unit.y) ? undefined : this.bestTaskAt(unit, unit.x, unit.y);
+    // Забруднену клітинку місто кидає обробляти — тож чистимо будь-яку в радіусі, інакше смог лишався навіки
+    const anyInRadius = here === 'irrigation' || here === 'clean';
+    if (here && (this.isWorkedByOwn(unit.playerId, unit.x, unit.y) || (anyInRadius && this.inOwnRadius(unit.playerId, unit.x, unit.y)))) {
+      unit.aiWait = 0;
       w.startTask(unit.id, here);
       return;
     }
@@ -461,14 +471,23 @@ export class AiController {
         const d = w.distance(unit.x, unit.y, pos.x, pos.y) + (worked ? 0 : 3);
         if (d >= bestD) continue;
         const task = this.bestTaskAt(unit, pos.x, pos.y);
-        if (task && (worked || task === 'irrigation') && w.tiles[pos.y][pos.x].unitIds.every((id) => w.units.get(id)?.playerId === unit.playerId)) {
+        if (task && (worked || task === 'irrigation' || task === 'clean') && !busy(pos.x, pos.y)
+          && w.tiles[pos.y][pos.x].unitIds.every((id) => w.units.get(id)?.playerId === unit.playerId)) {
           bestD = d;
           best = pos;
         }
       }
     }
-    if (best) this.walkTo(unit, best);
-    else this.defend(unit); // роботи нема — до найближчого міста
+    if (best) {
+      unit.aiWait = 0;
+      this.walkTo(unit, best);
+      return;
+    }
+    // Роботи давно нема — зайвий робітник лише їсть щити утримання
+    unit.aiWait = (unit.aiWait ?? 0) + 1;
+    const workers = [...w.units.values()].filter((u) => u.playerId === unit.playerId && u.type === UnitTypeKey.Workers).length;
+    if (unit.aiWait > 20 && unit.homeCityId && workers > this.citiesOf(unit.playerId).length) w.removeUnit(unit.id);
+    else this.defend(unit); // до найближчого міста
   }
 
   /** Що найкорисніше зробити на клітинці: їжа → щити → торгівля. */

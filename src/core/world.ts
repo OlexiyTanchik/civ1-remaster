@@ -586,7 +586,7 @@ export class World {
   }
 
   /**
-   * Забруднення (Civ 1): шанс = (щити − 20) × 3%, з фабрикою вдвічі вищий.
+   * Забруднення (Civ 1): шанс = (щити − 20) × 3%, з фабрикою вдвічі вищий, з центром переробки — втричі нижчий.
    * З Автомобілем димлять і самі жителі: (розмір − 10) × 3%, якщо нема Масового транспорту.
    * Забруднюється випадкова оброблювана клітинка суші.
    */
@@ -595,7 +595,8 @@ export class World {
     const y = this.cityYields(city);
     const shields = y.disorder ? 0 : y.shieldsGross;
     // Фабрика — удвічі частіше, АЕС — удвічі рідше
-    const factor = (city.buildings.includes(BuildingTypeKey.Factory) ? 2 : 1) * (city.buildings.includes(BuildingTypeKey.NuclearPlant) ? 0.5 : 1);
+    const factor = (city.buildings.includes(BuildingTypeKey.Factory) ? 2 : 1) * (city.buildings.includes(BuildingTypeKey.NuclearPlant) ? 0.5 : 1)
+      * (city.buildings.includes(BuildingTypeKey.RecyclingCenter) ? 1 / 3 : 1);
     const cars = this.players[city.playerId].knownTechs.includes('automobile') && !city.buildings.includes(BuildingTypeKey.MassTransit);
     const people = cars ? Math.max(0, city.size - 10) : 0;
     const chance = Math.min(0.6, (Math.max(0, shields - 20) * factor + people) * 0.03);
