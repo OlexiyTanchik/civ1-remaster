@@ -321,7 +321,8 @@ export class AiController {
         && (!b.prereqTech || player.knownTechs.includes(b.prereqTech)) && (!b.requires || has(b.requires)) && (!b.coastal || this.isCoastal(city)) && (!b.highland || this.world.isHighland(city)))
       .sort((a, b) => a.maintenance - b.maintenance || a.cost - b.cost)[0];
     if (leftover && affordable(leftover.maintenance)) return set(true, leftover.key);
-    if (player.knownTechs.includes('trade') && count(UnitTypeKey.Caravan) < 3) return set(false, trader); // запас на чудеса
+    // Запас на чудеса, а між ними — торгові маршрути
+    if (player.knownTechs.includes('trade') && count(UnitTypeKey.Caravan) < Math.max(3, Math.ceil(cities / 3))) return set(false, trader);
     // Без межі міста, яким нічого будувати, клепали робітників сотнями (107 на 18 міст)
     if (count(UnitTypeKey.Workers) < cities * 2) return set(false, worker);
     // Караван без чуда сам розпуститься за 20 ходів — тож не накопичується, як робітники
@@ -586,6 +587,14 @@ export class AiController {
       (c) => c.currentProduction.isBuilding && BUILDING_CONFIGS[c.currentProduction.key as BuildingTypeKey]?.isWonder
     );
     if (!target) {
+      // Чуда нема — торговий маршрут (Civ 1): разове золото й наука плюс торгівля назавжди
+      const market = this.routeTarget(unit);
+      if (market) {
+        unit.aiWait = 0;
+        if (unit.x === market.x && unit.y === market.y) w.establishTradeRoute(unit.id, market.id);
+        else this.walkTo(unit, market, true);
+        return;
+      }
       // Чуда давно ніхто не будує — караван лише їсть щити утримання
       unit.aiWait = (unit.aiWait ?? 0) + 1;
       if (unit.aiWait > 20 && unit.homeCityId) {
@@ -600,6 +609,30 @@ export class AiController {
       return;
     }
     this.walkTo(unit, target);
+  }
+
+  /** Найвигідніше досяжне суходолом місто для маршруту: постійна торгівля важить більше за разовий прибуток. */
+  private routeTarget(unit: Unit): City | undefined {
+    const w = this.world;
+    const home = unit.homeCityId ? w.cities.get(unit.homeCityId) : undefined;
+    if (!home) return undefined;
+    const routes = (home.tradeRoutes ?? []).filter((r) => w.cities.has(r.cityId));
+    const weakest = routes.length >= 3 ? Math.min(...routes.map((r) => r.trade)) : 0;
+    // Варвари не торгують; BFS дорогий — оцінюємо лише найближчі
+    const near = [...w.cities.values()]
+      .filter((c) => !w.players[c.playerId].isBarbarian && w.distance(c.x, c.y, unit.x, unit.y) <= 25 && !w.tradeRouteProblem(unit, c)
+        && (c.playerId === unit.playerId || w.diplomacy.hasContact(unit.playerId, c.playerId)))
+      .sort((a, b) => w.distance(a.x, a.y, unit.x, unit.y) - w.distance(b.x, b.y, unit.x, unit.y))
+      .slice(0, 8);
+    const scored = near
+      .map((c) => ({ c, o: w.tradeRouteOffer(home, c) }))
+      .filter(({ o }) => o.trade > weakest)
+      .map(({ c, o }) => ({ c, score: (o.trade * 20 + o.bonus) / (w.distance(c.x, c.y, unit.x, unit.y) + 3) }))
+      .sort((a, b) => b.score - a.score);
+    for (const { c } of scored.slice(0, 3)) {
+      if ((unit.x === c.x && unit.y === c.y) || this.pathStep(unit, c, true) !== null) return c;
+    }
+    return undefined;
   }
 
   /** Захисник: до міста, де бракує гарнізону, там — укріпитися. На старті — розвідка й хатки. */

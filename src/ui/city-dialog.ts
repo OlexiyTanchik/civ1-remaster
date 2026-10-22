@@ -74,6 +74,18 @@ export class CityDialog {
   }
 
   /** Хто на утриманні міста і скільки це коштує (Civ 1). */
+  /** Торгові маршрути караванів; з ворогом маршрут стоїть. */
+  private routesLine(city: City): string {
+    const routes = (city.tradeRoutes ?? []).filter((r) => this.world.cities.has(r.cityId));
+    if (!routes.length) return '';
+    const parts = routes.map((r) => {
+      const partner = this.world.cities.get(r.cityId)!;
+      const war = this.world.diplomacy.atWar(city.playerId, partner.playerId);
+      return war ? `<span class="dim">${partner.name} (війна)</span>` : `${partner.name} +${r.trade}`;
+    });
+    return `<div class="city-stat"><span>🐪 Маршрути: ${parts.join(', ')}</span></div>`;
+  }
+
   private supportLine(city: City, yields: { upkeepShields: number; upkeepFood: number; shieldsGross: number }): string {
     const units = this.world.supportedUnits(city);
     if (!units.length) return '';
@@ -164,6 +176,7 @@ export class CityDialog {
               <span>💰 Торгівля ${yields.trade}${yields.corruption ? ` <span class="dim">(корупція −${yields.corruption})</span>` : ''}</span>
               <span>золото +${yields.gold} · наука +${yields.science}${yields.luxury ? ` · розкіш +${yields.luxury}` : ''}</span>
             </div>
+            ${this.routesLine(city)}
             <div class="city-stat">
               <span class="citizens" title="Щасливі / задоволені / невдоволені / артисти (+2 розкоші, не працюють на землі)">${'😊'.repeat(yields.happy)}${'🙂'.repeat(yields.content)}${'😠'.repeat(yields.unhappy)}${'🎭'.repeat(yields.entertainers)}</span>
               ${yields.abroadUnhappy ? `<span class="dim">армія за кордоном: ${yields.abroadUnhappy} 😠</span>` : ''}

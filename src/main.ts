@@ -157,7 +157,10 @@ async function bootstrap() {
       return;
     }
     showMeetings();
-    if (!res.success) return;
+    if (!res.success) {
+      if (res.event) hud.addLogMessage(res.event);
+      return;
+    }
     if (res.combatLog) {
       if (res.combatLog.includes('захоплено')) SoundEffects.playCapture();
       else SoundEffects.playCombat();
@@ -170,7 +173,8 @@ async function bootstrap() {
     }
 
     renderer.refreshAll();
-    if (selectedUnit.movesLeft <= 0) {
+    // Караван, що заснував маршрут у чужому місті, зник
+    if (selectedUnit.movesLeft <= 0 || !world.units.has(selectedUnit.id)) {
       selectNextAvailableUnit();
     } else {
       hud.update(selectedUnit);
@@ -214,6 +218,20 @@ async function bootstrap() {
       return;
     }
     hud.addLogMessage(`🐪 Караван віддав 50 щитів на чудо світу в місті ${res.city!.name}`);
+    renderer.refreshAll();
+    selectNextAvailableUnit();
+  };
+
+  hud.onTradeRoute = () => {
+    if (!selectedUnit) return;
+    const cityId = world.tiles[selectedUnit.y][selectedUnit.x].cityId;
+    const res = cityId ? world.establishTradeRoute(selectedUnit.id, cityId) : { ok: false, reason: 'Потрібно бути в місті' };
+    if (!res.ok) {
+      hud.addLogMessage(`⚠️ ${res.reason}`);
+      return;
+    }
+    SoundEffects.playFoundCity();
+    hud.addLogMessage(res.text!);
     renderer.refreshAll();
     selectNextAvailableUnit();
   };
@@ -372,6 +390,10 @@ async function bootstrap() {
     }
     if (e.code === 'KeyH') {
       hud.onHelpWonder?.();
+      return;
+    }
+    if (e.code === 'KeyT') {
+      hud.onTradeRoute?.();
       return;
     }
     if (e.code === 'KeyD' && e.shiftKey) {

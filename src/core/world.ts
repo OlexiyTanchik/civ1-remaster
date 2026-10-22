@@ -228,6 +228,17 @@ export class World {
       }
     }
 
+    // Караван у чужому місті — торгівля (Civ 1); з ворогом — ні, і напасти він не може
+    if (UNIT_CONFIGS[unit.type].wonderShields && toTile.cityId) {
+      const target = this.cities.get(toTile.cityId)!;
+      if (target.playerId !== unit.playerId) {
+        const res = this.establishTradeRoute(unit.id, target.id);
+        if (!res.ok) return { success: false, event: `⚠️ ${res.reason}` };
+        if (unit.playerId !== 0 && target.playerId === 0) this.news.push(`🐪 ${this.players[unit.playerId].nameUa} відкрили торговий шлях до міста ${target.name}`);
+        return { success: true, event: res.text };
+      }
+    }
+
     // Ядерна ракета вибухає над ворожим загоном чи містом
     if (unit.type === UnitTypeKey.Nuclear) {
       const enemyCity = toTile.cityId && this.cities.get(toTile.cityId)!.playerId !== unit.playerId;
@@ -681,6 +692,7 @@ export class World {
       baseContent: player.isAi ? 4 : DIFFICULTIES[this.options.difficulty].content,
       costFactor: player.isAi && !player.isBarbarian ? DIFFICULTIES[this.options.difficulty].aiCost : 1,
       support: this.supportOf(city.id),
+      routeTrade: this.routeTrade(city),
       garrison: this.tiles[city.y][city.x].unitIds
         .map((id) => this.units.get(id))
         .filter((u) => u && u.playerId === city.playerId && UNIT_CONFIGS[u.type].attack > 0).length,
@@ -823,6 +835,84 @@ export class World {
     city.shieldsStored += gift;
     this.removeUnit(unitId);
     return { ok: true, city };
+  }
+
+  /** Торгівля з маршрутів: партнер мусить існувати, а з ворогом торгівля стоїть. */
+  public routeTrade(city: City): number {
+    let sum = 0;
+    for (const r of city.tradeRoutes ?? []) {
+      const partner = this.cities.get(r.cityId);
+      if (!partner || this.diplomacy.atWar(city.playerId, partner.playerId)) continue;
+      sum += r.trade;
+    }
+    return sum;
+  }
+
+  /** Що дасть караван з `home` у місті `target`: разовий прибуток і постійна торгівля (формули Civ 1). */
+  public tradeRouteOffer(home: City, target: City): { bonus: number; trade: number } {
+    // Торгівля самих клітинок, без уже наявних маршрутів — інакше маршрути підживлювали б одне одного
+    const base = (c: City) => Math.max(1, this.cityYields(c).trade - this.routeTrade(c));
+    const tA = base(home);
+    const tB = base(target);
+    const foreign = home.playerId !== target.playerId;
+    const d = this.distance(home.x, home.y, target.x, target.y);
+    const half = foreign ? 1 : 0.5;
+    return {
+      bonus: Math.max(1, Math.floor(((d + 10) * (tA + tB) / 24) * half)),
+      trade: Math.max(1, Math.floor(((tA + tB + 4) / 8) * half)),
+    };
+  }
+
+  /** Чому караван не може заснувати маршрут у цьому місті (undefined — може). */
+  public tradeRouteProblem(unit: Unit, target: City): string | undefined {
+    if (!UNIT_CONFIGS[unit.type].wonderShields) return 'Лише караван чи вантажівка';
+    const home = unit.homeCityId ? this.cities.get(unit.homeCityId) : undefined;
+    if (!home) return 'Караван без рідного міста не торгує';
+    if (home.id === target.id) return 'Це рідне місто каравану';
+    if (target.playerId !== unit.playerId && this.diplomacy.atWar(unit.playerId, target.playerId)) return 'З ворогом не торгують';
+    if (target.playerId === unit.playerId && this.distance(home.x, home.y, target.x, target.y) < 10) {
+      return 'Своє місто має бути щонайменше за 10 клітинок від рідного';
+    }
+    if ((home.tradeRoutes ?? []).some((r) => r.cityId === target.id)) return `Маршрут ${home.name} — ${target.name} уже є`;
+    return undefined;
+  }
+
+  /**
+   * Караван засновує торговий маршрут (Civ 1): разово золото й наука обом не діляться — усе власнику каравану,
+   * а постійна торгівля йде обом містам. Понад 3 маршрути — замінюється найслабший, якщо новий кращий.
+   */
+  public establishTradeRoute(unitId: string, cityId: string): { ok: boolean; reason?: string; text?: string } {
+    const unit = this.units.get(unitId);
+    const target = this.cities.get(cityId);
+    if (!unit || !target) return { ok: false, reason: 'Нема міста' };
+    const problem = this.tradeRouteProblem(unit, target);
+    if (problem) return { ok: false, reason: problem };
+    const home = this.cities.get(unit.homeCityId!)!;
+    const offer = this.tradeRouteOffer(home, target);
+    const owner = this.players[unit.playerId];
+    owner.gold += offer.bonus;
+    owner.researchProgress += offer.bonus;
+    const added = this.addRoute(home, target.id, offer.trade);
+    this.addRoute(target, home.id, offer.trade);
+    this.removeUnit(unitId);
+    const route = added ? `, маршрут дає +${offer.trade} торгівлі за хід` : ', але в рідного міста вже 3 кращі маршрути';
+    return { ok: true, text: `🐪 Караван з ${home.name} прибув до ${target.name}: +${offer.bonus} золота й науки${route}` };
+  }
+
+  private addRoute(city: City, partnerId: string, trade: number): boolean {
+    // Зниклі міста не тримають місце
+    const routes = (city.tradeRoutes ?? []).filter((r) => this.cities.has(r.cityId));
+    if (routes.length >= 3) {
+      routes.sort((a, b) => a.trade - b.trade);
+      if (routes[0].trade >= trade) {
+        city.tradeRoutes = routes;
+        return false;
+      }
+      routes.shift();
+    }
+    routes.push({ cityId: partnerId, trade });
+    city.tradeRoutes = routes;
+    return true;
   }
 
   /** Коли востаннє нагадували, що місто вперлося в акведук чи каналізацію (не зберігається). */

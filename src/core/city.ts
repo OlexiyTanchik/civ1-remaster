@@ -30,6 +30,8 @@ export interface CityEnv {
   costFactor?: number;
   /** Юніти, яких утримує місто: усього, з них поселенців і військових за кордоном */
   support?: { units: number; settlers: number; abroad?: number };
+  /** Торгівля з маршрутів караванів */
+  routeTrade?: number;
 }
 
 export interface CityYields {
@@ -102,6 +104,7 @@ export class CityLogic {
       shields += y.shields;
       trade += y.trade;
     }
+    trade += env.routeTrade ?? 0;
 
     // Піраміди +25%, фабрика +50%, електростанція, ГЕС чи АЕС (лише з фабрикою; Гребля Гувера — у кожному місті) ще +25%
     let shieldBonus = 1;

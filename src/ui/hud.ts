@@ -39,6 +39,7 @@ export class Hud {
   public onToggleGrid?: () => void;
   public onTerraform?: (kind: TerraformKind) => void;
   public onHelpWonder?: () => void;
+  public onTradeRoute?: () => void;
   public onRatesChanged?: () => void;
   public onOpenGovernment?: () => void;
   public onOpenSpace?: () => void;
@@ -109,6 +110,7 @@ export class Hud {
           <button class="civ-btn" id="btn-build-city" title="Заснувати місто [B]">🏛️ Місто [B]</button>
           ${TERRAFORM_KINDS.map((k) => `<button class="civ-btn" id="btn-tf-${k}"></button>`).join('')}
           <button class="civ-btn" id="btn-help-wonder" title="Віддати 50 щитів на чудо світу [H]">🌟 На чудо [H]</button>
+          <button class="civ-btn" id="btn-trade-route" title="Заснувати торговий маршрут [T]">🐪 Маршрут [T]</button>
           <button class="civ-btn" id="btn-rehome" title="Переписати юніт на це місто: воно його утримуватиме">🏠 Дім</button>
           <button class="civ-btn" id="btn-disband" title="Розпустити юніт, щоб місто не витрачало на нього щити [Shift+D]">🗑️ Розпустити</button>
           <button class="civ-btn" id="btn-fortify" title="Укріпитися: +50% захисту [F]">🛡️ Укріпити [F]</button>
@@ -145,6 +147,7 @@ export class Hud {
       document.getElementById(`btn-tf-${k}`)?.addEventListener('click', () => this.onTerraform?.(k));
     }
     document.getElementById('btn-help-wonder')?.addEventListener('click', () => this.onHelpWonder?.());
+    document.getElementById('btn-trade-route')?.addEventListener('click', () => this.onTradeRoute?.());
     document.getElementById('hud-gov')?.addEventListener('click', () => this.onOpenGovernment?.());
     document.getElementById('hud-space')?.addEventListener('click', () => this.onOpenSpace?.());
     document.getElementById('btn-game-menu')?.addEventListener('click', () => this.onOpenGameMenu?.());
@@ -427,6 +430,23 @@ export class Hud {
         const ok = !!city && city.currentProduction.isBuilding && !!BUILDING_CONFIGS[city.currentProduction.key as BuildingTypeKey]?.isWonder;
         helpBtn.disabled = !ok;
         helpBtn.title = ok ? 'Віддати 50 щитів на чудо світу [H]' : 'Заведіть караван у місто, яке будує чудо світу';
+      }
+    }
+    // Маршрут у своєму далекому місті; у чуже місто караван просто заходить
+    const routeBtn = document.getElementById('btn-trade-route') as HTMLButtonElement | null;
+    if (routeBtn) {
+      const trader = !!unit && !!UNIT_CONFIGS[unit.type].wonderShields;
+      routeBtn.style.display = trader ? 'block' : 'none';
+      if (trader) {
+        const tile = this.world.tiles[unit.y][unit.x];
+        const city = tile.cityId ? this.world.cities.get(tile.cityId) : undefined;
+        const problem = city ? this.world.tradeRouteProblem(unit, city) : 'Заведіть караван у своє місто за 10+ клітинок від рідного або в чуже місто';
+        routeBtn.disabled = !!problem;
+        if (city && !problem) {
+          const home = this.world.cities.get(unit.homeCityId!)!;
+          const o = this.world.tradeRouteOffer(home, city);
+          routeBtn.title = `Маршрут ${home.name} — ${city.name}: +${o.bonus} золота й науки зараз, +${o.trade} торгівлі за хід [T]`;
+        } else routeBtn.title = problem ?? '';
       }
     }
     for (const k of TERRAFORM_KINDS) {

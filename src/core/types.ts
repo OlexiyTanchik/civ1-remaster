@@ -356,6 +356,8 @@ export interface City {
   boughtTurn?: number;
   /** Хід, коли людина продала тут споруду (одна на хід, як у Civ 1) */
   soldTurn?: number;
+  /** Торгові маршрути (Civ 1): до 3, кожен дає постійну торгівлю, порахувану при заснуванні */
+  tradeRoutes?: { cityId: string; trade: number }[];
 }
 
 export interface Tech {
