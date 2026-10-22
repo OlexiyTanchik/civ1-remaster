@@ -19,14 +19,16 @@ const RESEARCH_ORDER = [
   'literacy', 'construction', 'architecture', 'monarchy', 'warrior_code', 'trade', 'philosophy', 'astronomy', 'seafaring',
   'feudalism', 'the_republic', 'monotheism', 'university', 'bridge_building', 'banking', 'guilds', 'chivalry',
   'navigation', 'invention', 'printing_press', 'gunpowder',
-  'physics', 'optics', 'medicine', 'economics', 'humanism', 'theory_of_gravity', 'democracy', 'metallurgy', 'magnetism',
-  'steam_engine', 'railroad', 'industrialization', 'communism', 'chemistry', 'photography', 'electricity', 'conscription', 'leadership',
+  'physics', 'optics', 'medicine', 'economics', 'theory_of_gravity', 'democracy', 'metallurgy', 'magnetism',
+  'steam_engine', 'railroad', 'industrialization', 'communism', 'chemistry', 'electricity', 'conscription', 'leadership',
   'the_corporation', 'steel', 'electronics', 'sanitation', 'explosives', 'refining', 'theology',
   'combustion', 'automobile', 'mass_production', 'recycling', 'machine_tools', 'mobile_warfare', 'labor_union',
-  'atomic_theory', 'flight', 'nuclear_fission', 'nuclear_power', 'radio', 'television', 'advanced_flight', 'rocketry',
-  'computers', 'space_flight', 'robotics', 'plastics', 'superconductor',
+  'atomic_theory', 'flight', 'nuclear_fission', 'nuclear_power', 'radio', 'advanced_flight', 'rocketry',
+  'computers', 'space_flight', 'robotics', 'plastics', 'superconductor', 'lasers',
+  // Розваги й медицина Етапу 10 — після космосу: кожна технологія до нього дорожчає наступні
+  'humanism', 'photography', 'antibiotics', 'television',
   // Гірська піхота й шпигуни — після космічних технологій: кожна зайва технологія дорожчає наступні, і космос не встигав до 2100
-  'tactics', 'espionage', 'refrigeration', 'antibiotics', 'miniaturization', 'combined_arms', 'amphibious_warfare', 'guerrilla_warfare', 'genetic_engineering', 'environmentalism', 'stealth', 'fundamentalism', 'polytheism',
+  'tactics', 'espionage', 'refrigeration', 'miniaturization', 'combined_arms', 'amphibious_warfare', 'guerrilla_warfare', 'genetic_engineering', 'environmentalism', 'stealth', 'fundamentalism', 'polytheism', 'artificial_intelligence', 'fusion', 'nanotechnology', 'ocean_colonization',
 ];
 
 /** Корабель, який AI вважає готовим до старту: 3 двигуни, 3 модулі, 6 каркасів (політ 14 р., успіх 100%). */

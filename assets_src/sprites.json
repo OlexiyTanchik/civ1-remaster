@@ -1031,6 +1031,81 @@
       "id": "w_panama_canal",
       "kind": "building",
       "prompt": "the Panama Canal locks: concrete lock chambers with huge steel gates, water and a cargo ship passing between them"
+    },
+    {
+      "id": "u_modern_armor",
+      "kind": "unit",
+      "prompt": "a modern main battle tank with angular composite armour, a long smoothbore gun and desert camouflage"
+    },
+    {
+      "id": "u_drone",
+      "kind": "unit",
+      "prompt": "a grey military strike drone with long thin wings, a V-tail, a rear propeller and two small missiles under the wings"
+    },
+    {
+      "id": "u_missile_submarine",
+      "kind": "unit",
+      "prompt": "a black nuclear missile submarine surfaced with an open row of missile hatches behind the sail, side view"
+    },
+    {
+      "id": "u_laser_infantry",
+      "kind": "unit",
+      "prompt": "a futuristic soldier in a white and grey powered exoskeleton armour with a glowing blue laser rifle"
+    },
+    {
+      "id": "u_hover_tank",
+      "kind": "unit",
+      "prompt": "a futuristic hover tank floating above the ground on blue anti-gravity glow, sleek armour and a twin cannon"
+    },
+    {
+      "id": "u_battle_mech",
+      "kind": "unit",
+      "prompt": "a large two-legged walking battle mech robot with missile pods on the shoulders and arm cannons, grey and orange"
+    },
+    {
+      "id": "u_plasma_cruiser",
+      "kind": "unit",
+      "prompt": "a futuristic sleek warship with glowing purple plasma cannons and an angular stealth hull, side view"
+    },
+    {
+      "id": "b_gene_clinic",
+      "kind": "building",
+      "prompt": "a modern white clinic with a glass facade and a big DNA double helix sculpture in front"
+    },
+    {
+      "id": "b_fusion_plant",
+      "kind": "building",
+      "prompt": "a futuristic fusion power plant: a ring-shaped tokamak building glowing blue with white cooling structures"
+    },
+    {
+      "id": "b_ai_center",
+      "kind": "building",
+      "prompt": "a futuristic data centre: a dark glass cube with glowing circuit patterns and a server rack wing"
+    },
+    {
+      "id": "b_nanofactory",
+      "kind": "building",
+      "prompt": "a futuristic white factory with smooth domes, robotic arms and a silver swarm of tiny particles above"
+    },
+    {
+      "id": "b_ocean_habitat",
+      "kind": "building",
+      "prompt": "an underwater city habitat: glass domes on the sea floor connected by tubes, glowing windows, fish around"
+    },
+    {
+      "id": "w_collider",
+      "kind": "building",
+      "prompt": "the Large Hadron Collider: a huge circular blue magnet tunnel section with detectors, cables and a control building"
+    },
+    {
+      "id": "w_seed_vault",
+      "kind": "building",
+      "prompt": "the Svalbard Global Seed Vault: a concrete wedge entrance sticking out of a snowy mountain with a glowing turquoise art panel above the door"
+    },
+    {
+      "id": "w_space_elevator",
+      "kind": "building",
+      "prompt": "a space elevator: a thin glowing cable rising from a large ground station into the sky with a climber capsule on it"
     }
   ]
 }

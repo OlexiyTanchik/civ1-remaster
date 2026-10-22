@@ -41,7 +41,7 @@ export function saveGame(world: World, slot: SlotId): string | undefined {
     year: world.turnManager.getYearString(),
     turn: world.turnManager.turnNumber,
     date: new Date().toLocaleString('uk-UA'),
-    details: `${MAP_SIZES[o.mapSize].nameUa} мапа · ${DIFFICULTIES[o.difficulty].nameUa} · суперників ${world.players.length - 2} · рахунок ${world.score(0).total}`,
+    details: `${MAP_SIZES[o.mapSize].nameUa} мапа · ${DIFFICULTIES[o.difficulty].nameUa} · суперників ${world.players.filter((p) => !p.isBarbarian).length - 1} · рахунок ${world.score(0).total}`,
   };
   try {
     localStorage.setItem(KEY(slot), JSON.stringify(world.serialize()));

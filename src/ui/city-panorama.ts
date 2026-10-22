@@ -117,6 +117,15 @@ const BUILDING_SLOTS: Partial<Record<BuildingTypeKey, { x: number; y: number; sc
   [BuildingTypeKey.BigBen]: { x: 210, y: 92, scale: 0.5 },
   [BuildingTypeKey.Hollywood]: { x: 352, y: 150, scale: 0.45 },
   [BuildingTypeKey.PanamaCanal]: { x: 120, y: 208, scale: 0.45 },
+  // Етап 10, Сучасність і Майбутнє
+  [BuildingTypeKey.GeneClinic]: { x: 318, y: 186, scale: 0.4 },
+  [BuildingTypeKey.FusionPlant]: { x: 150, y: 84, scale: 0.45 },
+  [BuildingTypeKey.AiCenter]: { x: 236, y: 120, scale: 0.45 },
+  [BuildingTypeKey.Nanofactory]: { x: 96, y: 84, scale: 0.45 },
+  [BuildingTypeKey.OceanHabitat]: { x: 376, y: 196, scale: 0.4 },
+  [BuildingTypeKey.Collider]: { x: 56, y: 70, scale: 0.45 },
+  [BuildingTypeKey.SeedVault]: { x: 330, y: 76, scale: 0.4 },
+  [BuildingTypeKey.SpaceElevator]: { x: 268, y: 66, scale: 0.55 },
 };
 
 const hash = (a: number, b: number) => {

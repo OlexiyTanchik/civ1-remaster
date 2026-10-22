@@ -434,6 +434,35 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
     key: UnitTypeKey.RocketArtillery, name: 'Rocket Artillery', nameUa: 'Реактивна артилерія', attack: 12, defense: 1, moves: 2, cost: 80, domain: 'land',
     prereqTech: 'rocketry', descriptionUa: 'Залп реактивних снарядів з вантажівки, як «Катюша».',
   },
+  // Етап 10, Сучасність і Майбутнє
+  [UnitTypeKey.ModernArmor]: {
+    key: UnitTypeKey.ModernArmor, name: 'Modern Armor', nameUa: 'Сучасний танк', attack: 16, defense: 10, moves: 4, cost: 120, domain: 'land',
+    prereqTech: 'robotics', descriptionUa: 'Танк із комп\'ютерним керуванням вогнем і композитною бронею.',
+  },
+  [UnitTypeKey.Drone]: {
+    key: UnitTypeKey.Drone, name: 'Strike Drone', nameUa: 'Ударний дрон', attack: 8, defense: 2, moves: 10, cost: 50, domain: 'air', fuel: 1,
+    prereqTech: 'miniaturization', descriptionUa: 'Безпілотник: дешевий удар без ризику для пілота, повертається на базу за хід.',
+  },
+  [UnitTypeKey.MissileSubmarine]: {
+    key: UnitTypeKey.MissileSubmarine, name: 'Missile Submarine', nameUa: 'Ракетний підводний човен', attack: 16, defense: 4, moves: 4, cost: 120, domain: 'sea',
+    prereqTech: 'nuclear_power', descriptionUa: 'Атомний підводний човен з крилатими ракетами.',
+  },
+  [UnitTypeKey.LaserInfantry]: {
+    key: UnitTypeKey.LaserInfantry, name: 'Laser Infantry', nameUa: 'Лазерна піхота', attack: 10, defense: 12, moves: 2, cost: 100, domain: 'land',
+    prereqTech: 'lasers', descriptionUa: 'Піхота в екзоскелетах з лазерними гвинтівками.',
+  },
+  [UnitTypeKey.HoverTank]: {
+    key: UnitTypeKey.HoverTank, name: 'Hover Tank', nameUa: 'Гравітанк', attack: 20, defense: 12, moves: 5, cost: 160, domain: 'land', allTerrainAsRoad: true,
+    prereqTech: 'fusion', descriptionUa: 'Танк на антигравітаційній подушці: будь-який рельєф — як дорога.',
+  },
+  [UnitTypeKey.BattleMech]: {
+    key: UnitTypeKey.BattleMech, name: 'Battle Mech', nameUa: 'Бойовий мех', attack: 24, defense: 16, moves: 3, cost: 200, domain: 'land',
+    prereqTech: 'nanotechnology', descriptionUa: 'Крокуючий бойовий робот із наноброні.',
+  },
+  [UnitTypeKey.PlasmaCruiser]: {
+    key: UnitTypeKey.PlasmaCruiser, name: 'Plasma Cruiser', nameUa: 'Плазмовий крейсер', attack: 24, defense: 20, moves: 6, cost: 220, domain: 'sea',
+    prereqTech: 'fusion', descriptionUa: 'Термоядерний корабель із плазмовими гарматами.',
+  },
 };
 
 /** Юніт для цивілізації: унікальні — лише своїй, а звичайний, якого її унікальний замінює, — їй ні. */
@@ -874,6 +903,39 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
     key: BuildingTypeKey.PanamaCanal, nameUa: 'Панамський канал', cost: 550, maintenance: 0, prereqTech: 'steel', isWonder: true, effects: { gold: 50 }, globalEffects: { trade: 1 },
     descriptionUa: 'Чудо світу. Шлюзи між океанами: +1 торгівлі в кожному вашому місті, тут — +50% золота.',
   },
+  // Етап 10, Сучасність і Майбутнє
+  [BuildingTypeKey.GeneClinic]: {
+    key: BuildingTypeKey.GeneClinic, nameUa: 'Генна клініка', cost: 160, maintenance: 2, prereqTech: 'genetic_engineering', effects: { content: 1, food: 10 },
+    descriptionUa: 'Ліки під кожен геном: +1 задоволений, +10% їжі.',
+  },
+  [BuildingTypeKey.FusionPlant]: {
+    key: BuildingTypeKey.FusionPlant, nameUa: 'Термоядерна станція', cost: 240, maintenance: 4, prereqTech: 'fusion', requires: BuildingTypeKey.Factory, effects: { shields: 35 },
+    descriptionUa: 'Чиста енергія синтезу: ще +35% щитів (потрібна фабрика).',
+  },
+  [BuildingTypeKey.AiCenter]: {
+    key: BuildingTypeKey.AiCenter, nameUa: 'Центр штучного інтелекту', cost: 200, maintenance: 3, prereqTech: 'artificial_intelligence', effects: { science: 40 },
+    descriptionUa: 'Нейромережі ведуть дослідження: +40% науки.',
+  },
+  [BuildingTypeKey.Nanofactory]: {
+    key: BuildingTypeKey.Nanofactory, nameUa: 'Нанофабрика', cost: 260, maintenance: 4, prereqTech: 'nanotechnology', requires: BuildingTypeKey.Factory, effects: { shields: 40 },
+    descriptionUa: 'Наноботи збирають усе: ще +40% щитів (потрібна фабрика).',
+  },
+  [BuildingTypeKey.OceanHabitat]: {
+    key: BuildingTypeKey.OceanHabitat, nameUa: 'Підводне місто', cost: 200, maintenance: 3, prereqTech: 'ocean_colonization', coastal: true, effects: { food: 25, content: 1 },
+    descriptionUa: 'Квартали під куполами на дні: +25% їжі, +1 задоволений (лише на узбережжі).',
+  },
+  [BuildingTypeKey.Collider]: {
+    key: BuildingTypeKey.Collider, nameUa: 'Великий адронний колайдер', cost: 700, maintenance: 0, prereqTech: 'superconductor', isWonder: true, globalEffects: { science: 20 },
+    descriptionUa: 'Чудо світу. 27 кілометрів магнітів під землею: +20% науки в кожному вашому місті.',
+  },
+  [BuildingTypeKey.SeedVault]: {
+    key: BuildingTypeKey.SeedVault, nameUa: 'Світове сховище насіння', cost: 500, maintenance: 0, prereqTech: 'genetic_engineering', isWonder: true, globalEffects: { food: 10 },
+    descriptionUa: 'Чудо світу. Ковчег усіх рослин Землі у вічній мерзлоті: +10% їжі в кожному вашому місті.',
+  },
+  [BuildingTypeKey.SpaceElevator]: {
+    key: BuildingTypeKey.SpaceElevator, nameUa: 'Космічний ліфт', cost: 900, maintenance: 0, prereqTech: 'nanotechnology', isWonder: true, globalEffects: { shields: 20 },
+    descriptionUa: 'Чудо світу. Трос із нанотрубок до орбіти: +20% щитів у кожному вашому місті.',
+  },
 };
 
 /** Найбільше частин одного виду на кораблі. */
@@ -989,6 +1051,12 @@ export const TECH_TREE: Record<string, Tech> = {
   photography: { id: 'photography', nameUa: 'Фотографія', era: 4, prereqs: ['electricity', 'chemistry'], descriptionUa: 'Світлопис: мить, збережена назавжди, а згодом і кіно.' },
   antibiotics: { id: 'antibiotics', nameUa: 'Антибіотики', era: 5, prereqs: ['medicine', 'refrigeration'], descriptionUa: 'Пеніцилін перемагає інфекції.' },
   television: { id: 'television', nameUa: 'Телебачення', era: 5, prereqs: ['radio', 'mass_production'], descriptionUa: 'Блакитний екран у кожному домі.' },
+  // Етап 10, Сучасність і Майбутнє
+  lasers: { id: 'lasers', nameUa: 'Лазери', era: 6, prereqs: ['nuclear_power', 'superconductor'], descriptionUa: 'Світло, що ріже сталь.' },
+  artificial_intelligence: { id: 'artificial_intelligence', nameUa: 'Штучний інтелект', era: 7, prereqs: ['computers', 'robotics'], descriptionUa: 'Машини, що вчаться самі.' },
+  fusion: { id: 'fusion', nameUa: 'Термоядерний синтез', era: 7, prereqs: ['superconductor', 'lasers'], descriptionUa: 'Сонце в пляшці: майже безмежна чиста енергія.' },
+  nanotechnology: { id: 'nanotechnology', nameUa: 'Нанотехнології', era: 7, prereqs: ['plastics', 'artificial_intelligence'], descriptionUa: 'Наноботи збирають речі атом за атомом.' },
+  ocean_colonization: { id: 'ocean_colonization', nameUa: 'Колонізація океану', era: 7, prereqs: ['fusion', 'environmentalism'], descriptionUa: 'Міста під куполами на морському дні.' },
 };
 
 // 21 клітинка міста (Fat Cross Civ 1)

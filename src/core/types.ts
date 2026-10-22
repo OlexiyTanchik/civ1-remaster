@@ -138,6 +138,14 @@ export enum UnitTypeKey {
   Dreadnought = 'dreadnought',
   AntiTankGun = 'anti_tank_gun',
   RocketArtillery = 'rocket_artillery',
+  // Етап 10, Сучасність і Майбутнє
+  ModernArmor = 'modern_armor',
+  Drone = 'drone',
+  MissileSubmarine = 'missile_submarine',
+  LaserInfantry = 'laser_infantry',
+  HoverTank = 'hover_tank',
+  BattleMech = 'battle_mech',
+  PlasmaCruiser = 'plasma_cruiser',
 }
 
 export interface UnitConfig {
@@ -331,6 +339,15 @@ export enum BuildingTypeKey {
   BigBen = 'big_ben',
   Hollywood = 'hollywood',
   PanamaCanal = 'panama_canal',
+  // Етап 10, Сучасність і Майбутнє
+  GeneClinic = 'gene_clinic',
+  FusionPlant = 'fusion_plant',
+  AiCenter = 'ai_center',
+  Nanofactory = 'nanofactory',
+  OceanHabitat = 'ocean_habitat',
+  Collider = 'collider',
+  SeedVault = 'seed_vault',
+  SpaceElevator = 'space_elevator',
 }
 
 /** Частина космічного корабля: каркас тримає двигуни й модулі. */

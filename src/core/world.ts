@@ -550,7 +550,7 @@ export class World {
 
   /** Чужий підводний човен видно лише з сусідньої клітинки — від свого юніта чи міста (Civ 1). */
   public hiddenFrom(unit: Unit, viewer: number): boolean {
-    if (unit.type !== UnitTypeKey.Submarine || unit.playerId === viewer) return false;
+    if ((unit.type !== UnitTypeKey.Submarine && unit.type !== UnitTypeKey.MissileSubmarine) || unit.playerId === viewer) return false;
     for (let dy = -1; dy <= 1; dy++) {
       const t = this.tiles[unit.y + dy];
       if (!t) continue;
@@ -1604,6 +1604,7 @@ export class World {
   }
 
   public captureCity(city: City, newOwner: number, incited = false): string {
+    const capitalFell = city.buildings.includes(BuildingTypeKey.Palace);
     const oldOwner = this.players[city.playerId];
     if (incited) {
       for (const id of this.tiles[city.y][city.x].unitIds) {
@@ -1639,7 +1640,60 @@ export class World {
       ? `💰 Місто ${city.name} (${oldOwner.nameUa}) повстало й перейшло до: ${this.players[newOwner].nameUa}!`
       : `🔥 Місто ${city.name} (${oldOwner.nameUa}) захоплено — тепер воно належить: ${this.players[newOwner].nameUa}!`;
     if (newOwner !== 0) this.news.push(msg); // свої захоплення людина бачить одразу
+    if (capitalFell) this.civilWar(oldOwner.id);
     return msg;
+  }
+
+  /**
+   * Громадянська війна (Civ 1): упала столиця AI-імперії з 8+ містами — дальня від найбільшого міста половина
+   * повстає новою цивілізацією (з вільних у CIVS), що одразу воює з колишньою. Новий гравець іде після варварів,
+   * щоб не зсувати номери наявних.
+   */
+  private civilWar(oldId: number): void {
+    const old = this.players[oldId];
+    if (!old.isAi || old.isBarbarian) return;
+    const cities = [...this.cities.values()].filter((c) => c.playerId === oldId);
+    if (cities.length < 8) return;
+    const used = new Set(this.players.map((p) => p.civ));
+    const free = (Object.keys(CIVS) as CivKey[]).filter((c) => !used.has(c));
+    if (!free.length) return;
+    const civ = free[Math.floor(Math.random() * free.length)];
+    const core = cities.reduce((a, b) => (b.size > a.size ? b : a));
+    const rebels = cities.filter((c) => c !== core)
+      .sort((a, b) => this.distance(b.x, b.y, core.x, core.y) - this.distance(a.x, a.y, core.x, core.y))
+      .slice(0, Math.floor(cities.length / 2));
+    const id = this.players.length;
+    const p: Player = {
+      id, civ, nameUa: CIVS[civ].nameUa, leaderUa: CIVS[civ].leaderUa, color: CIVS[civ].color, colorHex: CIVS[civ].colorHex,
+      isAi: true, hostileFromTurn: CIVS[civ].hostileFromTurn, gold: Math.floor(old.gold / 2),
+      taxRate: old.taxRate, scienceRate: old.scienceRate, luxuryRate: old.luxuryRate, researchProgress: 0,
+      knownTechs: [...old.knownTechs], futureTechs: old.futureTechs, alive: true, government: old.government,
+    };
+    old.gold -= p.gold;
+    this.players.push(p);
+    const fog = this.playerFogs.get(oldId)!;
+    this.playerFogs.set(id, { explored: fog.explored.map((r) => [...r]), visible: fog.visible.map((r) => [...r]) });
+    const rebelIds = new Set(rebels.map((c) => c.id));
+    for (const c of rebels) c.playerId = id;
+    rebels.reduce((a, b) => (b.size > a.size ? b : a)).buildings.push(BuildingTypeKey.Palace);
+    // Військо повсталих міст і все, що стоїть у них, переходить до повстанців (разом із пасажирами кораблів)
+    const turned = new Set<string>();
+    for (const u of this.units.values()) {
+      const at = this.tiles[u.y][u.x].cityId;
+      if (u.playerId === oldId && ((u.homeCityId && rebelIds.has(u.homeCityId)) || (at && rebelIds.has(at)))) turned.add(u.id);
+    }
+    for (const u of this.units.values()) if (u.carriedBy && turned.has(u.carriedBy)) turned.add(u.id);
+    for (const uid of turned) {
+      const u = this.units.get(uid)!;
+      u.playerId = id;
+      u.aiTarget = undefined;
+      u.aiMission = undefined;
+      if (u.homeCityId && !rebelIds.has(u.homeCityId)) u.homeCityId = undefined;
+    }
+    for (const c of rebels) CityLogic.autoAssignWorkers(c, this.tiles, this.cityEnv(c));
+    this.diplomacy.meet(oldId, id);
+    this.diplomacy.startWar(oldId, id);
+    this.news.push(`⚔️ Громадянська війна! Після падіння столиці ${old.nameUa} розкололися: ${rebels.length} міст повстали й стали новою цивілізацією — ${p.nameUa} (лідер ${p.leaderUa}).`);
   }
 
   /**
@@ -1847,4 +1901,13 @@ const UPGRADES: Partial<Record<UnitTypeKey, UnitTypeKey>> = {
   [UnitTypeKey.Dreadnought]: UnitTypeKey.Battleship,
   [UnitTypeKey.AntiTankGun]: UnitTypeKey.MechInf,
   [UnitTypeKey.RocketArtillery]: UnitTypeKey.Howitzer,
+  [UnitTypeKey.ModernArmor]: UnitTypeKey.HoverTank,
+  [UnitTypeKey.LaserInfantry]: UnitTypeKey.BattleMech,
+  [UnitTypeKey.HoverTank]: UnitTypeKey.BattleMech,
+  [UnitTypeKey.MissileSubmarine]: UnitTypeKey.PlasmaCruiser,
+  [UnitTypeKey.Armor]: UnitTypeKey.ModernArmor,
+  [UnitTypeKey.Panzer]: UnitTypeKey.ModernArmor,
+  [UnitTypeKey.Battleship]: UnitTypeKey.PlasmaCruiser,
+  [UnitTypeKey.Submarine]: UnitTypeKey.MissileSubmarine,
+  [UnitTypeKey.MechInf]: UnitTypeKey.LaserInfantry,
 };
