@@ -182,6 +182,7 @@ export enum BuildingTypeKey {
   // Сучасність II
   Airport = 'airport',
   NuclearPlant = 'nuclear_plant',
+  HydroPlant = 'hydro_plant',
   Manhattan = 'manhattan',
   UnitedNations = 'united_nations',
   // Космічна гонка
@@ -257,6 +258,8 @@ export interface BuildingConfig {
   requires?: BuildingTypeKey;
   /** Лише в прибережному місті */
   coastal?: boolean;
+  /** Лише біля гір чи пагорбів (ГЕС) */
+  highland?: boolean;
   /** Будується лише тоді, коли це чудо збудоване будь-де у світі */
   requiresWonder?: BuildingTypeKey;
   /** Частина космічного корабля: іде не в місто, а на корабель */

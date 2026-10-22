@@ -403,6 +403,10 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
     key: BuildingTypeKey.NuclearPlant, nameUa: 'АЕС', cost: 160, maintenance: 2, prereqTech: 'nuclear_power', requires: BuildingTypeKey.Factory,
     descriptionUa: 'Як електростанція (+25% щитів з фабрикою, не додається до неї), але забруднення від виробництва вдвічі рідше.',
   },
+  [BuildingTypeKey.HydroPlant]: {
+    key: BuildingTypeKey.HydroPlant, nameUa: 'ГЕС', cost: 240, maintenance: 4, prereqTech: 'electronics', requires: BuildingTypeKey.Factory, highland: true,
+    descriptionUa: 'Як електростанція (+25% щитів з фабрикою, не додається до неї), але забруднення вдвічі рідше. Лише біля гір чи пагорбів.',
+  },
   [BuildingTypeKey.Manhattan]: {
     key: BuildingTypeKey.Manhattan, nameUa: 'Мангеттенський проєкт', cost: 600, maintenance: 0, prereqTech: 'nuclear_fission', isWonder: true,
     descriptionUa: 'Чудо світу. Відкриває ядерну зброю ВСІМ, хто знає Ракетобудування.',

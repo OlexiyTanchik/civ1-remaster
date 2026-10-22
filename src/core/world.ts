@@ -594,8 +594,9 @@ export class World {
     // Забруднює виробництво, а не те, що лишилось після утримання армії
     const y = this.cityYields(city);
     const shields = y.disorder ? 0 : y.shieldsGross;
-    // Фабрика — удвічі частіше, АЕС — удвічі рідше
-    const factor = (city.buildings.includes(BuildingTypeKey.Factory) ? 2 : 1) * (city.buildings.includes(BuildingTypeKey.NuclearPlant) ? 0.5 : 1)
+    // Фабрика — удвічі частіше, АЕС чи ГЕС — удвічі рідше
+    const clean = city.buildings.includes(BuildingTypeKey.NuclearPlant) || city.buildings.includes(BuildingTypeKey.HydroPlant);
+    const factor = (city.buildings.includes(BuildingTypeKey.Factory) ? 2 : 1) * (clean ? 0.5 : 1)
       * (city.buildings.includes(BuildingTypeKey.RecyclingCenter) ? 1 / 3 : 1);
     const cars = this.players[city.playerId].knownTechs.includes('automobile') && !city.buildings.includes(BuildingTypeKey.MassTransit);
     const people = cars ? Math.max(0, city.size - 10) : 0;
@@ -620,6 +621,19 @@ export class World {
   }
 
   /** Чи збудоване чудо будь-де у світі. */
+  /** Гори чи пагорби поруч із містом — є де поставити ГЕС (річок на мапі нема). */
+  public isHighland(city: City): boolean {
+    for (let dy = -1; dy <= 1; dy++) {
+      const row = this.tiles[city.y + dy];
+      if (!row) continue;
+      for (let dx = -1; dx <= 1; dx++) {
+        const t = row[(city.x + dx + row.length) % row.length].terrain;
+        if (t === TerrainType.Mountains || t === TerrainType.Hills) return true;
+      }
+    }
+    return false;
+  }
+
   public isWonderBuilt(key: BuildingTypeKey): boolean {
     return [...this.cities.values()].some((c) => c.buildings.includes(key));
   }

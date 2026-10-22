@@ -147,7 +147,7 @@ export class AiController {
       return !has(b) && (!cfg.prereqTech || player.knownTechs.includes(cfg.prereqTech))
         && (!cfg.isWonder || !w.isWonderBuilt(b))
         && (!cfg.requires || has(cfg.requires))
-        && (!cfg.coastal || this.isCoastal(city));
+        && (!cfg.coastal || this.isCoastal(city)) && (!cfg.highland || this.world.isHighland(city));
     };
     const set = (isBuilding: boolean, key: string) => {
       city.currentProduction = { isBuilding, key };
@@ -232,9 +232,9 @@ export class AiController {
       if (city.size >= 3 && canBuild(b)) return set(true, b);
     }
     // Індустрія — лише великим містам (утримання й забруднення)
-    // АЕС і електростанція — одне з двох (бонус не додається); АЕС чистіша
-    const power = has(BuildingTypeKey.PowerPlant) || has(BuildingTypeKey.NuclearPlant);
-    for (const b of [BuildingTypeKey.Factory, BuildingTypeKey.NuclearPlant, BuildingTypeKey.PowerPlant]) {
+    // Електростанції — одна з трьох (бонус не додається); ГЕС і АЕС чистіші
+    const power = has(BuildingTypeKey.PowerPlant) || has(BuildingTypeKey.NuclearPlant) || has(BuildingTypeKey.HydroPlant);
+    for (const b of [BuildingTypeKey.Factory, BuildingTypeKey.HydroPlant, BuildingTypeKey.NuclearPlant, BuildingTypeKey.PowerPlant]) {
       if (b !== BuildingTypeKey.Factory && power) continue;
       if (city.size >= 8 && canBuild(b)) return set(true, b);
     }
@@ -281,7 +281,7 @@ export class AiController {
     // Юніти коштують утримання — тож наостанок краще будь-яка ще не збудована споруда
     const leftover = Object.values(BUILDING_CONFIGS)
       .filter((b) => !b.isWonder && !b.spacePart && b.key !== BuildingTypeKey.Palace && !has(b.key)
-        && (!b.prereqTech || player.knownTechs.includes(b.prereqTech)) && (!b.requires || has(b.requires)) && (!b.coastal || this.isCoastal(city)))
+        && (!b.prereqTech || player.knownTechs.includes(b.prereqTech)) && (!b.requires || has(b.requires)) && (!b.coastal || this.isCoastal(city)) && (!b.highland || this.world.isHighland(city)))
       .sort((a, b) => a.maintenance - b.maintenance || a.cost - b.cost)[0];
     if (leftover && affordable(leftover.maintenance)) return set(true, leftover.key);
     if (player.knownTechs.includes('trade') && count(UnitTypeKey.Caravan) < 3) return set(false, UnitTypeKey.Caravan); // запас на чудеса
