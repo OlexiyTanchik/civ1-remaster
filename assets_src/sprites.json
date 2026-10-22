@@ -801,6 +801,11 @@
       "id": "u_longbowmen",
       "kind": "unit",
       "prompt": "an English yeoman longbowman in a green hood and brown gambeson drawing a tall longbow"
+    },
+    {
+      "id": "w_sumy_altanka",
+      "kind": "building",
+      "prompt": "an ornate octagonal open-air wooden gazebo pavilion seen from the front: eight slender white carved columns, white lace-like carved fretwork along the eaves and a white openwork balustrade, curved golden roof segments around a central golden onion-like dome topped with a tall white carved spire, decorative white crested arch gables with a carved cross pattern on each side, standing on a grey stone octagonal base with front steps, a ring of yellow flowers around it"
     }
   ]
 }

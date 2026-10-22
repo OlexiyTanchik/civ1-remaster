@@ -149,6 +149,8 @@ export class CityLogic {
     }
     gold = Math.floor(gold * goldBonus);
     luxury = Math.floor(luxury * goldBonus);
+    // Сумська альтанка: місце для прогулянок і свят — розкіш удвічі
+    if (has(BuildingTypeKey.SumyAltanka)) luxury *= 2;
     // Бібліотека, університет (лише з бібліотекою): по +50%; Коперник: +100%
     let sciBonus = 1;
     if (has(BuildingTypeKey.Library)) sciBonus += has(BuildingTypeKey.University) ? 1 : 0.5;
@@ -173,6 +175,7 @@ export class CityLogic {
     if (has(BuildingTypeKey.Colosseum)) calm += 3;
     if (has(BuildingTypeKey.Cathedral) || env.ownerWonders.has(BuildingTypeKey.Michelangelo)) calm += 3;
     if (env.ownerWonders.has(BuildingTypeKey.HangingGardens)) calm += 1;
+    if (env.ownerWonders.has(BuildingTypeKey.SumyAltanka)) calm += 1;
     if (env.ownerWonders.has(BuildingTypeKey.Bach)) calm += 2;
     if (env.ownerWonders.has(BuildingTypeKey.CureForCancer)) calm += 1;
     // Воєнний стан (Монархія, Комунізм): кожен військовий у місті заспокоює одного;

@@ -81,6 +81,8 @@ const BUILDING_SLOTS: Partial<Record<BuildingTypeKey, { x: number; y: number; sc
   [BuildingTypeKey.Internet]: { x: 14, y: 96, scale: 0.45 },
   [BuildingTypeKey.SumySchool]: { x: 74, y: 164, scale: 0.45 },
   // Вежа СумДУ висока — на дальньому плані за палацом, щоб нікого не закривала
+  // Альтанка — як парк на площі: невелика, на передньому плані в центрі
+  [BuildingTypeKey.SumyAltanka]: { x: 182, y: 178, scale: 0.4 },
   [BuildingTypeKey.SumDU]: { x: 186, y: 74, scale: 0.5 },
 };
 

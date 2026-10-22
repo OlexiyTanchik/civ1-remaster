@@ -276,6 +276,7 @@ export enum BuildingTypeKey {
   Internet = 'internet',
   SumySchool = 'sumy_school_1',
   SumDU = 'sumdu',
+  SumyAltanka = 'sumy_altanka',
   Coinage = 'coinage',
 }
 

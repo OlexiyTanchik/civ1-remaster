@@ -668,6 +668,10 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
     descriptionUa: 'Електростанція без диму: з фабрикою ще +25% щитів, а виробництво міста зовсім не забруднює. Потрібна фабрика.',
   },
   // Сумські чудеса XX століття: типова радянська школа й СумДУ
+  [BuildingTypeKey.SumyAltanka]: {
+    key: BuildingTypeKey.SumyAltanka, nameUa: 'Сумська альтанка', cost: 300, maintenance: 0, prereqTech: 'electricity', isWonder: true,
+    descriptionUa: 'Чудо світу. Різьблена дерев\'яна альтанка 1912 року над Пслом — символ міста Суми, улюблене місце побачень і фото. +1 задоволений у кожному вашому місті; у місті з альтанкою розкіш ×2.',
+  },
   [BuildingTypeKey.SumySchool]: {
     key: BuildingTypeKey.SumySchool, nameUa: 'Сумська спеціалізована школа №1 ім. В. Стрельченка', cost: 450, maintenance: 0, prereqTech: 'sanitation', isWonder: true,
     descriptionUa: 'Чудо світу. Комунальна установа Сумська спеціалізована школа І-ІІІ ступенів № 1 ім. В. Стрельченка, м. Суми, Сумської області. Довгий світлий фасад, ялини біля ґанку й учителі, що пам\'ятають кожного учня. Усі технології на 15% дешевші; у місті +2 задоволених — випускники.',
