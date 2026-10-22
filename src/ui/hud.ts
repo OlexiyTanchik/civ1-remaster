@@ -223,6 +223,12 @@ export class Hud {
         ? `${noTemple.name} росте: збудуйте Храм, інакше невдоволені жителі влаштують безлад.`
         : `${noTemple.name} росте, а невдоволених більшає. Дослідіть Поховальний обряд, щоб будувати Храми.`;
     }
+    // Викуп видно лише в екрані міста — без підказки золото лежить без діла
+    const buyable = human.gold >= 150 && cities.find((c) => c.shieldsStored > 0 && c.boughtTurn !== w.turnManager.turnNumber
+      && w.buyCost(c) > 0 && w.buyCost(c) <= human.gold - 50);
+    if (buyable) {
+      return `Золота вдосталь (${human.gold} зл.): в екрані міста ${buyable.name} «💰 Купити» завершить виробництво за ${w.buyCost(buyable)} зл.`;
+    }
     if (cities.length < 4 && w.turnManager.turnNumber > 10) {
       return 'Більше міст — більше їжі, щитів і науки. Будуйте поселенців у містах розміру 2+ і засновуйте нові міста за 3–4 клітинки.';
     }
