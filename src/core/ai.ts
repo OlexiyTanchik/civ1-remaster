@@ -57,6 +57,31 @@ export class AiController {
       this.moveUnit(unit);
     }
     for (const city of this.citiesOf(player.id)) this.chooseProduction(city);
+    this.spendSurplus(player);
+  }
+
+  /**
+   * Надлишок золота — на викуп: інакше до 1950-х AI копить 400–900 зл. без діла.
+   * Лише з початим запасом щитів (з нуля — ціна ×2). Без чудес і частин корабля: інакше AI вигравав космос
+   * на ~30 років раніше (медіана ~2000 н.е.), і людина з однаковими правилами вже не встигала.
+   */
+  private spendSurplus(player: Player): void {
+    const w = this.world;
+    const cities = this.citiesOf(player.id);
+    const reserve = 60 + 15 * cities.length;
+    const turn = w.turnManager.turnNumber;
+    for (;;) {
+      let best: City | undefined;
+      let bestCost = Infinity;
+      for (const c of cities) {
+        if (c.shieldsStored === 0 || c.boughtTurn === turn) continue;
+        const cfg = c.currentProduction.isBuilding ? BUILDING_CONFIGS[c.currentProduction.key as BuildingTypeKey] : undefined;
+        if (cfg?.isWonder || cfg?.spacePart) continue;
+        const cost = w.buyCost(c);
+        if (cost > 0 && cost < bestCost) { best = c; bestCost = cost; }
+      }
+      if (!best || player.gold - bestCost < reserve || !w.buyProduction(best)) return;
+    }
   }
 
   /** Податки: не йти в мінус через утримання; з великим запасом — більше на науку. */
