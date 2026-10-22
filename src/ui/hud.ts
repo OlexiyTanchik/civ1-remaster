@@ -14,7 +14,7 @@ import { TerraformKind, TERRAFORM_INFO, canTerraform, terraformName } from '../c
 import { Tutorial } from './tutorial';
 
 const TIPS_KEY = 'civ1-remaster-tips';
-/** Поради радника — лише на початку партії, далі гравець уже освоївся */
+/** Поради для новачка — до цього ходу; далі — поради пізньої гри (`lateAdvice`) */
 const TIPS_UNTIL_TURN = 120;
 
 const TERRAFORM_KINDS: TerraformKind[] = ['road', 'irrigation', 'mine', 'clean', 'transform'];
@@ -219,7 +219,7 @@ export class Hud {
   /** Одна найважливіша порада новачкові: місто → дослідження → дорога → храм → оборона → нові міста. */
   private adviceText(): string | undefined {
     const w = this.world;
-    if (w.turnManager.turnNumber > TIPS_UNTIL_TURN) return undefined;
+    if (w.turnManager.turnNumber > TIPS_UNTIL_TURN) return this.lateAdvice();
     const human = w.players[0];
     const cities = [...w.cities.values()].filter((c) => c.playerId === 0);
     const units = [...w.units.values()].filter((u) => u.playerId === 0);
@@ -268,6 +268,50 @@ export class Hud {
     }
     if (cities.length < 4 && w.turnManager.turnNumber > 10) {
       return 'Більше міст — більше їжі, щитів і науки. Будуйте поселенців у містах розміру 2+ і засновуйте нові міста за 3–4 клітинки.';
+    }
+    return undefined;
+  }
+
+  /** Пізня гра: лише те, що легко проґавити, — безлад, банкрутство, космос, забруднення, каравани без діла. */
+  private lateAdvice(): string | undefined {
+    const w = this.world;
+    const human = w.players[0];
+    const cities = [...w.cities.values()].filter((c) => c.playerId === 0);
+    if (!cities.length) return undefined;
+    const riot = cities.find((c) => w.cityYields(c).disorder);
+    if (riot) {
+      return `У місті ${riot.name} безлад — воно нічого не виробляє. Підніміть розкіш, збудуйте Храм, Колізей чи Собор або зробіть жителя артистом.`;
+    }
+    const net = w.netIncome(0);
+    if (net < 0 && human.gold + net * 5 < 0) {
+      return `Скарбниця спорожніє за ${Math.max(1, Math.floor(human.gold / -net))} ход.: тоді споруди почнуть продаватися самі. Підніміть податки або продайте зайве в екрані міста.`;
+    }
+    // Чужий корабель у польоті — найважливіше, що можна проґавити в кінці гри
+    const rival = w.players.find((p) => p.id !== 0 && p.spaceship?.arrivalYear !== undefined && p.alive);
+    if (rival && human.spaceship?.arrivalYear === undefined) {
+      return `${rival.nameUa} запустили космічний корабель (прибуття — ${TurnManager.formatYear(rival.spaceship!.arrivalYear!)}). Захопіть їхню столицю — і корабель пропаде, або випередіть їх своїм.`;
+    }
+    const ship = human.spaceship;
+    if (ship && ship.arrivalYear === undefined && !w.launchProblem(0)) {
+      return 'Космічний корабель можна запускати: вікно «🚀». Більше каркасів, двигунів і модулів — швидший і надійніший політ.';
+    }
+    if (w.canBuildSpacePart(0, BuildingTypeKey.SpaceStructural) && !(ship && ship.structural + ship.component + ship.module > 0)) {
+      return '«Аполлон» відкрив космічну гонку: будуйте 🚀 каркаси, двигуни й модулі в найсильніших містах. Перший корабель біля Альфи Центавра виграє гру.';
+    }
+    const polluted = cities.find((c) => {
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+        if (w.tiles[c.y + dy]?.[(c.x + dx + MAP_WIDTH) % MAP_WIDTH]?.hasPollution) return true;
+      }
+      return false;
+    });
+    if (polluted) {
+      return `Біля міста ${polluted.name} забруднення: воно забирає видобуток і гріє планету. Робітники чи інженери чистять його [P]; Масовий транспорт і Центр переробки зменшують.`;
+    }
+    // Караван без чуда — тепер і для торгових маршрутів
+    const wonderSite = cities.some((c) => c.currentProduction.isBuilding && BUILDING_CONFIGS[c.currentProduction.key as BuildingTypeKey]?.isWonder);
+    const trader = !wonderSite && [...w.units.values()].find((u) => u.playerId === 0 && UNIT_CONFIGS[u.type].wonderShields);
+    if (trader) {
+      return `${UNIT_CONFIGS[trader.type].nameUa} без діла: заведіть у чуже місто чи у своє за 10+ клітинок від рідного — торговий маршрут [T] дасть золото, науку й торгівлю назавжди.`;
     }
     return undefined;
   }
