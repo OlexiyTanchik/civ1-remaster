@@ -255,6 +255,7 @@ export enum BuildingTypeKey {
   ResearchLab = 'research_lab',
   SolarPlant = 'solar_plant',
   Internet = 'internet',
+  Coinage = 'coinage',
 }
 
 /** Частина космічного корабля: каркас тримає двигуни й модулі. */
@@ -325,6 +326,8 @@ export interface BuildingConfig {
   requiresWonder?: BuildingTypeKey;
   /** Частина космічного корабля: іде не в місто, а на корабель */
   spacePart?: SpacePart;
+  /** Капіталізація: не будується ніколи, щити щоходу йдуть у золото */
+  coinage?: boolean;
   descriptionUa: string;
 }
 

@@ -606,6 +606,10 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
     key: BuildingTypeKey.Internet, nameUa: 'Інтернет', cost: 600, maintenance: 0, prereqTech: 'computers', isWonder: true,
     descriptionUa: 'Чудо світу. Кожне ваше місто з університетом працює, як з дослідницькою лабораторією.',
   },
+  [BuildingTypeKey.Coinage]: {
+    key: BuildingTypeKey.Coinage, nameUa: '💰 Капіталізація', cost: 0, maintenance: 0, prereqTech: 'the_corporation', coinage: true,
+    descriptionUa: 'Місто нічого не будує: усі щити щоходу йдуть у скарбницю золотом (Civ II).',
+  },
 };
 
 /** Найбільше частин одного виду на кораблі. */

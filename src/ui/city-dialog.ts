@@ -122,6 +122,7 @@ export class CityDialog {
     const city = this.currentCity;
     const yields = this.world.cityYields(city);
     const prodCost = CityLogic.getProductionCost(city.currentProduction);
+    const coinage = city.currentProduction.isBuilding && !!BUILDING_CONFIGS[city.currentProduction.key as BuildingTypeKey]?.coinage;
 
     const prodName = city.currentProduction.isBuilding
       ? BUILDING_CONFIGS[city.currentProduction.key as BuildingTypeKey]?.nameUa ?? city.currentProduction.key
@@ -131,7 +132,7 @@ export class CityDialog {
     const bought = city.boughtTurn === this.world.turnManager.turnNumber;
     const prodButton = (o: (typeof options)[number]) => {
       const active = o.isBuilding === city.currentProduction.isBuilding && o.key === city.currentProduction.key;
-      return `<button class="btn-action${active ? ' active' : ''}"${bought ? ' disabled' : ''} data-type="${o.isBuilding ? 'building' : 'unit'}" data-key="${o.key}" title="${o.description}">${o.name} <span class="cost">${o.cost}🛡️</span></button>`;
+      return `<button class="btn-action${active ? ' active' : ''}"${bought ? ' disabled' : ''} data-type="${o.isBuilding ? 'building' : 'unit'}" data-key="${o.key}" title="${o.description}">${o.name} <span class="cost">${o.cost ? `${o.cost}🛡️` : '🛡️→💰'}</span></button>`;
     };
     const groups: [string, typeof options][] = [
       ['Юніти', options.filter((o) => !o.isBuilding)],
@@ -165,10 +166,10 @@ export class CityDialog {
 
             <div class="city-stat">
               <span>🛡️ ${prodName}</span>
-              <span class="stat-val good">+${yields.shields}/хід</span>
-              <span class="dim">${city.shieldsStored}/${prodCost}</span>
+              <span class="stat-val good">+${yields.shields}${coinage ? ' зл.' : ''}/хід</span>
+              <span class="dim">${coinage ? `запас ${city.shieldsStored}` : `${city.shieldsStored}/${prodCost}`}</span>
             </div>
-            <div class="progress-bar"><div class="progress-fill shields" style="width: ${pct(city.shieldsStored, prodCost)}%"></div></div>
+            ${coinage ? '' : `<div class="progress-bar"><div class="progress-fill shields" style="width: ${pct(city.shieldsStored, prodCost)}%"></div></div>`}
             ${this.buyLine(city)}
             ${this.supportLine(city, yields)}
 

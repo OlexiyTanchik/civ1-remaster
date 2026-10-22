@@ -265,6 +265,7 @@ export class CityLogic {
     starved: boolean;
     needsAqueduct: boolean;
     needsSewer: boolean;
+    coinage?: number;
   } {
     const yields = this.calculateYields(city, tiles, env);
     let grew = false;
@@ -302,7 +303,10 @@ export class CityLogic {
       }
     }
 
-    // 2. Виробництво щитів (у безладі місто не виробляє)
+    // 2. Виробництво щитів (у безладі місто не виробляє); Капіталізація — щити в золото, запас не чіпаємо
+    if (city.currentProduction.isBuilding && BUILDING_CONFIGS[city.currentProduction.key as BuildingTypeKey]?.coinage) {
+      return { grew, starved, needsAqueduct, needsSewer, coinage: Math.max(0, yields.shields) };
+    }
     city.shieldsStored += yields.shields;
     const targetCost = Math.round(this.getProductionCost(city.currentProduction) * (env.costFactor ?? 1));
 

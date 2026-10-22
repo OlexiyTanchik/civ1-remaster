@@ -938,6 +938,7 @@ export class World {
       if (this.players[city.playerId].isBarbarian) city.shieldsStored = 0;
       this.enforceUpkeep(city, completedItems);
       const res = CityLogic.processTurn(city, this.tiles, this.cityEnv(city));
+      if (res.coinage) this.players[city.playerId].gold += res.coinage;
       const mine = city.playerId === human.id;
       // Нагадування раз на 10 ходів, а не щоходу — інакше заглушує решту журналу
       const nag = mine && (res.needsAqueduct || res.needsSewer) && this.turnManager.turnNumber - (this.growthNagTurn.get(city.id) ?? -99) >= 10;

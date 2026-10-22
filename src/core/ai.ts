@@ -317,7 +317,7 @@ export class AiController {
     if (cities < 14 && city.size >= 3 && fedSettlers) return set(false, UnitTypeKey.Settlers);
     // Юніти коштують утримання — тож наостанок краще будь-яка ще не збудована споруда
     const leftover = Object.values(BUILDING_CONFIGS)
-      .filter((b) => !b.isWonder && !b.spacePart && b.key !== BuildingTypeKey.Palace && !has(b.key)
+      .filter((b) => !b.isWonder && !b.spacePart && !b.coinage && b.key !== BuildingTypeKey.Palace && !has(b.key)
         && (!b.prereqTech || player.knownTechs.includes(b.prereqTech)) && (!b.requires || has(b.requires)) && (!b.coastal || this.isCoastal(city)) && (!b.highland || this.world.isHighland(city)))
       .sort((a, b) => a.maintenance - b.maintenance || a.cost - b.cost)[0];
     if (leftover && affordable(leftover.maintenance)) return set(true, leftover.key);
@@ -325,6 +325,8 @@ export class AiController {
     if (player.knownTechs.includes('trade') && count(UnitTypeKey.Caravan) < Math.max(3, Math.ceil(cities / 3))) return set(false, trader);
     // Без межі міста, яким нічого будувати, клепали робітників сотнями (107 на 18 міст)
     if (count(UnitTypeKey.Workers) < cities * 2) return set(false, worker);
+    // Нічого корисного не лишилось — щити в золото, а не в юніти, що їдять утримання
+    if (player.knownTechs.includes('the_corporation')) return set(true, BuildingTypeKey.Coinage);
     // Караван без чуда сам розпуститься за 20 ходів — тож не накопичується, як робітники
     return set(false, player.knownTechs.includes('trade') ? trader : defender);
   }
