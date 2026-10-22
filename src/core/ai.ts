@@ -25,7 +25,7 @@ const RESEARCH_ORDER = [
   'atomic_theory', 'flight', 'nuclear_fission', 'nuclear_power', 'radio', 'advanced_flight', 'rocketry',
   'computers', 'space_flight', 'robotics', 'plastics', 'superconductor',
   // Гірська піхота й шпигуни — після космічних технологій: кожна зайва технологія дорожчає наступні, і космос не встигав до 2100
-  'tactics', 'espionage', 'refrigeration', 'miniaturization', 'combined_arms', 'amphibious_warfare', 'guerrilla_warfare', 'genetic_engineering', 'environmentalism', 'stealth', 'fundamentalism',
+  'tactics', 'espionage', 'refrigeration', 'miniaturization', 'combined_arms', 'amphibious_warfare', 'guerrilla_warfare', 'genetic_engineering', 'environmentalism', 'stealth', 'fundamentalism', 'polytheism',
 ];
 
 /** Корабель, який AI вважає готовим до старту: 3 двигуни, 3 модулі, 6 каркасів (політ 14 р., успіх 100%). */
@@ -298,6 +298,11 @@ export class AiController {
     }
     if (hostile && canUpkeep && city.size >= 8 && player.knownTechs.includes('advanced_flight') && count(UnitTypeKey.Bomber) < Math.ceil(cities / 4)) {
       return set(false, player.knownTechs.includes('stealth') ? UnitTypeKey.StealthBomber : UnitTypeKey.Bomber);
+    }
+    // Один літак ДРЛО на війну — бачити, що суне до кордону; лише одне місто будує його водночас
+    if (hostile && canUpkeep && city.size >= 8 && player.knownTechs.includes('advanced_flight') && count(UnitTypeKey.Awacs) < 1
+      && !allCities.some((c) => c !== city && c.currentProduction.key === UnitTypeKey.Awacs)) {
+      return set(false, UnitTypeKey.Awacs);
     }
     if (cities < MAX_CITIES && city.size >= 2 && fedSettlers) return set(false, UnitTypeKey.Settlers);
     // Армії досить — будуємо місто: решта доступних споруд

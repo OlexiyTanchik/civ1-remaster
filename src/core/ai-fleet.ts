@@ -394,7 +394,8 @@ export class FleetAi {
     if (this.atBase(unit) && unit.movesLeft > 1) {
       // Ракета летить в один бік; решта мусить повернутися на базу
       const reach = UNIT_CONFIGS[unit.type].missile ? unit.movesLeft - 1 : Math.floor((unit.movesLeft - 1) / 2);
-      const target = this.airTarget(unit, player, reach);
+      // Розвідник (AWACS) не б'є — летить до найближчого ворожого міста подивитися й вертається
+      const target = UNIT_CONFIGS[unit.type].attack === 0 ? this.reconTarget(unit, player, reach) : this.airTarget(unit, player, reach);
       if (target) this.flyTo(unit, target);
     }
     if (!this.atBase(unit) && unit.movesLeft > 0 && w.units.has(unit.id)) {
@@ -402,6 +403,13 @@ export class FleetAi {
         .sort((a, b) => w.distance(a.x, a.y, unit.x, unit.y) - w.distance(b.x, b.y, unit.x, unit.y));
       if (bases[0]) this.flyTo(unit, bases[0]);
     }
+  }
+
+  private reconTarget(unit: Unit, player: Player, radius: number): Step | undefined {
+    const w = this.world;
+    return [...w.cities.values()]
+      .filter((c) => c.playerId !== unit.playerId && w.diplomacy.atWar(player.id, c.playerId) && w.distance(unit.x, unit.y, c.x, c.y) <= radius)
+      .sort((a, b) => w.distance(unit.x, unit.y, a.x, a.y) - w.distance(unit.x, unit.y, b.x, b.y))[0];
   }
 
   private atBase(unit: Unit): boolean {

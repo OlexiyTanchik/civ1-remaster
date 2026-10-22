@@ -99,6 +99,8 @@ export enum UnitTypeKey {
   Marines = 'marines',
   Partisans = 'partisans',
   Fanatics = 'fanatics',
+  Elephants = 'elephants',
+  Awacs = 'awacs',
   Destroyer = 'destroyer',
   Freight = 'freight',
   Helicopter = 'helicopter',

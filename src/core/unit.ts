@@ -5,7 +5,7 @@ import { UNIT_CONFIGS, TERRAIN_DATA, MAP_WIDTH } from './constants';
 import { Unit, TileData, UnitTypeKey } from './types';
 
 /** Кіннота, проти якої стоять піки. */
-const MOUNTED = new Set([UnitTypeKey.Cavalry, UnitTypeKey.Chariot, UnitTypeKey.Knights, UnitTypeKey.Crusaders]);
+const MOUNTED = new Set([UnitTypeKey.Cavalry, UnitTypeKey.Chariot, UnitTypeKey.Elephants, UnitTypeKey.Knights, UnitTypeKey.Crusaders]);
 
 export class UnitLogic {
   /**

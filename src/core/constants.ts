@@ -141,6 +141,10 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
     key: UnitTypeKey.Chariot, name: 'Chariot', nameUa: 'Колісниця', attack: 4, defense: 1, moves: 2, cost: 40, domain: 'land',
     prereqTech: 'the_wheel', descriptionUa: 'Потужний штурмовий підрозділ ранніх війн.',
   },
+  [UnitTypeKey.Elephants]: {
+    key: UnitTypeKey.Elephants, name: 'Elephants', nameUa: 'Бойові слони', attack: 5, defense: 1, moves: 1, cost: 40, domain: 'land',
+    prereqTech: 'polytheism', descriptionUa: 'Б’ють сильніше за колісниці, але повільні. Пікінери тримають їх, як кінноту.',
+  },
   [UnitTypeKey.Catapult]: {
     key: UnitTypeKey.Catapult, name: 'Catapult', nameUa: 'Катапульта', attack: 6, defense: 1, moves: 1, cost: 40, domain: 'land',
     prereqTech: 'mathematics', descriptionUa: 'Облогове знаряддя для штурму міст.',
@@ -226,6 +230,10 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
   [UnitTypeKey.Fighter]: {
     key: UnitTypeKey.Fighter, name: 'Fighter', nameUa: 'Винищувач', attack: 4, defense: 2, moves: 10, cost: 60, domain: 'air', fuel: 1, interceptor: true,
     prereqTech: 'flight', descriptionUa: 'Пальне на один хід: до кінця ходу сядьте в місті чи на авіаносці. Єдиний, хто збиває літаки.',
+  },
+  [UnitTypeKey.Awacs]: {
+    key: UnitTypeKey.Awacs, name: 'AWACS', nameUa: 'Літак ДРЛО (AWACS)', attack: 0, defense: 1, moves: 16, cost: 60, domain: 'air', fuel: 2, vision: 8,
+    prereqTech: 'advanced_flight', descriptionUa: 'Літаючий радар: бачить на 8 клітинок довкола. Не воює; пальне на два ходи.',
   },
   [UnitTypeKey.Bomber]: {
     key: UnitTypeKey.Bomber, name: 'Bomber', nameUa: 'Бомбардувальник', attack: 12, defense: 1, moves: 8, cost: 120, domain: 'air', fuel: 2,
@@ -641,6 +649,7 @@ export const TECH_TREE: Record<string, Tech> = {
   map_making: { id: 'map_making', nameUa: 'Картографія', era: 1, prereqs: ['alphabet'], descriptionUa: 'Мапи узбережжя відкривають море.' },
   currency: { id: 'currency', nameUa: 'Валюта', era: 1, prereqs: ['bronze_working'], descriptionUa: 'Монета замість обміну.' },
   iron_working: { id: 'iron_working', nameUa: 'Обробка заліза', era: 1, prereqs: ['bronze_working'], descriptionUa: 'Залізо міцніше за бронзу.' },
+  polytheism: { id: 'polytheism', nameUa: 'Політеїзм', era: 1, prereqs: ['horseback_riding', 'mysticism'], descriptionUa: 'Боги війни й бойові слони.' },
   mysticism: { id: 'mysticism', nameUa: 'Містицизм', era: 1, prereqs: ['ceremonial_burial', 'alphabet'], descriptionUa: 'Пророцтва й таємні знання жерців.' },
   mathematics: { id: 'mathematics', nameUa: 'Математика', era: 1, prereqs: ['alphabet', 'masonry'], descriptionUa: 'Обчислення для будівництва й облоги.' },
   monarchy: { id: 'monarchy', nameUa: 'Монархія', era: 1, prereqs: ['ceremonial_burial', 'code_of_laws'], descriptionUa: 'Влада короля: відкриває устрій Монархія.' },
