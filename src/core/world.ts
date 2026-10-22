@@ -276,7 +276,7 @@ export class World {
         }
         this.noteAggression(unit.playerId, otherUnit.playerId);
         // Гаубиця, як у Civ 1, мурів не помічає
-        const walls = !!defCity && unit.type !== UnitTypeKey.Howitzer && (defCity.buildings.includes(BuildingTypeKey.CityWalls)
+        const walls = !!defCity && unit.type !== UnitTypeKey.Howitzer && !UNIT_CONFIGS[unit.type].ignoresWalls && (defCity.buildings.includes(BuildingTypeKey.CityWalls)
           || this.ownerWonders(defCity.playerId).has(BuildingTypeKey.GreatWall));
         const combat = UnitLogic.resolveCombat(unit, otherUnit, toTile, walls, {
           coastal: !!defCity && defCity.buildings.includes(BuildingTypeKey.CoastalDefense),
@@ -1138,18 +1138,6 @@ export class World {
       const up = this.leonardoUpgrade(p);
       if (up && p.id === human.id) completedItems.push(`🔧 Майстерня Леонардо: ${up}`);
     }
-    // СумДУ: раз на 20 ходів великий інженер — +100 щитів будівництву випадкового міста власника
-    if (this.turnManager.turnNumber % 20 === 0) {
-      const poly = [...this.cities.values()].find((c) => c.buildings.includes(BuildingTypeKey.SumDU));
-      const mine = poly ? [...this.cities.values()].filter((c) => c.playerId === poly.playerId && c.currentProduction.key !== BuildingTypeKey.Coinage) : [];
-      if (mine.length) {
-        const c = mine[Math.floor(Math.random() * mine.length)];
-        c.shieldsStored += 100;
-        const msg = `🎓 Випускник СумДУ — великий інженер — дав +100 щитів місту ${c.name} (${this.players[c.playerId].nameUa})`;
-        if (c.playerId === human.id) completedItems.push(msg);
-        else this.news.push(msg);
-      }
-    }
     // Забруднення: продуктивні міста (понад 20 щитів), особливо з фабриками
     for (const city of this.cities.values()) {
       const msg = this.pollute(city);
@@ -1724,9 +1712,9 @@ const UPGRADES: Partial<Record<UnitTypeKey, UnitTypeKey>> = {
   [UnitTypeKey.Pikemen]: UnitTypeKey.Musketeers,
   [UnitTypeKey.Musketeers]: UnitTypeKey.Riflemen,
   [UnitTypeKey.Riflemen]: UnitTypeKey.MechInf,
-  [UnitTypeKey.Archers]: UnitTypeKey.Musketeers,
+  [UnitTypeKey.Archers]: UnitTypeKey.Crossbowmen,
   [UnitTypeKey.Legion]: UnitTypeKey.Musketeers,
-  [UnitTypeKey.Catapult]: UnitTypeKey.Cannon,
+  [UnitTypeKey.Catapult]: UnitTypeKey.Trebuchet,
   [UnitTypeKey.Cannon]: UnitTypeKey.Artillery,
   [UnitTypeKey.Artillery]: UnitTypeKey.Howitzer,
   [UnitTypeKey.Cavalry]: UnitTypeKey.Knights,
@@ -1757,4 +1745,9 @@ const UPGRADES: Partial<Record<UnitTypeKey, UnitTypeKey>> = {
   [UnitTypeKey.Keshik]: UnitTypeKey.Crusaders,
   [UnitTypeKey.JaguarWarriors]: UnitTypeKey.Musketeers,
   [UnitTypeKey.Longbowmen]: UnitTypeKey.Musketeers,
+  [UnitTypeKey.HorseArchers]: UnitTypeKey.Knights,
+  [UnitTypeKey.BatteringRam]: UnitTypeKey.Catapult,
+  [UnitTypeKey.Bireme]: UnitTypeKey.Caravel,
+  [UnitTypeKey.Crossbowmen]: UnitTypeKey.Musketeers,
+  [UnitTypeKey.Trebuchet]: UnitTypeKey.Cannon,
 };

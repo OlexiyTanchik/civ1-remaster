@@ -371,6 +371,27 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
     key: UnitTypeKey.Longbowmen, name: 'Longbowmen', nameUa: 'Лучники-йомени', attack: 4, defense: 2, moves: 1, cost: 30, domain: 'land',
     civ: 'english', replaces: UnitTypeKey.Archers, prereqTech: 'warrior_code', descriptionUa: 'Унікальний юніт Англії замість Лучників: довгий лук б\'є далі й сильніше.',
   },
+  // Етап 10, Античність
+  [UnitTypeKey.HorseArchers]: {
+    key: UnitTypeKey.HorseArchers, name: 'Horse Archers', nameUa: 'Кінні лучники', attack: 3, defense: 1, moves: 2, cost: 30, domain: 'land',
+    prereqTech: 'horseback_riding', descriptionUa: 'Стріляють з сідла й відходять: швидкий удар степовиків.',
+  },
+  [UnitTypeKey.BatteringRam]: {
+    key: UnitTypeKey.BatteringRam, name: 'Battering Ram', nameUa: 'Таран', attack: 3, defense: 1, moves: 1, cost: 30, domain: 'land', ignoresWalls: true,
+    prereqTech: 'construction', descriptionUa: 'Окутий колод під навісом: міські мури проти нього не діють.',
+  },
+  [UnitTypeKey.Bireme]: {
+    key: UnitTypeKey.Bireme, name: 'Bireme', nameUa: 'Бірема', attack: 3, defense: 2, moves: 3, cost: 40, domain: 'sea', capacity: 2,
+    prereqTech: 'seafaring', descriptionUa: 'Бойова галера з двома рядами весел: везе 2 загони й таранить ворожі кораблі.',
+  },
+  [UnitTypeKey.Crossbowmen]: {
+    key: UnitTypeKey.Crossbowmen, name: 'Crossbowmen', nameUa: 'Арбалетники', attack: 4, defense: 2, moves: 1, cost: 30, domain: 'land',
+    prereqTech: 'invention', descriptionUa: 'Арбалет пробиває лицарські обладунки. Наступники Лучників.',
+  },
+  [UnitTypeKey.Trebuchet]: {
+    key: UnitTypeKey.Trebuchet, name: 'Trebuchet', nameUa: 'Требушет', attack: 7, defense: 1, moves: 1, cost: 50, domain: 'land',
+    prereqTech: 'architecture', descriptionUa: 'Важка облогова машина з противагою — між катапультою й гарматою.',
+  },
 };
 
 /** Юніт для цивілізації: унікальні — лише своїй, а звичайний, якого її унікальний замінює, — їй ні. */
@@ -678,7 +699,7 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
   },
   [BuildingTypeKey.SumDU]: {
     key: BuildingTypeKey.SumDU, nameUa: 'Сумський державний університет (СумДУ)', cost: 500, maintenance: 0, prereqTech: 'electronics', isWonder: true,
-    descriptionUa: 'Чудо світу. Колишній Сумський політехнічний інститут: вежа над містом, червоні корпуси з синіми гербами й студенти, що креслять майбутнє. +100% науки в місті, +25% у кожному місті з університетом; раз на 20 ходів великий інженер дає +100 щитів будівництву.',
+    descriptionUa: 'Чудо світу. Колишній Сумський політехнічний інститут: вежа над містом, червоні корпуси з синіми гербами й студенти, що креслять майбутнє. +100% науки в місті, +25% у кожному місті з університетом.',
   },
   [BuildingTypeKey.Internet]: {
     key: BuildingTypeKey.Internet, nameUa: 'Інтернет', cost: 600, maintenance: 0, prereqTech: 'computers', isWonder: true,
@@ -687,6 +708,51 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
   [BuildingTypeKey.Coinage]: {
     key: BuildingTypeKey.Coinage, nameUa: '💰 Капіталізація', cost: 0, maintenance: 0, prereqTech: 'the_corporation', coinage: true,
     descriptionUa: 'Місто нічого не будує: усі щити щоходу йдуть у скарбницю золотом (Civ II).',
+  },
+  // Етап 10, Античність
+  [BuildingTypeKey.Well]: {
+    key: BuildingTypeKey.Well, nameUa: 'Колодязь', cost: 30, maintenance: 0, prereqTech: 'pottery', effects: { food: 10 },
+    descriptionUa: 'Чиста вода: +10% їжі.',
+  },
+  [BuildingTypeKey.Workshop]: {
+    key: BuildingTypeKey.Workshop, nameUa: 'Майстерня', cost: 40, maintenance: 1, prereqTech: 'bronze_working', effects: { shields: 15 },
+    descriptionUa: 'Ковалі й теслі: +15% щитів.',
+  },
+  [BuildingTypeKey.Herbalist]: {
+    key: BuildingTypeKey.Herbalist, nameUa: 'Травник', cost: 40, maintenance: 1, prereqTech: 'herbalism', effects: { content: 1 },
+    descriptionUa: 'Знахар лікує тіло й душу: +1 задоволений.',
+  },
+  [BuildingTypeKey.Thermae]: {
+    key: BuildingTypeKey.Thermae, nameUa: 'Терми', cost: 60, maintenance: 1, prereqTech: 'construction', effects: { content: 1, luxury: 25 },
+    descriptionUa: 'Громадські лазні: +1 задоволений, +25% розкоші.',
+  },
+  [BuildingTypeKey.Forum]: {
+    key: BuildingTypeKey.Forum, nameUa: 'Форум', cost: 70, maintenance: 1, prereqTech: 'architecture', effects: { content: 1, gold: 10 },
+    descriptionUa: 'Площа для торгу й промов: +1 задоволений, +10% золота.',
+  },
+  [BuildingTypeKey.Scriptorium]: {
+    key: BuildingTypeKey.Scriptorium, nameUa: 'Скрипторій', cost: 60, maintenance: 1, prereqTech: 'literacy', requires: BuildingTypeKey.Library, effects: { science: 15 },
+    descriptionUa: 'Переписувачі множать книги: +15% науки (потрібна бібліотека).',
+  },
+  [BuildingTypeKey.GuildHall]: {
+    key: BuildingTypeKey.GuildHall, nameUa: 'Цеховий двір', cost: 90, maintenance: 2, prereqTech: 'guilds', requires: BuildingTypeKey.Workshop, effects: { shields: 20 },
+    descriptionUa: 'Цехи ремісників: ще +20% щитів (потрібна майстерня).',
+  },
+  [BuildingTypeKey.Monastery]: {
+    key: BuildingTypeKey.Monastery, nameUa: 'Монастир', cost: 80, maintenance: 1, prereqTech: 'monotheism', effects: { content: 1, science: 10 },
+    descriptionUa: 'Ченці моляться й переписують літописи: +1 задоволений, +10% науки.',
+  },
+  [BuildingTypeKey.Mausoleum]: {
+    key: BuildingTypeKey.Mausoleum, nameUa: 'Мавзолей Галікарнаса', cost: 300, maintenance: 0, prereqTech: 'architecture', isWonder: true, globalEffects: { content: 1, luxury: 25 },
+    descriptionUa: 'Чудо світу. Гробниця, що дала ім\'я всім мавзолеям: у кожному вашому місті +1 задоволений і +25% розкоші.',
+  },
+  [BuildingTypeKey.SilkRoad]: {
+    key: BuildingTypeKey.SilkRoad, nameUa: 'Великий шовковий шлях', cost: 350, maintenance: 0, prereqTech: 'guilds', isWonder: true, effects: { gold: 50 }, globalEffects: { trade: 1 },
+    descriptionUa: 'Чудо світу. Каравани зі сходу на захід: +1 торгівлі в кожному вашому місті, тут — +50% золота.',
+  },
+  [BuildingTypeKey.SaintSophia]: {
+    key: BuildingTypeKey.SaintSophia, nameUa: 'Софійський собор', cost: 400, maintenance: 0, prereqTech: 'monotheism', isWonder: true, effects: { content: 2, science: 50 }, globalEffects: { content: 1 },
+    descriptionUa: 'Чудо світу. Собор Ярослава Мудрого в Києві з мозаїками й бібліотекою: +1 задоволений у кожному вашому місті, тут — ще +2 і +50% науки.',
   },
 };
 
@@ -791,6 +857,10 @@ export const TECH_TREE: Record<string, Tech> = {
   stealth: { id: 'stealth', nameUa: 'Технологія стелс', era: 6, prereqs: ['superconductor', 'robotics'], descriptionUa: 'Літаки, яких не бачать радари.' },
   environmentalism: { id: 'environmentalism', nameUa: 'Екологія', era: 6, prereqs: ['recycling', 'space_flight'], descriptionUa: 'Енергія сонця замість диму.' },
   genetic_engineering: { id: 'genetic_engineering', nameUa: 'Генна інженерія', era: 6, prereqs: ['medicine', 'computers'], descriptionUa: 'Ключ до коду життя.' },
+  // Етап 10, Античність
+  herbalism: { id: 'herbalism', nameUa: 'Травництво', era: 1, prereqs: ['ceremonial_burial', 'pottery'], descriptionUa: 'Цілющі трави, настої й перші лікарі.' },
+  architecture: { id: 'architecture', nameUa: 'Архітектура', era: 2, prereqs: ['construction', 'mathematics'], descriptionUa: 'Арки, склепіння й колонади.' },
+  guilds: { id: 'guilds', nameUa: 'Цехи', era: 2, prereqs: ['trade', 'feudalism'], descriptionUa: 'Майстри об\'єднуються й бережуть секрети ремесла.' },
 };
 
 // 21 клітинка міста (Fat Cross Civ 1)

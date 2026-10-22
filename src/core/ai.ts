@@ -10,13 +10,14 @@ import { AGENTS, UNIT_CONFIGS, BUILDING_CONFIGS, TERRAIN_DATA, FAT_CROSS_OFFSETS
 import { tileYield, TerraformKind, checkTerraform } from './terraform';
 import { TurnManager } from './turn-manager';
 import { FleetAi } from './ai-fleet';
+import type { CityYields } from './city';
 
 /** Черга досліджень: спершу оборона, їжа й порядок, далі гроші, знання, будівництво. */
 const RESEARCH_ORDER = [
   'bronze_working', 'alphabet', 'ceremonial_burial', 'pottery', 'masonry', 'horseback_riding',
-  'writing', 'map_making', 'currency', 'code_of_laws', 'iron_working', 'the_wheel', 'mathematics', 'mysticism',
-  'literacy', 'construction', 'monarchy', 'warrior_code', 'trade', 'philosophy', 'astronomy', 'seafaring',
-  'feudalism', 'the_republic', 'monotheism', 'university', 'bridge_building', 'banking', 'chivalry',
+  'writing', 'map_making', 'currency', 'code_of_laws', 'iron_working', 'the_wheel', 'mathematics', 'mysticism', 'herbalism',
+  'literacy', 'construction', 'architecture', 'monarchy', 'warrior_code', 'trade', 'philosophy', 'astronomy', 'seafaring',
+  'feudalism', 'the_republic', 'monotheism', 'university', 'bridge_building', 'banking', 'guilds', 'chivalry',
   'navigation', 'invention', 'gunpowder',
   'physics', 'medicine', 'economics', 'theory_of_gravity', 'democracy', 'metallurgy', 'magnetism',
   'steam_engine', 'railroad', 'industrialization', 'communism', 'chemistry', 'electricity', 'conscription', 'leadership',
@@ -254,6 +255,8 @@ export class AiController {
     for (const b of [BuildingTypeKey.Granary, BuildingTypeKey.Library, BuildingTypeKey.Marketplace, BuildingTypeKey.University, BuildingTypeKey.Bank, BuildingTypeKey.StockExchange, BuildingTypeKey.ResearchLab]) {
       if (city.size >= 3 && canBuild(b)) return set(true, b);
     }
+    const useful = this.effectBuilding(yields, canBuild);
+    if (useful) return set(true, useful);
     // Індустрія — лише великим містам (утримання й забруднення)
     // Електростанції — одна з трьох (бонус не додається); ГЕС і АЕС чистіші
     const power = has(BuildingTypeKey.PowerPlant) || has(BuildingTypeKey.NuclearPlant) || has(BuildingTypeKey.HydroPlant) || has(BuildingTypeKey.SolarPlant);
@@ -336,6 +339,29 @@ export class AiController {
     if (player.knownTechs.includes('the_corporation')) return set(true, BuildingTypeKey.Coinage);
     // Караван без чуда сам розпуститься за 20 ходів — тож не накопичується, як робітники
     return set(false, player.knownTechs.includes('trade') ? trader : defender);
+  }
+
+  /**
+   * Споруда з загальними ефектами, що найбільше дає на вкладений щит: відсотки — від того, що місто вже має;
+   * задоволені цінні, лише коли є невдоволені чи артисти. Утримання має окупатися.
+   */
+  private effectBuilding(y: CityYields, canBuild: (b: BuildingTypeKey) => boolean): BuildingTypeKey | undefined {
+    let best: BuildingTypeKey | undefined;
+    let bestScore = 0;
+    for (const b of Object.values(BUILDING_CONFIGS)) {
+      const e = b.effects;
+      if (!e || b.isWonder || !canBuild(b.key)) continue;
+      const value = ((e.food ?? 0) * y.food * 1.5 + (e.shields ?? 0) * y.shieldsGross * 1.5 + (e.gold ?? 0) * y.gold
+        + (e.science ?? 0) * y.science + (e.luxury ?? 0) * y.luxury * 0.5) / 100
+        + (e.content ?? 0) * (y.unhappy + y.entertainers > 0 ? 3 : 0.3) + (e.trade ?? 0);
+      if (value < b.maintenance + 0.5) continue;
+      const score = value / (b.cost / 40 + b.maintenance * 2);
+      if (score > bestScore) {
+        bestScore = score;
+        best = b.key;
+      }
+    }
+    return best;
   }
 
   /**
@@ -783,7 +809,7 @@ export class AiController {
     if (def.isFortified && !inSky) d *= 1.5;
     const city = tile.cityId ? w.cities.get(tile.cityId) : undefined;
     const walls = city && (city.buildings.includes(BuildingTypeKey.CityWalls) || w.ownerWonders(city.playerId).has(BuildingTypeKey.GreatWall));
-    if (walls && UNIT_CONFIGS[unit.type].domain === 'land') d *= 3;
+    if (walls && UNIT_CONFIGS[unit.type].domain === 'land' && !UNIT_CONFIGS[unit.type].ignoresWalls && unit.type !== UnitTypeKey.Howitzer) d *= 3;
     const a = Math.max(1, UNIT_CONFIGS[unit.type].attack);
     return a / (a + d);
   }

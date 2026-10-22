@@ -84,6 +84,18 @@ const BUILDING_SLOTS: Partial<Record<BuildingTypeKey, { x: number; y: number; sc
   // Альтанка — як парк на площі: невелика, на передньому плані в центрі
   [BuildingTypeKey.SumyAltanka]: { x: 182, y: 178, scale: 0.4 },
   [BuildingTypeKey.SumDU]: { x: 186, y: 74, scale: 0.5 },
+  // Етап 10, Античність
+  [BuildingTypeKey.Well]: { x: 40, y: 186, scale: 0.35 },
+  [BuildingTypeKey.Workshop]: { x: 300, y: 176, scale: 0.4 },
+  [BuildingTypeKey.Herbalist]: { x: 240, y: 186, scale: 0.35 },
+  [BuildingTypeKey.Thermae]: { x: 96, y: 150, scale: 0.45 },
+  [BuildingTypeKey.Forum]: { x: 196, y: 140, scale: 0.45 },
+  [BuildingTypeKey.Scriptorium]: { x: 330, y: 130, scale: 0.4 },
+  [BuildingTypeKey.GuildHall]: { x: 270, y: 164, scale: 0.45 },
+  [BuildingTypeKey.Monastery]: { x: 60, y: 110, scale: 0.45 },
+  [BuildingTypeKey.Mausoleum]: { x: 300, y: 88, scale: 0.45 },
+  [BuildingTypeKey.SilkRoad]: { x: 160, y: 104, scale: 0.4 },
+  [BuildingTypeKey.SaintSophia]: { x: 110, y: 92, scale: 0.5 },
 };
 
 const hash = (a: number, b: number) => {
@@ -127,7 +139,7 @@ export function drawCityPanorama(canvas: HTMLCanvasElement, city: City): void {
 
   // Багато споруд — менші спрайти (на тих самих місцях), щоб фасади не налазили один на одного
   const placed = city.buildings.filter((b) => BUILDING_SLOTS[b]);
-  const shrink = placed.length > 30 ? 0.78 : placed.length > 20 ? 0.88 : 1;
+  const shrink = placed.length > 45 ? 0.7 : placed.length > 30 ? 0.78 : placed.length > 20 ? 0.88 : 1;
   for (const b of placed) {
     const slot = BUILDING_SLOTS[b]!;
     items.push({ frame: `${BUILDING_CONFIGS[b]?.isWonder ? 'w' : 'b'}_${b}`, ...slot, scale: slot.scale * shrink });

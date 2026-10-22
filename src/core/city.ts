@@ -5,7 +5,7 @@
  */
 import { BUILDING_CONFIGS, UNIT_CONFIGS, FAT_CROSS_OFFSETS, MAP_WIDTH, MAP_HEIGHT, GOVERNMENTS } from './constants';
 import { tileYield, CITY_IRRIGABLE } from './terraform';
-import { City, TileData, BuildingTypeKey, UnitTypeKey, TerrainType, GovernmentKey } from './types';
+import { City, TileData, BuildingEffects, BuildingTypeKey, UnitTypeKey, TerrainType, GovernmentKey } from './types';
 
 /** Скільки громадян задоволені «від природи» (Деспотизм, Civ 1). */
 const BASE_CONTENT = 4;
@@ -106,6 +106,16 @@ export class CityLogic {
     }
     trade += env.routeTrade ?? 0;
 
+    // Загальні ефекти споруд міста й чудес власника, що діють усюди
+    const fx = { food: 0, shields: 0, gold: 0, science: 0, luxury: 0, content: 0, trade: 0 };
+    const addFx = (e?: BuildingEffects) => {
+      if (e) for (const k of Object.keys(fx) as (keyof typeof fx)[]) fx[k] += e[k] ?? 0;
+    };
+    for (const b of city.buildings) addFx(BUILDING_CONFIGS[b]?.effects);
+    for (const b of env.ownerWonders) addFx(BUILDING_CONFIGS[b]?.globalEffects);
+    food = Math.round(food * (1 + fx.food / 100));
+    trade += fx.trade;
+
     // Піраміди +25%, фабрика +50%, електростанція, ГЕС чи АЕС (лише з фабрикою; Гребля Гувера — у кожному місті) ще +25%
     let shieldBonus = 1;
     if (has(BuildingTypeKey.Pyramids)) shieldBonus += 0.25;
@@ -113,6 +123,7 @@ export class CityLogic {
     if (has(BuildingTypeKey.Factory)) shieldBonus += power ? 0.75 : 0.5;
     // Завод (Civ 1) — ще +25%, а з електростанцією вдвічі: з усім разом +125%
     if (has(BuildingTypeKey.Factory) && has(BuildingTypeKey.MfgPlant)) shieldBonus += power ? 0.5 : 0.25;
+    shieldBonus += fx.shields / 100;
     shields = Math.floor(shields * shieldBonus);
 
     // Утримання армії (Civ 1): понад безкоштовних — по щиту за юніт; поселенці ще й їдять
@@ -147,8 +158,8 @@ export class CityLogic {
       goldBonus += 0.5;
       if (has(BuildingTypeKey.Bank)) goldBonus += has(BuildingTypeKey.StockExchange) ? 1 : 0.5;
     }
-    gold = Math.floor(gold * goldBonus);
-    luxury = Math.floor(luxury * goldBonus);
+    gold = Math.floor(gold * (goldBonus + fx.gold / 100));
+    luxury = Math.floor(luxury * goldBonus * (1 + fx.luxury / 100));
     // Сумська альтанка: місце для прогулянок і свят — розкіш удвічі
     if (has(BuildingTypeKey.SumyAltanka)) luxury *= 2;
     // Бібліотека, університет (лише з бібліотекою): по +50%; Коперник: +100%
@@ -159,6 +170,7 @@ export class CityLogic {
     // Лабораторія (чи Інтернет у місті з університетом) — ще +50%
     if (has(BuildingTypeKey.University) && (has(BuildingTypeKey.ResearchLab) || env.ownerWonders.has(BuildingTypeKey.Internet))) sciBonus += 0.5;
     if (env.ownerWonders.has(BuildingTypeKey.Seti)) sciBonus += 0.5;
+    sciBonus += fx.science / 100;
     // СумДУ: +100% у своєму місті, +25% у кожному місті власника з університетом
     if (has(BuildingTypeKey.SumDU)) sciBonus += 1;
     if (env.ownerWonders.has(BuildingTypeKey.SumDU) && has(BuildingTypeKey.University)) sciBonus += 0.25;
@@ -171,6 +183,7 @@ export class CityLogic {
     // Храм/колізей/чудеса заспокоюють невдоволених
     let calm = 0;
     if (has(BuildingTypeKey.SumySchool)) calm += 2; // випускники
+    calm += fx.content;
     if (has(BuildingTypeKey.Temple)) calm += (env.ownerWonders.has(BuildingTypeKey.Oracle) ? 4 : 2) + (env.ownerWonders.has(BuildingTypeKey.TempleOfArtemis) ? 2 : 0);
     if (has(BuildingTypeKey.Colosseum)) calm += 3;
     if (has(BuildingTypeKey.Cathedral) || env.ownerWonders.has(BuildingTypeKey.Michelangelo)) calm += 3;

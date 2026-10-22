@@ -6,7 +6,7 @@ import { Unit, TileData, UnitTypeKey } from './types';
 
 /** Кіннота, проти якої стоять піки. */
 const MOUNTED = new Set([UnitTypeKey.Cavalry, UnitTypeKey.Chariot, UnitTypeKey.Elephants, UnitTypeKey.Knights, UnitTypeKey.Crusaders,
-  UnitTypeKey.WarChariot, UnitTypeKey.Keshik, UnitTypeKey.Cossacks]);
+  UnitTypeKey.WarChariot, UnitTypeKey.Keshik, UnitTypeKey.Cossacks, UnitTypeKey.HorseArchers]);
 
 export class UnitLogic {
   /**

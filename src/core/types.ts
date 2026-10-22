@@ -120,6 +120,12 @@ export enum UnitTypeKey {
   StealthFighter = 'stealth_fighter',
   StealthBomber = 'stealth_bomber',
   AegisCruiser = 'aegis_cruiser',
+  // Етап 10, Античність
+  HorseArchers = 'horse_archers',
+  BatteringRam = 'battering_ram',
+  Bireme = 'bireme',
+  Crossbowmen = 'crossbowmen',
+  Trebuchet = 'trebuchet',
 }
 
 export interface UnitConfig {
@@ -141,6 +147,8 @@ export interface UnitConfig {
   allTerrainAsRoad?: boolean;
   /** Будується лише за цього устрою і тоді ж не потребує утримання (Фанатики) */
   requiresGovernment?: GovernmentKey;
+  /** Не помічає мурів (таран, гаубиця) */
+  ignoresWalls?: boolean;
   /** Унікальний юніт: будує лише ця цивілізація, замість `replaces` */
   civ?: CivKey;
   replaces?: UnitTypeKey;
@@ -278,6 +286,18 @@ export enum BuildingTypeKey {
   SumDU = 'sumdu',
   SumyAltanka = 'sumy_altanka',
   Coinage = 'coinage',
+  // Етап 10, Античність
+  Well = 'well',
+  Workshop = 'workshop',
+  Herbalist = 'herbalist',
+  Thermae = 'thermae',
+  Forum = 'forum',
+  Scriptorium = 'scriptorium',
+  GuildHall = 'guild_hall',
+  Monastery = 'monastery',
+  Mausoleum = 'mausoleum',
+  SilkRoad = 'silk_road',
+  SaintSophia = 'saint_sophia',
 }
 
 /** Частина космічного корабля: каркас тримає двигуни й модулі. */
@@ -356,7 +376,22 @@ export interface BuildingConfig {
   spacePart?: SpacePart;
   /** Капіталізація: не будується ніколи, щити щоходу йдуть у золото */
   coinage?: boolean;
+  /** Загальні ефекти в цьому місті */
+  effects?: BuildingEffects;
+  /** Чудо: ефекти в кожному місті власника */
+  globalEffects?: BuildingEffects;
   descriptionUa: string;
+}
+
+/** Ефекти споруди: їжа, щити, золото, наука, розкіш — у відсотках; задоволені й торгівля — штуками. */
+export interface BuildingEffects {
+  food?: number;
+  shields?: number;
+  gold?: number;
+  science?: number;
+  luxury?: number;
+  content?: number;
+  trade?: number;
 }
 
 export interface CityWorkerSlot {

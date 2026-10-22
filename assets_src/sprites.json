@@ -806,6 +806,86 @@
       "id": "w_sumy_altanka",
       "kind": "building",
       "prompt": "an ornate octagonal open-air wooden gazebo pavilion seen from the front: eight slender white carved columns, white lace-like carved fretwork along the eaves and a white openwork balustrade, curved golden roof segments around a central golden onion-like dome topped with a tall white carved spire, decorative white crested arch gables with a carved cross pattern on each side, standing on a grey stone octagonal base with front steps, a ring of yellow flowers around it"
+    },
+    {
+      "id": "u_horse_archers",
+      "kind": "unit",
+      "prompt": "a steppe horse archer in a pointed felt cap and leather armour shooting a composite bow from a galloping horse"
+    },
+    {
+      "id": "u_battering_ram",
+      "kind": "unit",
+      "prompt": "an ancient wheeled battering ram: a heavy log with an iron ram head under a sloped wooden roof covered with hides"
+    },
+    {
+      "id": "u_bireme",
+      "kind": "unit",
+      "prompt": "an ancient Greek bireme war galley with two rows of oars, a bronze ram at the bow and a square striped sail"
+    },
+    {
+      "id": "u_crossbowmen",
+      "kind": "unit",
+      "prompt": "a medieval crossbowman in a kettle hat and padded gambeson aiming a heavy crossbow, a pavise shield on his back"
+    },
+    {
+      "id": "u_trebuchet",
+      "kind": "unit",
+      "prompt": "a medieval wooden counterweight trebuchet with a long throwing arm and a sling, on a wheeled frame"
+    },
+    {
+      "id": "b_well",
+      "kind": "building",
+      "prompt": "a round stone village well with a small wooden roof, a crank and a bucket on a rope"
+    },
+    {
+      "id": "b_workshop",
+      "kind": "building",
+      "prompt": "a small timber craftsmen workshop with an open front, an anvil, a workbench with tools and a smoking chimney"
+    },
+    {
+      "id": "b_herbalist",
+      "kind": "building",
+      "prompt": "a small cottage of a herbalist with bundles of dried herbs hanging under the eaves and clay jars by the door"
+    },
+    {
+      "id": "b_thermae",
+      "kind": "building",
+      "prompt": "Roman public baths thermae: a low stone building with a domed roof, arched windows and steam rising"
+    },
+    {
+      "id": "b_forum",
+      "kind": "building",
+      "prompt": "a Roman forum: an open paved square surrounded by a colonnade with a speaker's rostrum and a statue"
+    },
+    {
+      "id": "b_scriptorium",
+      "kind": "building",
+      "prompt": "a stone scriptorium building with tall arched windows, desks with open manuscripts and quills visible inside"
+    },
+    {
+      "id": "b_guild_hall",
+      "kind": "building",
+      "prompt": "a medieval half-timbered guild hall with a tall gable, carved guild signs over the door and a small bell tower"
+    },
+    {
+      "id": "b_monastery",
+      "kind": "building",
+      "prompt": "a whitewashed Orthodox monastery with a golden dome, a bell tower and a low stone wall around it"
+    },
+    {
+      "id": "w_mausoleum",
+      "kind": "building",
+      "prompt": "the Mausoleum at Halicarnassus: a tall white marble tomb on a high podium with an Ionic colonnade and a stepped pyramid roof topped by a chariot statue"
+    },
+    {
+      "id": "w_silk_road",
+      "kind": "building",
+      "prompt": "a Silk Road caravanserai: a fortified courtyard inn with an ornate gate arch, camels with silk bales and colourful awnings"
+    },
+    {
+      "id": "w_saint_sophia",
+      "kind": "building",
+      "prompt": "Saint Sophia Cathedral in Kyiv: a white Ukrainian baroque cathedral with many green and golden domes and a tall white bell tower"
     }
   ]
 }
