@@ -299,6 +299,15 @@ export class Hud {
     if (w.canBuildSpacePart(0, BuildingTypeKey.SpaceStructural) && !(ship && ship.structural + ship.component + ship.module > 0)) {
       return '«Аполлон» відкрив космічну гонку: будуйте 🚀 каркаси, двигуни й модулі в найсильніших містах. Перший корабель біля Альфи Центавра виграє гру.';
     }
+    // Потепління змінить клімат під містами — це важливіше за окрему смугу смогу
+    if (w.warming >= WARMING_LIMIT / 2) {
+      return `🌡️ Планета гріється (${Math.round((w.warming / WARMING_LIMIT) * 100)}%): на 100% узбережжя заболочуються, а поля висихають. Чистіть смог [P] робітниками й інженерами; Масовий транспорт, Центр переробки й Сонячна станція зменшують нове забруднення.`;
+    }
+    // Республіка й Демократія не люблять війська далеко від дому
+    const homesick = cities.find((c) => w.cityYields(c).abroadUnhappy > 0);
+    if (homesick) {
+      return `У місті ${homesick.name} невдоволені військом за кордоном (${w.cityYields(homesick).abroadUnhappy} 😠). Поверніть загони ближче до дому чи в міста, збудуйте Поліцію або змініть устрій.`;
+    }
     const polluted = cities.find((c) => {
       for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
         if (w.tiles[c.y + dy]?.[(c.x + dx + MAP_WIDTH) % MAP_WIDTH]?.hasPollution) return true;
