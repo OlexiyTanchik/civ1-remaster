@@ -29,8 +29,12 @@ export class CityDialog {
     });
   }
 
-  public show(city: City): void {
+  /** Чому вікно відкрилося саме (напр., «збудовано Храм — що далі?»); зникає з закриттям. */
+  private note?: string;
+
+  public show(city: City, note?: string): void {
     this.currentCity = city;
+    this.note = note;
     this.overlay.classList.remove('hidden');
     this.render();
   }
@@ -133,6 +137,7 @@ export class CityDialog {
           <h2>🏛️ ${city.name} · ${CityLogic.population(city.size).toLocaleString('uk-UA')} жителів${yields.disorder ? ' <span class="disorder-badge">БЕЗЛАД</span>' : ''}</h2>
           <button class="btn-close" id="city-close-btn">✖</button>
         </div>
+        ${this.note ? `<div class="city-note">${this.note}</div>` : ''}
 
         <div class="city-columns">
           <div class="city-col">

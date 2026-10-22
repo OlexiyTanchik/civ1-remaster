@@ -4,7 +4,7 @@
  */
 import { Application } from 'pixi.js';
 import { World } from './core/world';
-import { UNIT_CONFIGS, GOVERNMENTS } from './core/constants';
+import { UNIT_CONFIGS, GOVERNMENTS, BUILDING_CONFIGS } from './core/constants';
 import { GovernmentDialog } from './ui/government-dialog';
 import { SpaceDialog } from './ui/space-dialog';
 import { TurnManager } from './core/turn-manager';
@@ -242,7 +242,7 @@ async function bootstrap() {
     // Екран міста — під діалогами дослідження й зустрічей, тож спершу видно їх
     const idle = result.idleCities.map((id) => world.cities.get(id)).filter((c) => c && c.playerId === 0);
     if (idle.length) {
-      cityDialog.show(idle[0]!);
+      cityDialog.show(idle[0]!, `✅ Збудовано: ${BUILDING_CONFIGS[idle[0]!.buildings[idle[0]!.buildings.length - 1]].nameUa}. Оберіть, що будувати далі.`);
       for (const c of idle.slice(1)) hud.addLogMessage(`🏗️ ${c!.name}: оберіть, що будувати далі (зараз — Ополчення)`);
     }
     showMeetings();

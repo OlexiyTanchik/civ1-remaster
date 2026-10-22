@@ -294,6 +294,13 @@ body, html {
   border: 1px solid #1a528e;
 }
 
+.city-note {
+  background: #2a2208;
+  color: #f1c40f;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
 .city-header h2 {
   font-size: 14px;
 }
