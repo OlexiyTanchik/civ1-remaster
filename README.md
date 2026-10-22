@@ -1,6 +1,6 @@
 # Civilization — ремастер 1991 у браузері
 
-**▶ Грати: [demo URL — додати після публікації](#деплой)** · [English below](#english)
+**▶ Грати: [https://olexiytanchik.github.io/civ1-remaster/](https://olexiytanchik.github.io/civ1-remaster/)** · [English below](#english)
 
 Вебверсія класичної покрокової стратегії Sid Meier's Civilization (1991): від одного поселенця 4000 р. до н.е. до польоту на Альфу Центавра. Правила оригіналу, піксельна графіка, AI-суперники, дипломатія, флот, авіація й космічна гонка. Без встановлення, просто в браузері.
 
@@ -54,7 +54,7 @@ npm run preview   # перегляд збірки
 - **GitHub Pages:** воркфлоу [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) збирає й публікує гру при кожному пуші в `main`. Щоб його увімкнути: **Settings → Pages → Source: GitHub Actions**. Для приватного репозиторію Pages працює лише на платних планах GitHub, тож репозиторій треба зробити публічним або скористатися варіантом нижче.
 - **Netlify / Vercel / Cloudflare Pages:** підключити репозиторій, команда збірки `npm run build`, каталог публікації `dist`.
 
-Після публікації вкажіть URL демо вгорі цього файлу. Для прев'ю посилань у соцмережах також варто вписати повну адресу картинки в `og:image` в `index.html`.
+Гра опублікована на GitHub Pages: https://olexiytanchik.github.io/civ1-remaster/ (збирається й викладається автоматично після кожного пушу в `main`).
 
 ## Правові примітки
 
@@ -66,7 +66,7 @@ npm run preview   # перегляд збірки
 
 # Civilization — a 1991 remaster for the browser
 
-**▶ Play: [demo URL — add after publishing](#deployment)**
+**▶ Play: [https://olexiytanchik.github.io/civ1-remaster/](https://olexiytanchik.github.io/civ1-remaster/)**
 
 A web remake of Sid Meier's Civilization (1991), the classic turn-based strategy game. You lead one band of settlers in 4000 BC to a starship bound for Alpha Centauri. The game keeps the original rules and adds pixel-art graphics, AI rivals, diplomacy, naval and air warfare, and the space race. It runs in the browser with nothing to install.
 
