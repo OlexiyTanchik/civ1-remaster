@@ -5,7 +5,7 @@
  * Міста обирають виробництво за пріоритетами; дослідження — за чергою.
  */
 import type { World } from './world';
-import { City, Unit, UnitTypeKey, BuildingTypeKey, TerrainType, Player, GovernmentKey } from './types';
+import { City, Unit, TileData, UnitTypeKey, BuildingTypeKey, TerrainType, Player, GovernmentKey } from './types';
 import { AGENTS, UNIT_CONFIGS, BUILDING_CONFIGS, TERRAIN_DATA, FAT_CROSS_OFFSETS, MAP_WIDTH, MAP_HEIGHT, GOVERNMENTS } from './constants';
 import { tileYield, TerraformKind, checkTerraform } from './terraform';
 import { TurnManager } from './turn-manager';
@@ -849,6 +849,16 @@ export class AiController {
       if (t.cityId && w.cities.get(t.cityId)!.playerId !== unit.playerId) return true;
       return t.unitIds.some((id) => w.units.get(id)?.playerId !== unit.playerId);
     };
+    // Зона контролю: між двома клітинками поруч із ворогом не пройти (окрім як до своїх загонів і міст)
+    const zocFree = w.ignoresZoc(unit);
+    const zocCache = new Map<number, boolean>();
+    const inZoc = (k: number) => {
+      let v = zocCache.get(k);
+      if (v === undefined) zocCache.set(k, v = w.inEnemyZoc(k % MAP_WIDTH, Math.floor(k / MAP_WIDTH), unit.playerId));
+      return v;
+    };
+    const ownAt = (t: TileData) => (!!t.cityId && w.cities.get(t.cityId)!.playerId === unit.playerId)
+      || t.unitIds.some((id) => w.units.get(id)?.playerId === unit.playerId);
 
     for (let head = 0; head < queue.length && head < 2500; head++) {
       const cur = queue[head];
@@ -866,6 +876,7 @@ export class AiController {
           if (k !== goal && blocked(nx, ny)) continue;
           if (k === goal && !allowTarget && blocked(nx, ny)) continue;
           if (k === goal && w.tiles[ny][nx].terrain === TerrainType.Ocean) continue;
+          if (!zocFree && inZoc(cur) && inZoc(k) && !ownAt(w.tiles[ny][nx]) && !(k === goal && blocked(nx, ny))) continue;
           prev.set(k, cur);
           queue.push(k);
         }

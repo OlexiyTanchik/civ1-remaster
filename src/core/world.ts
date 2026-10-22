@@ -302,6 +302,11 @@ export class World {
       }
     }
 
+    // Зона контролю (Civ 1): з клітинки поруч із ворогом не перейти на іншу таку ж (хіба до своїх)
+    if (this.zocBlocks(unit, destX, destY)) {
+      return { success: false, event: '⚠️ Зона контролю: від ворожого загону можна лише відступити або атакувати' };
+    }
+
     // Сухопутний юніт іде в море лише на свій корабель із вільним місцем
     const cfg = UNIT_CONFIGS[unit.type];
     let boardShip: Unit | undefined;
@@ -504,6 +509,40 @@ export class World {
       boarded++;
     }
     return boarded;
+  }
+
+  /** Хто не зважає на зону контролю: дипломати, каравани, дослідники, партизани (Civ 1 / Civ II). */
+  public ignoresZoc(unit: Unit): boolean {
+    const cfg = UNIT_CONFIGS[unit.type];
+    return cfg.domain !== 'land' || !!unit.carriedBy || AGENTS.has(unit.type) || !!cfg.wonderShields
+      || unit.type === UnitTypeKey.Explorer || unit.type === UnitTypeKey.Partisans;
+  }
+
+  /** Клітинка поруч із наземним загоном того, з ким гравець воює (або варвара). */
+  public inEnemyZoc(x: number, y: number, playerId: number): boolean {
+    for (let dy = -1; dy <= 1; dy++) {
+      const row = this.tiles[y + dy];
+      if (!row) continue;
+      for (let dx = -1; dx <= 1; dx++) {
+        if (!dx && !dy) continue;
+        for (const id of row[(x + dx + MAP_WIDTH) % MAP_WIDTH].unitIds) {
+          const u = this.units.get(id)!;
+          if (u.playerId === playerId || u.carriedBy || UNIT_CONFIGS[u.type].domain !== 'land') continue;
+          if (u.playerId === this.barbarianId || playerId === this.barbarianId || this.diplomacy.atWar(playerId, u.playerId)) return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /** Чи забороняє зона контролю цей крок. Свої загін чи місто на цілі — можна (Civ 1). */
+  public zocBlocks(unit: Unit, toX: number, toY: number): boolean {
+    if (this.ignoresZoc(unit)) return false;
+    const to = this.tiles[toY][toX];
+    if (to.terrain === TerrainType.Ocean) return false;
+    if (to.cityId && this.cities.get(to.cityId)!.playerId === unit.playerId) return false;
+    if (to.unitIds.some((id) => this.units.get(id)!.playerId === unit.playerId)) return false;
+    return this.inEnemyZoc(unit.x, unit.y, unit.playerId) && this.inEnemyZoc(toX, toY, unit.playerId);
   }
 
   /** Чужий підводний човен видно лише з сусідньої клітинки — від свого юніта чи міста (Civ 1). */
