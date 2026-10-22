@@ -646,6 +646,42 @@ export class World {
     };
   }
 
+  /** Ціна викупу поточного виробництва (Civ 1): 2×решта + решта²/20; чудо — ×2, з порожнім запасом щитів — ×2. */
+  public buyCost(city: City): number {
+    const total = Math.round(CityLogic.getProductionCost(city.currentProduction) * (this.cityEnv(city).costFactor ?? 1));
+    const left = total - city.shieldsStored;
+    if (left <= 0) return 0;
+    let cost = 2 * left + Math.floor((left * left) / 20);
+    if (city.currentProduction.isBuilding && BUILDING_CONFIGS[city.currentProduction.key as BuildingTypeKey]?.isWonder) cost *= 2;
+    if (city.shieldsStored === 0) cost *= 2;
+    return cost;
+  }
+
+  /**
+   * AI вирішує після кроку міст, а варвари ходять одразу за ним — оплачений захисник з'явився б, коли місто вже взяте.
+   * Тому AI-місто під загрозою отримує готовий юніт одразу (людина свій отримує на кроці міст, до ходу варварів).
+   */
+  public completeUnitNow(city: City): Unit | undefined {
+    if (city.currentProduction.isBuilding) return undefined;
+    const total = Math.round(CityLogic.getProductionCost(city.currentProduction) * (this.cityEnv(city).costFactor ?? 1));
+    if (city.shieldsStored < total) return undefined;
+    city.shieldsStored -= total;
+    const unit = this.createUnit(city.playerId, city.currentProduction.key as UnitTypeKey, city.x, city.y, city.id);
+    if (city.buildings.includes(BuildingTypeKey.Barracks) && UNIT_CONFIGS[unit.type].domain !== 'air') unit.veteran = true;
+    return unit;
+  }
+
+  /** Викуповує виробництво за золото: воно з'явиться наприкінці ходу. */
+  public buyProduction(city: City): boolean {
+    const player = this.players[city.playerId];
+    const cost = this.buyCost(city);
+    if (!cost || player.gold < cost) return false;
+    player.gold -= cost;
+    city.shieldsStored = Math.round(CityLogic.getProductionCost(city.currentProduction) * (this.cityEnv(city).costFactor ?? 1));
+    city.boughtTurn = this.turnManager.turnNumber;
+    return true;
+  }
+
   /**
    * Змінює ставку податків або розкоші на ±10%; наука забирає/віддає різницю.
    * Повертає false, якщо так не можна (межа 60% чи нижче нуля).

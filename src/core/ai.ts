@@ -143,7 +143,16 @@ export class AiController {
     const attacker = this.bestUnit(player, 'attack');
     const hostile = this.isHostilePhase(player);
 
-    if (garrison < 1) return set(false, defender);
+    if (garrison < 1) {
+      set(false, defender);
+      // Порожнє місто під загрозою — викуповуємо захисника (так варвари брали більшість міст)
+      if (threat) {
+        w.buyProduction(city);
+        const u = w.completeUnitNow(city);
+        if (u) u.isFortified = true;
+      }
+      return;
+    }
     // Палац втрачено — відбудовуємо в найбільшому місті (як у Civ 1)
     const allCities = this.citiesOf(player.id);
     const hasPalace = allCities.some((c) => c.buildings.includes(BuildingTypeKey.Palace));

@@ -442,7 +442,8 @@ body, html {
 }
 
 /* Недоступна дія в діалогах (устрій, дослідження) */
-.btn-primary:disabled {
+.btn-primary:disabled,
+.btn-action:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }

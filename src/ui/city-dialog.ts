@@ -82,6 +82,18 @@ export class CityDialog {
   }
 
   /** Палац будується лише тоді, коли його немає в жодному місті гравця (втрачено столицю). */
+  /** Викуп за золото, як у Civ 1: готове наприкінці ходу, до того виробництво не змінити. */
+  private buyLine(city: City): string {
+    if (city.boughtTurn === this.world.turnManager.turnNumber) return '<div class="city-stat"><span class="dim">💰 Викуплено — буде готове наприкінці ходу</span></div>';
+    const cost = this.world.buyCost(city);
+    if (!cost) return '';
+    const gold = this.world.players[city.playerId].gold;
+    return `<div class="city-stat">
+      <button class="btn-action" id="city-buy-btn"${gold < cost ? ' disabled' : ''} title="Решта щитів за золото; з порожнім запасом — удвічі дорожче, чудеса — теж удвічі">💰 Купити за ${cost} зл.</button>
+      <span class="dim">у скарбниці ${gold}</span>
+    </div>`;
+  }
+
   private hasPalace(playerId: number): boolean {
     return [...this.world.cities.values()].some((c) => c.playerId === playerId && c.buildings.includes(BuildingTypeKey.Palace));
   }
@@ -97,9 +109,10 @@ export class CityDialog {
       : UNIT_CONFIGS[city.currentProduction.key as UnitTypeKey]?.nameUa ?? city.currentProduction.key;
 
     const options = this.productionOptions(city);
+    const bought = city.boughtTurn === this.world.turnManager.turnNumber;
     const prodButton = (o: (typeof options)[number]) => {
       const active = o.isBuilding === city.currentProduction.isBuilding && o.key === city.currentProduction.key;
-      return `<button class="btn-action${active ? ' active' : ''}" data-type="${o.isBuilding ? 'building' : 'unit'}" data-key="${o.key}" title="${o.description}">${o.name} <span class="cost">${o.cost}🛡️</span></button>`;
+      return `<button class="btn-action${active ? ' active' : ''}"${bought ? ' disabled' : ''} data-type="${o.isBuilding ? 'building' : 'unit'}" data-key="${o.key}" title="${o.description}">${o.name} <span class="cost">${o.cost}🛡️</span></button>`;
     };
     const groups: [string, typeof options][] = [
       ['Юніти', options.filter((o) => !o.isBuilding)],
@@ -135,6 +148,7 @@ export class CityDialog {
               <span class="dim">${city.shieldsStored}/${prodCost}</span>
             </div>
             <div class="progress-bar"><div class="progress-fill shields" style="width: ${pct(city.shieldsStored, prodCost)}%"></div></div>
+            ${this.buyLine(city)}
             ${this.supportLine(city, yields)}
 
             <div class="city-stat">
@@ -170,6 +184,13 @@ export class CityDialog {
 
     const panorama = this.overlay.querySelector<HTMLCanvasElement>('#city-panorama');
     if (panorama) drawCityPanorama(panorama, city);
+
+    document.getElementById('city-buy-btn')?.addEventListener('click', () => {
+      if (this.world.buyProduction(city)) {
+        this.onUpdate();
+        this.render();
+      }
+    });
 
     const buttons = this.overlay.querySelectorAll('#prod-buttons button');
     buttons.forEach((btn) => {

@@ -285,6 +285,8 @@ export interface City {
   workedTiles: { x: number; y: number }[];
   /** Хто вже крав тут технологію дипломатом (кожен — лише раз) */
   stolenBy?: number[];
+  /** Хід, коли виробництво викуплено: до кінця ходу його не змінити (інакше дешеве перепродавалось би в дороге) */
+  boughtTurn?: number;
 }
 
 export interface Tech {
