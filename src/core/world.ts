@@ -191,6 +191,16 @@ export class World {
     this.news.push(text);
   }
 
+  /** Чий мир порушить цей хід: бойовий юніт іде на загін чи місто цивілізації, з якою не воюємо. */
+  public peaceVictim(unit: Unit, targetX: number, targetY: number): number | undefined {
+    if (UNIT_CONFIGS[unit.type].attack === 0 || unit.type === UnitTypeKey.Diplomat) return undefined;
+    const tile = this.tiles[targetY]?.[(targetX + MAP_WIDTH) % MAP_WIDTH];
+    if (!tile) return undefined;
+    const owners = tile.unitIds.map((id) => this.units.get(id)?.playerId);
+    if (tile.cityId) owners.push(this.cities.get(tile.cityId)?.playerId);
+    return owners.find((o) => o !== undefined && o !== unit.playerId && this.diplomacy.hasContact(unit.playerId, o) && !this.diplomacy.atWar(unit.playerId, o));
+  }
+
   public moveUnit(unitId: string, targetX: number, targetY: number): { success: boolean; combatLog?: string; event?: string; diplomatCity?: string } {
     const unit = this.units.get(unitId);
     if (!unit || unit.movesLeft <= 0) return { success: false };

@@ -85,8 +85,9 @@ export class UnitLogic {
     const attackerWon = roll < attackerWinProb;
 
     const logUa = attackerWon
-      ? `${aCfg.nameUa} здолав ${dCfg.nameUa}! (Атака: ${attackPower.toFixed(1)} проти Захисту: ${defensePower.toFixed(1)})`
-      : `${dCfg.nameUa} відбив напад ${aCfg.nameUa}! (Захист: ${defensePower.toFixed(1)} проти Атаки: ${attackPower.toFixed(1)})`;
+      // Без дієслів у родах і відмінках: «Гаубиця здолав», «відбив напад Танки» читалися з помилками
+      ? `${aCfg.nameUa} ⟶ ${dCfg.nameUa}: перемога нападу! (Атака: ${attackPower.toFixed(1)} проти Захисту: ${defensePower.toFixed(1)})`
+      : `${aCfg.nameUa} ⟶ ${dCfg.nameUa}: оборона встояла! (Захист: ${defensePower.toFixed(1)} проти Атаки: ${attackPower.toFixed(1)})`;
 
     return { attackerWon, logUa };
   }

@@ -76,6 +76,8 @@ async function bootstrap() {
   let gameOverShown = !!world.gameOver;
 
   let selectedUnit: Unit | undefined;
+  // Хід, що порушить мир, — до повторного підтвердження
+  let pendingTreachery: string | undefined;
 
   // Вибір першого юніта гравця
   function selectNextAvailableUnit(): void {
@@ -122,6 +124,15 @@ async function bootstrap() {
   // Рух обраного юніта. Клавіатура кличе напряму: заходить і на клітинку зі своїм юнітом чи містом
   function moveSelected(tileX: number, tileY: number): void {
     if (!selectedUnit || selectedUnit.movesLeft <= 0) return;
+    // Напад у мирі — зрада, яку пам'ятають усі AI: випадкова стрілка не повинна її починати
+    const victim = world.peaceVictim(selectedUnit, tileX, tileY);
+    const key = `${selectedUnit.id}:${tileX},${tileY}`;
+    if (victim !== undefined && pendingTreachery !== key) {
+      pendingTreachery = key;
+      hud.addLogMessage(`⚠️ У нас мир із ${world.players[victim].nameUa}. Напад — зрада, яку запам'ятають усі. Повторіть хід, щоб напасти.`);
+      return;
+    }
+    pendingTreachery = undefined;
     const res = world.moveUnit(selectedUnit.id, tileX, tileY);
     if (res.diplomatCity) {
       const unitId = selectedUnit.id;
