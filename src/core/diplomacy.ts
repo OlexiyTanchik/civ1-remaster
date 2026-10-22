@@ -234,8 +234,15 @@ export class Diplomacy {
     return { ok: true, text: `«${p.leaderUa}: досить крові. Хай буде мир.»` };
   }
 
-  public declareWar(ai: number): void {
+  /** Сенат (Civ 1): за Демократії не дає порушити мир — ні нападом, ні оголошенням війни. */
+  public senateForbidsWar(player: number): boolean {
+    return this.civ(player).government === 'democracy';
+  }
+
+  public declareWar(ai: number): boolean {
+    if (this.senateForbidsWar(0)) return false;
     this.onAggression(0, ai);
+    return true;
   }
 
   /** Людина пропонує обмін: AI згоден, якщо ставлення не вороже й обмін не на його шкоду. */
@@ -352,6 +359,10 @@ export class Diplomacy {
           // Другий AI погоджується, якщо теж не рветься до бою
           const otherRatio = 1 / Math.max(0.01, ratio);
           if (otherRatio < 1.3 || this.character(other) !== 'warlike') this.makePeace(ai.id, other.id);
+        } else if (other.government === 'republic' || other.government === 'democracy') {
+          // Сенат Республіки й Демократії приймає мир сам — як у Civ 1
+          this.makePeace(ai.id, 0);
+          this.world.pushNews(`🏛️ Сенат прийняв мирну пропозицію: ${ai.nameUa} (${ai.leaderUa}) — війну закінчено.`);
         } else if (this.offerDue(ai.id, 0, 'peace', 10)) {
           this.meetings.push({ from: ai.id, kind: 'peace', text: `«${ai.leaderUa}: ця війна виснажує обидва наші народи. Укладімо мир?»` });
         }

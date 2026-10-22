@@ -127,6 +127,10 @@ async function bootstrap() {
     // Напад у мирі — зрада, яку пам'ятають усі AI: випадкова стрілка не повинна її починати
     const victim = world.peaceVictim(selectedUnit, tileX, tileY);
     const key = `${selectedUnit.id}:${tileX},${tileY}`;
+    if (victim !== undefined && world.diplomacy.senateForbidsWar(0)) {
+      hud.addLogMessage(`🏛️ Сенат забороняє порушувати мир із ${world.players[victim].nameUa} за Демократії.`);
+      return;
+    }
     if (victim !== undefined && pendingTreachery !== key) {
       pendingTreachery = key;
       hud.addLogMessage(`⚠️ У нас мир із ${world.players[victim].nameUa}. Напад — зрада, яку запам'ятають усі. Повторіть хід, щоб напасти.`);

@@ -47,6 +47,7 @@ export class DiplomacyDialog extends Modal {
   private render(): void {
     const w = this.world;
     const d = w.diplomacy;
+    const senate = d.senateForbidsWar(0);
     const known = w.players.filter((p) => p.id !== 0 && !p.isBarbarian && d.hasContact(0, p.id));
     const rows = known.map((p) => {
       const war = d.atWar(0, p.id);
@@ -75,7 +76,7 @@ export class DiplomacyDialog extends Modal {
           <div class="diplo-actions">
             ${p.alive ? (war
               ? `<button class="btn-primary" data-peace="${p.id}">🕊️ Запропонувати мир</button>`
-              : `<button class="civ-btn" data-war="${p.id}">⚔️ Оголосити війну</button>`) : ''}
+              : `<button class="civ-btn" data-war="${p.id}"${senate ? ' title="Сенат за Демократії не дозволить"' : ''}>⚔️ Оголосити війну</button>`) : ''}
           </div>
           ${p.alive ? trade : ''}
         </div>`;
@@ -88,7 +89,8 @@ export class DiplomacyDialog extends Modal {
         <button class="btn-close" id="diplo-close">✖</button>
       </div>
       <p class="modal-subtitle">Знайомство — коли ваші юніти чи міста опиняються поруч з чужими. Напад під час миру — це війна,
-        і всі лідери запам'ятають зраду${broken ? ` (ви порушили угод: ${broken})` : ''}.</p>
+        і всі лідери запам'ятають зраду${broken ? ` (ви порушили угод: ${broken})` : ''}.
+        Сенат Республіки й Демократії сам приймає мир, який пропонують суперники; за Демократії він ще й забороняє нападати першим.</p>
       ${this.note ? `<p class="tech-unlocks">${this.note}</p>` : ''}
       ${rows || '<p>Ви ще ні з ким не знайомі. Розвідуйте світ!</p>'}
     `);
@@ -99,8 +101,9 @@ export class DiplomacyDialog extends Modal {
       this.render();
     }));
     this.overlay.querySelectorAll<HTMLButtonElement>('button[data-war]').forEach((b) => b.addEventListener('click', () => {
-      d.declareWar(Number(b.dataset.war));
-      this.note = `⚔️ Війну оголошено: ${w.players[Number(b.dataset.war)].nameUa}. Усі лідери вважають це зрадою угоди.`;
+      this.note = d.declareWar(Number(b.dataset.war))
+        ? `⚔️ Війну оголошено: ${w.players[Number(b.dataset.war)].nameUa}. Усі лідери вважають це зрадою угоди.`
+        : '🏛️ Сенат забороняє порушувати мир за Демократії. Змініть устрій або чекайте, поки нападуть на вас.';
       this.onChange();
       this.render();
     }));
