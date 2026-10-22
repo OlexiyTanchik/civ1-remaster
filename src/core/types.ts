@@ -183,6 +183,7 @@ export enum BuildingTypeKey {
   Airport = 'airport',
   NuclearPlant = 'nuclear_plant',
   HydroPlant = 'hydro_plant',
+  MfgPlant = 'mfg_plant',
   Manhattan = 'manhattan',
   UnitedNations = 'united_nations',
   // Космічна гонка

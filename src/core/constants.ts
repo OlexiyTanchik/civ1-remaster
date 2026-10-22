@@ -407,6 +407,10 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
     key: BuildingTypeKey.HydroPlant, nameUa: 'ГЕС', cost: 240, maintenance: 4, prereqTech: 'electronics', requires: BuildingTypeKey.Factory, highland: true,
     descriptionUa: 'Як електростанція (+25% щитів з фабрикою, не додається до неї), але забруднення вдвічі рідше. Лише біля гір чи пагорбів.',
   },
+  [BuildingTypeKey.MfgPlant]: {
+    key: BuildingTypeKey.MfgPlant, nameUa: 'Завод', cost: 320, maintenance: 6, prereqTech: 'robotics', requires: BuildingTypeKey.Factory,
+    descriptionUa: 'Конвеєри з роботами: ще +25% щитів, з електростанцією +50%. Більше щитів — більше й смогу. Потрібна фабрика.',
+  },
   [BuildingTypeKey.Manhattan]: {
     key: BuildingTypeKey.Manhattan, nameUa: 'Мангеттенський проєкт', cost: 600, maintenance: 0, prereqTech: 'nuclear_fission', isWonder: true,
     descriptionUa: 'Чудо світу. Відкриває ядерну зброю ВСІМ, хто знає Ракетобудування.',
@@ -539,6 +543,7 @@ export const TECH_TREE: Record<string, Tech> = {
   space_flight: { id: 'space_flight', nameUa: 'Космічні польоти', era: 6, prereqs: ['computers', 'rocketry'], descriptionUa: 'Людина на орбіті — і далі, до зірок.' },
   plastics: { id: 'plastics', nameUa: 'Пластмаси', era: 6, prereqs: ['refining', 'space_flight'], descriptionUa: 'Легкі й міцні матеріали для ракетних двигунів.' },
   superconductor: { id: 'superconductor', nameUa: 'Надпровідники', era: 6, prereqs: ['plastics', 'nuclear_power'], descriptionUa: 'Струм без втрат: системи життєзабезпечення для зорельота.' },
+  robotics: { id: 'robotics', nameUa: 'Робототехніка', era: 6, prereqs: ['mobile_warfare', 'computers'], descriptionUa: 'Роботи на конвеєрах: заводи нового покоління.' },
   genetic_engineering: { id: 'genetic_engineering', nameUa: 'Генна інженерія', era: 6, prereqs: ['medicine', 'computers'], descriptionUa: 'Ключ до коду життя.' },
 };
 

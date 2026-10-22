@@ -23,7 +23,7 @@ const RESEARCH_ORDER = [
   'the_corporation', 'steel', 'electronics', 'sanitation', 'explosives', 'refining', 'theology',
   'combustion', 'automobile', 'mass_production', 'recycling', 'machine_tools', 'mobile_warfare', 'labor_union',
   'atomic_theory', 'flight', 'nuclear_fission', 'nuclear_power', 'radio', 'advanced_flight', 'rocketry',
-  'computers', 'space_flight', 'plastics', 'superconductor', 'genetic_engineering',
+  'computers', 'space_flight', 'robotics', 'plastics', 'superconductor', 'genetic_engineering',
 ];
 
 /** Корабель, який AI вважає готовим до старту: 3 двигуни, 3 модулі, 6 каркасів (політ 14 р., успіх 100%). */
@@ -238,6 +238,8 @@ export class AiController {
       if (b !== BuildingTypeKey.Factory && power) continue;
       if (city.size >= 8 && canBuild(b)) return set(true, b);
     }
+    // Завод дорогий в утриманні — лише містам, що вже дають багато щитів
+    if (yields.shieldsGross > 25 && canBuild(BuildingTypeKey.MfgPlant)) return set(true, BuildingTypeKey.MfgPlant);
     if (yields.corruption >= 2 && canBuild(BuildingTypeKey.Courthouse)) return set(true, BuildingTypeKey.Courthouse);
     // Войовничі готують ветеранів у великих містах
     if (hostile && city.size >= 4 && canBuild(BuildingTypeKey.Barracks)) return set(true, BuildingTypeKey.Barracks);

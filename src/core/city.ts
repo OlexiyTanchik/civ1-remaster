@@ -103,6 +103,8 @@ export class CityLogic {
     if (has(BuildingTypeKey.Pyramids)) shieldBonus += 0.25;
     const power = has(BuildingTypeKey.PowerPlant) || has(BuildingTypeKey.NuclearPlant) || has(BuildingTypeKey.HydroPlant) || env.ownerWonders.has(BuildingTypeKey.HooverDam);
     if (has(BuildingTypeKey.Factory)) shieldBonus += power ? 0.75 : 0.5;
+    // Завод (Civ 1) — ще +25%, а з електростанцією вдвічі: з усім разом +125%
+    if (has(BuildingTypeKey.Factory) && has(BuildingTypeKey.MfgPlant)) shieldBonus += power ? 0.5 : 0.25;
     shields = Math.floor(shields * shieldBonus);
 
     // Утримання армії (Civ 1): понад безкоштовних — по щиту за юніт; поселенці ще й їдять
