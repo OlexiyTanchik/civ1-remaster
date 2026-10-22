@@ -5,6 +5,7 @@
 ## Стек і запуск
 - TypeScript + Vite 6 + PixiJS 8, без фреймворку UI (HTML-рядки в `src/ui`). ~5000 рядків.
 - `npm run dev` (порт 3000 у `.claude/launch.json`; якщо зайнятий — Vite бере 3001). `npm run build` = `tsc` + збірка.
+- Збірка з відносними шляхами (`base: './'`), ресурси — від `import.meta.env.BASE_URL`; деплой — `.github/workflows/deploy.yml` (GitHub Pages). Заставка `#boot-loader` в `index.html` знімається `bootScreen()` у `main.ts`. Портфоліо-опис — `README.md`, знімки — `docs/screenshots/`, картинка для посилань — `public/og-image.png`.
 - Перевірка типів: `npx tsc --noEmit`.
 
 ## Файли
@@ -30,6 +31,8 @@
 | `src/ui/hud.ts` | Бічна панель: ставки, лад, юніт, накази (сітка 2 колонки), кнопки «🎵 Музика» і «💡 Поради»; «Порада радника» (`adviceText`, плашка `.advisor-tip` над мапою, до 120-го ходу) |
 | `src/ui/city-dialog.ts` | Екран міста у 2 колонки; `productionOptions` (техи, `requires`, `coastal`, палац лише якщо втрачений) |
 | `src/ui/city-panorama.ts` | Панорама 384×216: `BUILDING_SLOTS` для кожної споруди/чуда, житла від центру назовні |
+| `src/ui/tutorial.ts` | `Tutorial`: 5 кроків навчання (місто → дослідження → виробництво → кінець ходу → дорога) у плашці радника; `mark('city-opened'/'end-turn')` з `main.ts`; пропуск пам'ятає `civ1-remaster-tutorial` |
+| `src/ui/help-dialog.ts` | `helpHtml` («Як грати»: мета, перші ходи, клавіші, правила), `aboutHtml` («Про гру»), `HelpDialog` (F1 / «?», «💾 Гра») |
 | `src/ui/main-menu.ts` | Головне меню перед грою (`showMainMenu` → опції нової гри або збереження) |
 | `src/ui/save-store.ts` | localStorage: слоти `auto`, `1..3`, метадані; `setPendingLoad` + перезавантаження сторінки для завантаження з гри |
 | `src/ui/game-menu-dialog.ts` | «💾 Гра»: зберегти / завантажити / головне меню |
