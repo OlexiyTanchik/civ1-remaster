@@ -10,6 +10,8 @@ import { SpaceDialog } from './ui/space-dialog';
 import { TurnManager } from './core/turn-manager';
 import { GameOverDialog } from './ui/game-over-dialog';
 import { GameMenuDialog } from './ui/game-menu-dialog';
+import { HelpDialog } from './ui/help-dialog';
+import { Tutorial } from './ui/tutorial';
 import { DiplomacyDialog, MeetingDialog, DiplomatDialog } from './ui/diplomacy-dialog';
 import { showMainMenu, MenuChoice } from './ui/main-menu';
 import { saveGame, loadSave, takePendingLoad } from './ui/save-store';
@@ -50,6 +52,8 @@ async function bootstrap() {
   const terrainChunks = TerrainBaker.bake(world);
   const renderer = new MapRenderer(app, world, terrainChunks);
   const hud = new Hud(appElement, world, renderer);
+  const tutorial = new Tutorial(world);
+  hud.tutorial = tutorial;
   // Вітання з HTML пасує лише новій партії
   if ('save' in choice) {
     const first = appElement.querySelector('.log-entry');
@@ -64,6 +68,8 @@ async function bootstrap() {
   const spaceDialog = new SpaceDialog(appElement, world);
   const gameOverDialog = new GameOverDialog(appElement, world);
   const gameMenu = new GameMenuDialog(appElement, world);
+  const helpDialog = new HelpDialog(appElement);
+  gameMenu.onHelp = () => helpDialog.show();
   const diplomacyDialog = new DiplomacyDialog(appElement, world, () => hud.update(selectedUnit));
   const meetingDialog = new MeetingDialog(appElement, world);
   const diplomatDialog = new DiplomatDialog(appElement, world);
@@ -102,6 +108,8 @@ async function bootstrap() {
     if (tile.cityId) {
       const city = world.cities.get(tile.cityId);
       if (city && city.playerId === 0) {
+        tutorial.mark('city-opened');
+        hud.update(selectedUnit);
         cityDialog.show(city);
         return;
       }
@@ -261,6 +269,7 @@ async function bootstrap() {
 
   hud.onEndTurn = () => {
     SoundEffects.playEndTurn();
+    tutorial.mark('end-turn');
     const result = world.processTurnEnd();
 
     for (const item of result.completedItems) {
@@ -371,6 +380,12 @@ async function bootstrap() {
     if (e.target instanceof HTMLInputElement) return;
     // Поки відкрите вікно (місто, радник) — гарячі клавіші гри не працюють
     if (document.querySelector('.modal-overlay:not(.hidden)')) return;
+
+    if (e.key === 'F1' || e.key === '?') {
+      e.preventDefault();
+      helpDialog.show();
+      return;
+    }
 
     if (e.code === 'Space' || e.code === 'Enter') {
       e.preventDefault();

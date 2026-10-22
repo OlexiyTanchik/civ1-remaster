@@ -684,3 +684,44 @@ body, html {
   font-size: 12px;
 }
 .advisor-close:hover { color: #fff; }
+
+/* Навчання в плашці радника */
+.advisor-tutorial { border-color: #54fcfc; }
+.advisor-tutorial b { color: #54fcfc; }
+.advisor-skip {
+  margin-left: 6px;
+  background: none;
+  border: 1px solid #3f72b5;
+  color: #9fb3d9;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 1px 6px;
+}
+.advisor-skip:hover { color: #fff; border-color: #fff; }
+kbd {
+  display: inline-block;
+  background: #1e3a68;
+  border: 1px solid #3f72b5;
+  border-bottom-width: 2px;
+  padding: 0 4px;
+  font-family: inherit;
+  font-size: 11px;
+  color: #fff;
+  white-space: nowrap;
+}
+
+/* Довідка й «Про гру»; довгі вікна прокручуються, а не вилазять за екран */
+.tech-modal { overflow-y: auto; }
+.help-modal { width: 720px; }
+.help-body { font-size: 13px; line-height: 1.45; text-align: left; }
+.help-body ul, .help-body ol { margin: 4px 0 8px 20px; padding: 0; }
+.help-body li { margin: 2px 0; }
+.help-body a { color: #54fcfc; }
+.help-keys { border-collapse: collapse; width: 100%; font-size: 12px; }
+.help-keys td { padding: 3px 6px; border-bottom: 1px solid #1a3258; vertical-align: top; }
+.help-keys td:first-child { white-space: nowrap; width: 1%; }
+.main-menu-row { display: flex; gap: 10px; }
+.main-menu-row .civ-btn { flex: 1; text-align: center; padding: 8px; font-size: 13px; }
+.gm-bottom { display: flex; gap: 8px; margin-top: 6px; }
+.gm-bottom .civ-btn { flex: 1; text-align: center; }

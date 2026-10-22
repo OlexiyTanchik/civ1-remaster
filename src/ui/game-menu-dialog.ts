@@ -8,6 +8,7 @@ import { SLOTS, SlotId, listSaves, saveGame, setPendingLoad, slotName } from './
 export class GameMenuDialog {
   private overlay: HTMLElement;
   private note = '';
+  public onHelp?: () => void;
 
   constructor(private container: HTMLElement, private world: World) {
     this.overlay = document.createElement('div');
@@ -50,7 +51,10 @@ export class GameMenuDialog {
           }).join('')}
         </div>
         <p class="modal-subtitle">Завантаження чи вихід у меню відкидають усе, що сталося після останнього збереження.</p>
-        <button class="civ-btn" id="gm-menu-btn">🏠 Головне меню</button>
+        <div class="gm-bottom">
+          <button class="civ-btn" id="gm-help-btn" title="Клавіші, мета, правила [F1]">❓ Як грати</button>
+          <button class="civ-btn" id="gm-menu-btn">🏠 Головне меню</button>
+        </div>
       </div>
     `;
     document.getElementById('gm-close-btn')?.addEventListener('click', () => this.close());
@@ -65,6 +69,10 @@ export class GameMenuDialog {
       location.reload();
     }));
     document.getElementById('gm-menu-btn')?.addEventListener('click', () => location.reload());
+    document.getElementById('gm-help-btn')?.addEventListener('click', () => {
+      this.close();
+      this.onHelp?.();
+    });
   }
 
   private close(): void {

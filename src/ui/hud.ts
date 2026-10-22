@@ -11,6 +11,7 @@ import { CityLogic } from '../core/city';
 import { MapRenderer } from '../render/map-renderer';
 import { SpriteAtlas } from '../render/sprite-atlas';
 import { TerraformKind, TERRAFORM_INFO, canTerraform, terraformName } from '../core/terraform';
+import { Tutorial } from './tutorial';
 
 const TIPS_KEY = 'civ1-remaster-tips';
 /** Поради радника — лише на початку партії, далі гравець уже освоївся */
@@ -49,6 +50,8 @@ export class Hud {
   public onOpenDiplomacy?: () => void;
   public onToggleMusic?: () => void;
   private tipsOn = true;
+  /** Навчання перших ходів: поки йде, плашка показує його кроки замість порад */
+  public tutorial?: Tutorial;
   private tipEl?: HTMLElement;
 
   constructor(
@@ -274,6 +277,18 @@ export class Hud {
     if (btn) btn.textContent = this.tipsOn ? '💡 Поради ✓' : '💡 Поради ✗';
     const el = this.tipEl;
     if (!el) return;
+    const lesson = this.tutorial?.current();
+    if (lesson) {
+      el.classList.remove('hidden');
+      el.classList.add('advisor-tutorial');
+      el.innerHTML = `${lesson}${this.tutorial!.isRunning() ? ' <button class="advisor-skip" title="Більше не показувати навчання">Пропустити навчання</button>' : ''}`;
+      el.querySelector('.advisor-skip')?.addEventListener('click', () => {
+        this.tutorial!.skip();
+        this.updateAdvice();
+      });
+      return;
+    }
+    el.classList.remove('advisor-tutorial');
     const text = this.tipsOn ? this.adviceText() : undefined;
     el.classList.toggle('hidden', !text);
     if (!text) return;
