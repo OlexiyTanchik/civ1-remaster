@@ -886,6 +886,76 @@
       "id": "w_saint_sophia",
       "kind": "building",
       "prompt": "Saint Sophia Cathedral in Kyiv: a white Ukrainian baroque cathedral with many green and golden domes and a tall white bell tower"
+    },
+    {
+      "id": "u_landsknechts",
+      "kind": "unit",
+      "prompt": "a German Renaissance landsknecht mercenary in puffed and slashed colourful clothes and a feathered hat, holding a huge two-handed zweihander sword"
+    },
+    {
+      "id": "u_grenadiers",
+      "kind": "unit",
+      "prompt": "an 18th century grenadier in a tall mitre cap and a red coat with white belts, throwing a round black grenade with a lit fuse"
+    },
+    {
+      "id": "u_cuirassiers",
+      "kind": "unit",
+      "prompt": "a Napoleonic cuirassier heavy cavalryman in a shining steel cuirass and crested helmet with a horsehair plume, sabre raised, on a dark horse"
+    },
+    {
+      "id": "u_ship_of_the_line",
+      "kind": "unit",
+      "prompt": "an 18th century three-decker ship of the line with rows of gun ports, three masts and full white sails, side view"
+    },
+    {
+      "id": "u_privateer",
+      "kind": "unit",
+      "prompt": "a fast two-masted privateer brigantine with black sails and a red flag, small cannons on deck"
+    },
+    {
+      "id": "b_printing_house",
+      "kind": "building",
+      "prompt": "a Renaissance print shop: a narrow stone townhouse with a wooden printing press visible through the open door and stacks of paper"
+    },
+    {
+      "id": "b_theatre",
+      "kind": "building",
+      "prompt": "a classical city theatre building with a columned portico, red curtains in the arched entrance and theatre masks above the door"
+    },
+    {
+      "id": "b_observatory",
+      "kind": "building",
+      "prompt": "a stone observatory tower with a white rotating dome and a brass telescope poking out of the open slit"
+    },
+    {
+      "id": "b_customs_house",
+      "kind": "building",
+      "prompt": "a harbour customs house: a sturdy brick building on a quay with crates, barrels and a flagpole"
+    },
+    {
+      "id": "b_foundry",
+      "kind": "building",
+      "prompt": "an early modern foundry: a brick building with a tall chimney, glowing furnace mouth and a cast bronze cannon and bell outside"
+    },
+    {
+      "id": "b_town_hall",
+      "kind": "building",
+      "prompt": "a European town hall with a clock tower, a coat of arms above the arched entrance and a balcony"
+    },
+    {
+      "id": "w_taj_mahal",
+      "kind": "building",
+      "prompt": "the Taj Mahal: a white marble mausoleum with a large onion dome, four slender minarets and a reflecting pool in front"
+    },
+    {
+      "id": "w_versailles",
+      "kind": "building",
+      "prompt": "the Palace of Versailles: a long golden-cream baroque palace facade with many tall windows, a gilded gate and formal gardens"
+    },
+    {
+      "id": "w_uffizi",
+      "kind": "building",
+      "prompt": "the Uffizi Gallery in Florence: a long Renaissance arcade building with a loggia of columns, statues in niches and a small tower"
     }
   ]
 }

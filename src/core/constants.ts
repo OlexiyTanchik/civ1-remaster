@@ -392,6 +392,27 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
     key: UnitTypeKey.Trebuchet, name: 'Trebuchet', nameUa: 'Требушет', attack: 7, defense: 1, moves: 1, cost: 50, domain: 'land',
     prereqTech: 'architecture', descriptionUa: 'Важка облогова машина з противагою — між катапультою й гарматою.',
   },
+  // Етап 10, Середньовіччя і Новий час
+  [UnitTypeKey.Landsknechts]: {
+    key: UnitTypeKey.Landsknechts, name: 'Landsknechts', nameUa: 'Ландскнехти', attack: 4, defense: 3, moves: 1, cost: 40, domain: 'land',
+    prereqTech: 'guilds', descriptionUa: 'Найманці з дворучними мечами й піками: міцні й в атаці, й в обороні.',
+  },
+  [UnitTypeKey.Grenadiers]: {
+    key: UnitTypeKey.Grenadiers, name: 'Grenadiers', nameUa: 'Гренадери', attack: 6, defense: 3, moves: 1, cost: 50, domain: 'land',
+    prereqTech: 'chemistry', descriptionUa: 'Відбірна піхота з ручними гранатами — штурмують укріплення.',
+  },
+  [UnitTypeKey.Cuirassiers]: {
+    key: UnitTypeKey.Cuirassiers, name: 'Cuirassiers', nameUa: 'Кірасири', attack: 6, defense: 3, moves: 2, cost: 60, domain: 'land',
+    prereqTech: 'metallurgy', descriptionUa: 'Важка кіннота в сталевих кірасах.',
+  },
+  [UnitTypeKey.ShipOfTheLine]: {
+    key: UnitTypeKey.ShipOfTheLine, name: 'Ship of the Line', nameUa: 'Лінійний корабель', attack: 6, defense: 4, moves: 4, cost: 70, domain: 'sea',
+    prereqTech: 'magnetism', descriptionUa: 'Три гарматні палуби: король морів до пари й броні.',
+  },
+  [UnitTypeKey.Privateer]: {
+    key: UnitTypeKey.Privateer, name: 'Privateer', nameUa: 'Капер', attack: 4, defense: 2, moves: 5, cost: 50, domain: 'sea',
+    prereqTech: 'navigation', descriptionUa: 'Швидкий корабель із каперським свідоцтвом — полює на ворожі судна.',
+  },
 };
 
 /** Юніт для цивілізації: унікальні — лише своїй, а звичайний, якого її унікальний замінює, — їй ні. */
@@ -754,6 +775,43 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
     key: BuildingTypeKey.SaintSophia, nameUa: 'Софійський собор', cost: 400, maintenance: 0, prereqTech: 'monotheism', isWonder: true, effects: { content: 2, science: 50 }, globalEffects: { content: 1 },
     descriptionUa: 'Чудо світу. Собор Ярослава Мудрого в Києві з мозаїками й бібліотекою: +1 задоволений у кожному вашому місті, тут — ще +2 і +50% науки.',
   },
+  // Етап 10, Середньовіччя і Новий час
+  [BuildingTypeKey.PrintingHouse]: {
+    key: BuildingTypeKey.PrintingHouse, nameUa: 'Друкарня', cost: 80, maintenance: 1, prereqTech: 'printing_press', requires: BuildingTypeKey.Library, effects: { science: 20 },
+    descriptionUa: 'Книги з друкарського верстата: +20% науки (потрібна бібліотека).',
+  },
+  [BuildingTypeKey.Theatre]: {
+    key: BuildingTypeKey.Theatre, nameUa: 'Театр', cost: 80, maintenance: 2, prereqTech: 'humanism', effects: { content: 2 },
+    descriptionUa: 'Вистави для всього міста: +2 задоволених.',
+  },
+  [BuildingTypeKey.Observatory]: {
+    key: BuildingTypeKey.Observatory, nameUa: 'Обсерваторія', cost: 100, maintenance: 2, prereqTech: 'optics', effects: { science: 25 },
+    descriptionUa: 'Телескоп під куполом: +25% науки.',
+  },
+  [BuildingTypeKey.CustomsHouse]: {
+    key: BuildingTypeKey.CustomsHouse, nameUa: 'Митниця', cost: 80, maintenance: 1, prereqTech: 'navigation', coastal: true, effects: { gold: 20 },
+    descriptionUa: 'Мита з кожного корабля: +20% золота (лише на узбережжі).',
+  },
+  [BuildingTypeKey.Foundry]: {
+    key: BuildingTypeKey.Foundry, nameUa: 'Ливарня', cost: 100, maintenance: 2, prereqTech: 'metallurgy', requires: BuildingTypeKey.Workshop, effects: { shields: 20 },
+    descriptionUa: 'Гармати й дзвони з бронзи та чавуну: ще +20% щитів (потрібна майстерня).',
+  },
+  [BuildingTypeKey.TownHall]: {
+    key: BuildingTypeKey.TownHall, nameUa: 'Ратуша', cost: 80, maintenance: 1, prereqTech: 'banking', effects: { content: 1, gold: 10 },
+    descriptionUa: 'Магістрат і міська рада: +1 задоволений, +10% золота.',
+  },
+  [BuildingTypeKey.TajMahal]: {
+    key: BuildingTypeKey.TajMahal, nameUa: 'Тадж-Махал', cost: 450, maintenance: 0, prereqTech: 'humanism', isWonder: true, effects: { content: 3 }, globalEffects: { luxury: 50 },
+    descriptionUa: 'Чудо світу. Біломармуровий мавзолей кохання: +50% розкоші в кожному вашому місті, тут — +3 задоволених.',
+  },
+  [BuildingTypeKey.Versailles]: {
+    key: BuildingTypeKey.Versailles, nameUa: 'Версаль', cost: 450, maintenance: 0, prereqTech: 'economics', isWonder: true, globalEffects: { gold: 15 },
+    descriptionUa: 'Чудо світу. Палац-місто короля-сонця: +15% золота в кожному вашому місті.',
+  },
+  [BuildingTypeKey.Uffizi]: {
+    key: BuildingTypeKey.Uffizi, nameUa: 'Галерея Уффіці', cost: 400, maintenance: 0, prereqTech: 'printing_press', isWonder: true, effects: { luxury: 100 }, globalEffects: { science: 10 },
+    descriptionUa: 'Чудо світу. Скарбниця Ренесансу: +10% науки в кожному вашому місті, тут — розкіш ×2.',
+  },
 };
 
 /** Найбільше частин одного виду на кораблі. */
@@ -861,6 +919,10 @@ export const TECH_TREE: Record<string, Tech> = {
   herbalism: { id: 'herbalism', nameUa: 'Травництво', era: 1, prereqs: ['ceremonial_burial', 'pottery'], descriptionUa: 'Цілющі трави, настої й перші лікарі.' },
   architecture: { id: 'architecture', nameUa: 'Архітектура', era: 2, prereqs: ['construction', 'mathematics'], descriptionUa: 'Арки, склепіння й колонади.' },
   guilds: { id: 'guilds', nameUa: 'Цехи', era: 2, prereqs: ['trade', 'feudalism'], descriptionUa: 'Майстри об\'єднуються й бережуть секрети ремесла.' },
+  // Етап 10, Середньовіччя і Новий час
+  printing_press: { id: 'printing_press', nameUa: 'Друкарство', era: 3, prereqs: ['invention', 'monotheism'], descriptionUa: 'Рухомі літери: книги для всіх.' },
+  humanism: { id: 'humanism', nameUa: 'Гуманізм', era: 3, prereqs: ['philosophy', 'printing_press'], descriptionUa: 'Людина — міра всіх речей: мистецтво й театр.' },
+  optics: { id: 'optics', nameUa: 'Оптика', era: 3, prereqs: ['physics', 'astronomy'], descriptionUa: 'Лінзи, підзорні труби й телескопи.' },
 };
 
 // 21 клітинка міста (Fat Cross Civ 1)

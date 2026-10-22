@@ -96,6 +96,16 @@ const BUILDING_SLOTS: Partial<Record<BuildingTypeKey, { x: number; y: number; sc
   [BuildingTypeKey.Mausoleum]: { x: 300, y: 88, scale: 0.45 },
   [BuildingTypeKey.SilkRoad]: { x: 160, y: 104, scale: 0.4 },
   [BuildingTypeKey.SaintSophia]: { x: 110, y: 92, scale: 0.5 },
+  // Етап 10, Середньовіччя і Новий час
+  [BuildingTypeKey.PrintingHouse]: { x: 350, y: 186, scale: 0.4 },
+  [BuildingTypeKey.Theatre]: { x: 128, y: 172, scale: 0.45 },
+  [BuildingTypeKey.Observatory]: { x: 82, y: 86, scale: 0.45 },
+  [BuildingTypeKey.CustomsHouse]: { x: 360, y: 206, scale: 0.4 },
+  [BuildingTypeKey.Foundry]: { x: 248, y: 98, scale: 0.4 },
+  [BuildingTypeKey.TownHall]: { x: 206, y: 160, scale: 0.45 },
+  [BuildingTypeKey.TajMahal]: { x: 270, y: 90, scale: 0.5 },
+  [BuildingTypeKey.Versailles]: { x: 40, y: 140, scale: 0.5 },
+  [BuildingTypeKey.Uffizi]: { x: 320, y: 110, scale: 0.45 },
 };
 
 const hash = (a: number, b: number) => {

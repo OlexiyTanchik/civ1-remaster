@@ -126,6 +126,12 @@ export enum UnitTypeKey {
   Bireme = 'bireme',
   Crossbowmen = 'crossbowmen',
   Trebuchet = 'trebuchet',
+  // Етап 10, Середньовіччя і Новий час
+  Grenadiers = 'grenadiers',
+  Cuirassiers = 'cuirassiers',
+  ShipOfTheLine = 'ship_of_the_line',
+  Privateer = 'privateer',
+  Landsknechts = 'landsknechts',
 }
 
 export interface UnitConfig {
@@ -298,6 +304,16 @@ export enum BuildingTypeKey {
   Mausoleum = 'mausoleum',
   SilkRoad = 'silk_road',
   SaintSophia = 'saint_sophia',
+  // Етап 10, Середньовіччя і Новий час
+  PrintingHouse = 'printing_house',
+  Theatre = 'theatre',
+  Observatory = 'observatory',
+  CustomsHouse = 'customs_house',
+  Foundry = 'foundry',
+  TownHall = 'town_hall',
+  TajMahal = 'taj_mahal',
+  Versailles = 'versailles',
+  Uffizi = 'uffizi',
 }
 
 /** Частина космічного корабля: каркас тримає двигуни й модулі. */

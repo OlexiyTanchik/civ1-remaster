@@ -1750,4 +1750,9 @@ const UPGRADES: Partial<Record<UnitTypeKey, UnitTypeKey>> = {
   [UnitTypeKey.Bireme]: UnitTypeKey.Caravel,
   [UnitTypeKey.Crossbowmen]: UnitTypeKey.Musketeers,
   [UnitTypeKey.Trebuchet]: UnitTypeKey.Cannon,
+  [UnitTypeKey.Landsknechts]: UnitTypeKey.Musketeers,
+  [UnitTypeKey.Grenadiers]: UnitTypeKey.Riflemen,
+  [UnitTypeKey.Cuirassiers]: UnitTypeKey.Armor,
+  [UnitTypeKey.ShipOfTheLine]: UnitTypeKey.Ironclad,
+  [UnitTypeKey.Privateer]: UnitTypeKey.Destroyer,
 };
