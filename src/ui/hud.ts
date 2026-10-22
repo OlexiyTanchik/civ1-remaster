@@ -7,6 +7,7 @@ import { Unit, UnitTypeKey, BuildingTypeKey } from '../core/types';
 import { MAP_WIDTH, MAP_HEIGHT, UNIT_CONFIGS, TERRAIN_DATA, TERRAIN_NAMES_UA, BUILDING_CONFIGS, GOVERNMENTS, TECH_TREE } from '../core/constants';
 import { MiniMap } from './minimap';
 import { TurnManager } from '../core/turn-manager';
+import { CityLogic } from '../core/city';
 import { MapRenderer } from '../render/map-renderer';
 import { SpriteAtlas } from '../render/sprite-atlas';
 import { TerraformKind, TERRAFORM_INFO, canTerraform, terraformName } from '../core/terraform';
@@ -319,10 +320,10 @@ export class Hud {
     if (popEl) {
       let totalPop = 0;
       for (const c of this.world.cities.values()) {
-        if (c.playerId === 0) totalPop += c.size * 10000;
+        if (c.playerId === 0) totalPop += CityLogic.population(c.size);
       }
       if (totalPop === 0) totalPop = 10000;
-      popEl.textContent = `Населення: ${totalPop.toLocaleString()} чол.`;
+      popEl.textContent = `Населення: ${totalPop.toLocaleString('uk-UA')} чол.`;
     }
 
     const scoreEl = document.getElementById('hud-score');

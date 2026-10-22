@@ -2,7 +2,7 @@
  * Модальне вікно управління містом за автентичним дизайном Civ 1.
  */
 import { City, UnitTypeKey, BuildingTypeKey } from '../core/types';
-import { World } from '../core/world';
+import { World, isObsoleteUnit } from '../core/world';
 import { CityLogic } from '../core/city';
 import { UNIT_CONFIGS, BUILDING_CONFIGS, GOVERNMENTS } from '../core/constants';
 import { drawCityPanorama, PANORAMA_W, PANORAMA_H } from './city-panorama';
@@ -57,6 +57,8 @@ export class CityDialog {
     const units = Object.values(UNIT_CONFIGS)
       .filter((u) => hasTech(u.prereqTech) && (u.domain !== 'sea' || coastal))
       .filter((u) => !u.requiresWonder || this.world.isWonderBuilt(u.requiresWonder))
+      // Застарілі ховаємо, але поточне виробництво лишаємо видимим
+      .filter((u) => !isObsoleteUnit(u.key, known) || city.currentProduction.key === u.key)
       .map((u) => ({ isBuilding: false, key: u.key as string, name: u.nameUa, cost: u.cost, description: u.descriptionUa }));
     const buildings = Object.values(BUILDING_CONFIGS)
       .filter((b) => (b.key !== BuildingTypeKey.Palace || !this.hasPalace(city.playerId)) && hasTech(b.prereqTech) && !city.buildings.includes(b.key))
@@ -128,7 +130,7 @@ export class CityDialog {
     this.overlay.innerHTML = `
       <div class="city-modal city-modal--wide">
         <div class="city-header">
-          <h2>🏛️ ${city.name} · ${(city.size * 10000).toLocaleString('uk-UA')} жителів${yields.disorder ? ' <span class="disorder-badge">БЕЗЛАД</span>' : ''}</h2>
+          <h2>🏛️ ${city.name} · ${CityLogic.population(city.size).toLocaleString('uk-UA')} жителів${yields.disorder ? ' <span class="disorder-badge">БЕЗЛАД</span>' : ''}</h2>
           <button class="btn-close" id="city-close-btn">✖</button>
         </div>
 

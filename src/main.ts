@@ -239,6 +239,12 @@ async function bootstrap() {
 
     renderer.refreshAll();
     selectNextAvailableUnit();
+    // Екран міста — під діалогами дослідження й зустрічей, тож спершу видно їх
+    const idle = result.idleCities.map((id) => world.cities.get(id)).filter((c) => c && c.playerId === 0);
+    if (idle.length) {
+      cityDialog.show(idle[0]!);
+      for (const c of idle.slice(1)) hud.addLogMessage(`🏗️ ${c!.name}: оберіть, що будувати далі (зараз — Ополчення)`);
+    }
     showMeetings();
     // Автозбереження щоходу
     const saveError = saveGame(world, 'auto');

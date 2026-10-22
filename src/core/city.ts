@@ -59,6 +59,11 @@ export interface CityYields {
 const DEFAULT_ENV: CityEnv = { ownerWonders: new Set(), taxRate: 5, scienceRate: 5, luxuryRate: 0, government: 'despotism', garrison: 0 };
 
 export class CityLogic {
+  /** Жителі як у Civ 1: розмір n — це 10 000 × (1 + 2 + … + n), тож великі міста — мільйонні. */
+  static population(size: number): number {
+    return (size * (size + 1) / 2) * 10000;
+  }
+
   /**
    * Обчислює баланс їжі, щитів, торгівлі, корупції, золота, науки та щастя міста.
    */

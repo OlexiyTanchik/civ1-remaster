@@ -770,8 +770,13 @@ export class World {
     return { ok: true, city };
   }
 
-  public processTurnEnd(): { techDiscovered?: string; completedItems: string[] } {
+  /** Коли востаннє нагадували, що місто вперлося в акведук чи каналізацію (не зберігається). */
+  private growthNagTurn = new Map<string, number>();
+
+  public processTurnEnd(): { techDiscovered?: string; completedItems: string[]; idleCities: string[] } {
     const completedItems: string[] = [];
+    // Міста людини, що добудували споруду й перейшли на запасне ополчення, — як у Civ 1, питаємо, що далі
+    const idleCities: string[] = [];
     const human = this.players[0];
 
     // 1. Міста: якщо чудо вже збудував хтось інший — будівництво зривається (як у Civ 1)
@@ -789,8 +794,12 @@ export class World {
       this.enforceUpkeep(city, completedItems);
       const res = CityLogic.processTurn(city, this.tiles, this.cityEnv(city));
       const mine = city.playerId === human.id;
-      if (mine && res.needsAqueduct) completedItems.push(`${city.name} не може рости далі без акведука`);
-      if (mine && res.needsSewer) completedItems.push(`${city.name} не може рости далі без каналізації`);
+      // Нагадування раз на 10 ходів, а не щоходу — інакше заглушує решту журналу
+      const nag = mine && (res.needsAqueduct || res.needsSewer) && this.turnManager.turnNumber - (this.growthNagTurn.get(city.id) ?? -99) >= 10;
+      if (nag) {
+        this.growthNagTurn.set(city.id, this.turnManager.turnNumber);
+        completedItems.push(`${city.name} не може рости далі без ${res.needsAqueduct ? 'акведука' : 'каналізації'}`);
+      }
       if (!res.completedProduction) continue;
       if (!res.completedProduction.isBuilding) {
         const newUnit = this.createUnit(city.playerId, res.completedProduction.key as UnitTypeKey, city.x, city.y, city.id);
@@ -810,6 +819,9 @@ export class World {
           if (mine) completedItems.push(`🚀 ${city.name}: готово — ${cfg.nameUa.replace('🚀 ', '')} (${this.shipSummary(ship)})`);
           continue;
         }
+        if (mine) idleCities.push(city.id);
+        // Запасне ополчення з city.ts у 1900-х — марнування щитів: беремо сучасного оборонця
+        if (city.currentProduction.key === UnitTypeKey.Militia) city.currentProduction = { isBuilding: false, key: bestBasicDefender(this.players[city.playerId].knownTechs) };
         if (cfg.isWonder) {
           if (cfg.key === BuildingTypeKey.Apollo) this.revealAllCities(city.playerId);
           if (cfg.key === BuildingTypeKey.MarcoPolo) this.diplomacy.meetEveryone(city.playerId);
@@ -920,6 +932,7 @@ export class World {
     return {
       techDiscovered: humanTech,
       completedItems,
+      idleCities,
     };
   }
 
@@ -1388,6 +1401,21 @@ const RESOURCES = Object.values(ResourceType);
 const TILE_FLAGS = ['hasRoad', 'hasRailroad', 'hasIrrigation', 'hasMine', 'hasRiver', 'hasPollution', 'hasHut'] as const;
 
 /** Що чим застаріває (для Майстерні Леонардо). */
+/** Застарілий, як у Civ 1: технологія його наступника вже відома. */
+export function isObsoleteUnit(type: UnitTypeKey, knownTechs: string[]): boolean {
+  const next = UPGRADES[type];
+  if (!next) return false;
+  const req = UNIT_CONFIGS[next].prereqTech;
+  return !req || knownTechs.includes(req);
+}
+
+/** Найкращий відомий оборонець з лінійки Ополчення → … → Мотопіхота. */
+export function bestBasicDefender(knownTechs: string[]): UnitTypeKey {
+  let type = UnitTypeKey.Militia;
+  while (isObsoleteUnit(type, knownTechs)) type = UPGRADES[type]!;
+  return type;
+}
+
 const UPGRADES: Partial<Record<UnitTypeKey, UnitTypeKey>> = {
   [UnitTypeKey.Militia]: UnitTypeKey.Phalanx,
   [UnitTypeKey.Phalanx]: UnitTypeKey.Pikemen,
