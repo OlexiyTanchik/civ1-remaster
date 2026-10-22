@@ -392,7 +392,9 @@ export class FleetAi {
     const player = w.players[unit.playerId];
     if (unit.type === UnitTypeKey.Nuclear) return; // ядерну зброю AI не застосовує
     if (this.atBase(unit) && unit.movesLeft > 1) {
-      const target = this.airTarget(unit, player, Math.floor((unit.movesLeft - 1) / 2));
+      // Ракета летить в один бік; решта мусить повернутися на базу
+      const reach = UNIT_CONFIGS[unit.type].missile ? unit.movesLeft - 1 : Math.floor((unit.movesLeft - 1) / 2);
+      const target = this.airTarget(unit, player, reach);
       if (target) this.flyTo(unit, target);
     }
     if (!this.atBase(unit) && unit.movesLeft > 0 && w.units.has(unit.id)) {
@@ -415,7 +417,7 @@ export class FleetAi {
       const d = w.distance(unit.x, unit.y, other.x, other.y);
       if (d > radius) continue;
       const t = w.tiles[other.y][other.x];
-      if (UNIT_CONFIGS[other.type].domain === 'air' && !t.cityId && unit.type !== UnitTypeKey.Fighter) continue;
+      if (UNIT_CONFIGS[other.type].domain === 'air' && !UNIT_CONFIGS[other.type].hover && !t.cityId && !UNIT_CONFIGS[unit.type].interceptor) continue;
       const odds = this.ai.odds(unit, other.x, other.y);
       if (odds < 0.6) continue;
       const score = odds * 10 - d + (t.cityId ? 3 : 0);

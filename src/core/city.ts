@@ -106,7 +106,7 @@ export class CityLogic {
     // Піраміди +25%, фабрика +50%, електростанція, ГЕС чи АЕС (лише з фабрикою; Гребля Гувера — у кожному місті) ще +25%
     let shieldBonus = 1;
     if (has(BuildingTypeKey.Pyramids)) shieldBonus += 0.25;
-    const power = has(BuildingTypeKey.PowerPlant) || has(BuildingTypeKey.NuclearPlant) || has(BuildingTypeKey.HydroPlant) || env.ownerWonders.has(BuildingTypeKey.HooverDam);
+    const power = has(BuildingTypeKey.PowerPlant) || has(BuildingTypeKey.NuclearPlant) || has(BuildingTypeKey.HydroPlant) || has(BuildingTypeKey.SolarPlant) || env.ownerWonders.has(BuildingTypeKey.HooverDam);
     if (has(BuildingTypeKey.Factory)) shieldBonus += power ? 0.75 : 0.5;
     // Завод (Civ 1) — ще +25%, а з електростанцією вдвічі: з усім разом +125%
     if (has(BuildingTypeKey.Factory) && has(BuildingTypeKey.MfgPlant)) shieldBonus += power ? 0.5 : 0.25;
@@ -151,6 +151,8 @@ export class CityLogic {
     if (has(BuildingTypeKey.Library)) sciBonus += has(BuildingTypeKey.University) ? 1 : 0.5;
     if (has(BuildingTypeKey.Copernicus)) sciBonus += 1;
     if (has(BuildingTypeKey.Newton)) sciBonus += 1;
+    // Лабораторія (чи Інтернет у місті з університетом) — ще +50%
+    if (has(BuildingTypeKey.University) && (has(BuildingTypeKey.ResearchLab) || env.ownerWonders.has(BuildingTypeKey.Internet))) sciBonus += 0.5;
     if (env.ownerWonders.has(BuildingTypeKey.Seti)) sciBonus += 0.5;
     science = Math.floor(science * sciBonus);
 

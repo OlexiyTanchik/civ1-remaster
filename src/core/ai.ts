@@ -25,7 +25,7 @@ const RESEARCH_ORDER = [
   'atomic_theory', 'flight', 'nuclear_fission', 'nuclear_power', 'radio', 'advanced_flight', 'rocketry',
   'computers', 'space_flight', 'robotics', 'plastics', 'superconductor',
   // Гірська піхота й шпигуни — після космічних технологій: кожна зайва технологія дорожчає наступні, і космос не встигав до 2100
-  'tactics', 'espionage', 'refrigeration', 'miniaturization', 'combined_arms', 'amphibious_warfare', 'guerrilla_warfare', 'genetic_engineering',
+  'tactics', 'espionage', 'refrigeration', 'miniaturization', 'combined_arms', 'amphibious_warfare', 'guerrilla_warfare', 'genetic_engineering', 'environmentalism', 'stealth',
 ];
 
 /** Корабель, який AI вважає готовим до старту: 3 двигуни, 3 модулі, 6 каркасів (політ 14 р., успіх 100%). */
@@ -160,7 +160,8 @@ export class AiController {
     const myUnits = [...w.units.values()].filter((u) => u.playerId === player.id);
     // Інженери замінюють робітників, шпигун — дипломата: рахуємо разом
     const count = (t: UnitTypeKey) => myUnits.filter((u) => u.type === t || (t === UnitTypeKey.Workers && u.type === UnitTypeKey.Engineers)
-      || (t === UnitTypeKey.Diplomat && u.type === UnitTypeKey.Spy) || (t === UnitTypeKey.Caravan && u.type === UnitTypeKey.Freight)).length;
+      || (t === UnitTypeKey.Diplomat && u.type === UnitTypeKey.Spy) || (t === UnitTypeKey.Caravan && u.type === UnitTypeKey.Freight)
+      || (t === UnitTypeKey.Fighter && u.type === UnitTypeKey.StealthFighter) || (t === UnitTypeKey.Bomber && u.type === UnitTypeKey.StealthBomber)).length;
     const worker = player.knownTechs.includes('explosives') ? UnitTypeKey.Engineers : UnitTypeKey.Workers;
     const trader = player.knownTechs.includes('the_corporation') ? UnitTypeKey.Freight : UnitTypeKey.Caravan;
     const agent = player.knownTechs.includes('espionage') ? UnitTypeKey.Spy : UnitTypeKey.Diplomat;
@@ -248,13 +249,13 @@ export class AiController {
       const part = this.nextSpacePart(player, city);
       if (part) return set(true, part);
     }
-    for (const b of [BuildingTypeKey.Granary, BuildingTypeKey.Library, BuildingTypeKey.Marketplace, BuildingTypeKey.University, BuildingTypeKey.Bank, BuildingTypeKey.StockExchange]) {
+    for (const b of [BuildingTypeKey.Granary, BuildingTypeKey.Library, BuildingTypeKey.Marketplace, BuildingTypeKey.University, BuildingTypeKey.Bank, BuildingTypeKey.StockExchange, BuildingTypeKey.ResearchLab]) {
       if (city.size >= 3 && canBuild(b)) return set(true, b);
     }
     // Індустрія — лише великим містам (утримання й забруднення)
     // Електростанції — одна з трьох (бонус не додається); ГЕС і АЕС чистіші
-    const power = has(BuildingTypeKey.PowerPlant) || has(BuildingTypeKey.NuclearPlant) || has(BuildingTypeKey.HydroPlant);
-    for (const b of [BuildingTypeKey.Factory, BuildingTypeKey.HydroPlant, BuildingTypeKey.NuclearPlant, BuildingTypeKey.PowerPlant]) {
+    const power = has(BuildingTypeKey.PowerPlant) || has(BuildingTypeKey.NuclearPlant) || has(BuildingTypeKey.HydroPlant) || has(BuildingTypeKey.SolarPlant);
+    for (const b of [BuildingTypeKey.Factory, BuildingTypeKey.SolarPlant, BuildingTypeKey.HydroPlant, BuildingTypeKey.NuclearPlant, BuildingTypeKey.PowerPlant]) {
       if (b !== BuildingTypeKey.Factory && power) continue;
       if (city.size >= 8 && canBuild(b)) return set(true, b);
     }
@@ -276,11 +277,14 @@ export class AiController {
     const ships = myUnits.filter((u) => this.isWarship(u.type)).length;
     const ports = allCities.filter((c) => this.isCoastal(c)).length;
     if (hostile && canUpkeep && city.size >= 6 && this.isCoastal(city) && ships < Math.min(3, Math.ceil(ports / 2))) {
-      const warship = this.bestShip(player, 'war');
+      // Проти ворожої авіації — крейсер AEGIS, інакше найсильніший за атакою
+      const enemyAir = player.knownTechs.includes('rocketry') && count(UnitTypeKey.AegisCruiser) < 1
+        && [...w.units.values()].some((u) => UNIT_CONFIGS[u.type].domain === 'air' && w.diplomacy.atWar(player.id, u.playerId));
+      const warship = enemyAir ? UnitTypeKey.AegisCruiser : this.bestShip(player, 'war');
       if (warship) return set(false, warship);
     }
     if (canUpkeep && city.size >= 8 && (threat || hostile) && player.knownTechs.includes('flight') && count(UnitTypeKey.Fighter) < Math.ceil(cities / 3)) {
-      return set(false, UnitTypeKey.Fighter);
+      return set(false, player.knownTechs.includes('stealth') ? UnitTypeKey.StealthFighter : UnitTypeKey.Fighter);
     }
     if (hostile && canUpkeep && city.size >= 8 && player.knownTechs.includes('combined_arms')) {
       if (count(UnitTypeKey.Helicopter) < Math.ceil(cities / 4)) return set(false, UnitTypeKey.Helicopter);
@@ -289,8 +293,11 @@ export class AiController {
     if (hostile && canUpkeep && this.isCoastal(city) && player.knownTechs.includes('amphibious_warfare') && count(UnitTypeKey.Marines) < 2) {
       return set(false, UnitTypeKey.Marines);
     }
+    if (hostile && canUpkeep && city.size >= 8 && player.knownTechs.includes('rocketry') && count(UnitTypeKey.CruiseMissile) < Math.ceil(cities / 4)) {
+      return set(false, UnitTypeKey.CruiseMissile);
+    }
     if (hostile && canUpkeep && city.size >= 8 && player.knownTechs.includes('advanced_flight') && count(UnitTypeKey.Bomber) < Math.ceil(cities / 4)) {
-      return set(false, UnitTypeKey.Bomber);
+      return set(false, player.knownTechs.includes('stealth') ? UnitTypeKey.StealthBomber : UnitTypeKey.Bomber);
     }
     if (cities < MAX_CITIES && city.size >= 2 && fedSettlers) return set(false, UnitTypeKey.Settlers);
     // Армії досить — будуємо місто: решта доступних споруд

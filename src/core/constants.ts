@@ -224,7 +224,7 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
   },
   // Сучасність II: небо й атом
   [UnitTypeKey.Fighter]: {
-    key: UnitTypeKey.Fighter, name: 'Fighter', nameUa: 'Винищувач', attack: 4, defense: 2, moves: 10, cost: 60, domain: 'air', fuel: 1,
+    key: UnitTypeKey.Fighter, name: 'Fighter', nameUa: 'Винищувач', attack: 4, defense: 2, moves: 10, cost: 60, domain: 'air', fuel: 1, interceptor: true,
     prereqTech: 'flight', descriptionUa: 'Пальне на один хід: до кінця ходу сядьте в місті чи на авіаносці. Єдиний, хто збиває літаки.',
   },
   [UnitTypeKey.Bomber]: {
@@ -297,6 +297,25 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
   [UnitTypeKey.Helicopter]: {
     key: UnitTypeKey.Helicopter, name: 'Helicopter', nameUa: 'Гелікоптер', attack: 10, defense: 3, moves: 6, cost: 100, domain: 'air', hover: true,
     prereqTech: 'combined_arms', descriptionUa: 'Летить над будь-чим без пального, але висить низько: його б\'ють і наземні війська. Міст не захоплює.',
+  },
+  // Етап 8: Сучасність
+  [UnitTypeKey.CruiseMissile]: {
+    key: UnitTypeKey.CruiseMissile, name: 'Cruise Missile', nameUa: 'Крилата ракета', attack: 18, defense: 0, moves: 12, cost: 60, domain: 'air', fuel: 1, missile: true,
+    prereqTech: 'rocketry', descriptionUa: 'Один нищівний удар за 12 клітинок — і ракети нема, хоч би як скінчився бій.',
+  },
+  [UnitTypeKey.StealthFighter]: {
+    key: UnitTypeKey.StealthFighter, name: 'Stealth Fighter', nameUa: 'Стелс-винищувач', attack: 8, defense: 4, moves: 14, cost: 80, domain: 'air', fuel: 1,
+    interceptor: true, stealth: true,
+    prereqTech: 'stealth', descriptionUa: 'Збиває літаки; ЗРК і крейсери AEGIS проти нього не посилюються. Пальне на один хід.',
+  },
+  [UnitTypeKey.StealthBomber]: {
+    key: UnitTypeKey.StealthBomber, name: 'Stealth Bomber', nameUa: 'Стелс-бомбардувальник', attack: 14, defense: 5, moves: 12, cost: 160, domain: 'air', fuel: 2,
+    stealth: true,
+    prereqTech: 'stealth', descriptionUa: 'Нищівний удар з неба; мури, ЗРК і AEGIS його не стримують. Пальне на два ходи.',
+  },
+  [UnitTypeKey.AegisCruiser]: {
+    key: UnitTypeKey.AegisCruiser, name: 'AEGIS Cruiser', nameUa: 'Крейсер AEGIS', attack: 8, defense: 8, moves: 5, cost: 100, domain: 'sea', antiAir: true,
+    prereqTech: 'rocketry', descriptionUa: 'Ракетний крейсер: проти літаків і ракет захист ×5.',
   },
 };
 
@@ -574,6 +593,19 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
     key: BuildingTypeKey.OffshorePlatform, nameUa: 'Морська платформа', cost: 120, maintenance: 3, prereqTech: 'miniaturization', coastal: true,
     descriptionUa: 'Кожна морська клітинка міста дає +1 щит. Лише в приморському місті.',
   },
+  // Етап 8: Сучасність
+  [BuildingTypeKey.ResearchLab]: {
+    key: BuildingTypeKey.ResearchLab, nameUa: 'Дослідницька лабораторія', cost: 120, maintenance: 3, prereqTech: 'computers', requires: BuildingTypeKey.University,
+    descriptionUa: 'Ще +50% науки (разом з бібліотекою й університетом). Потрібен університет.',
+  },
+  [BuildingTypeKey.SolarPlant]: {
+    key: BuildingTypeKey.SolarPlant, nameUa: 'Сонячна електростанція', cost: 320, maintenance: 4, prereqTech: 'environmentalism', requires: BuildingTypeKey.Factory,
+    descriptionUa: 'Електростанція без диму: з фабрикою ще +25% щитів, а виробництво міста зовсім не забруднює. Потрібна фабрика.',
+  },
+  [BuildingTypeKey.Internet]: {
+    key: BuildingTypeKey.Internet, nameUa: 'Інтернет', cost: 600, maintenance: 0, prereqTech: 'computers', isWonder: true,
+    descriptionUa: 'Чудо світу. Кожне ваше місто з університетом працює, як з дослідницькою лабораторією.',
+  },
 };
 
 /** Найбільше частин одного виду на кораблі. */
@@ -672,6 +704,8 @@ export const TECH_TREE: Record<string, Tech> = {
   plastics: { id: 'plastics', nameUa: 'Пластмаси', era: 6, prereqs: ['refining', 'space_flight'], descriptionUa: 'Легкі й міцні матеріали для ракетних двигунів.' },
   superconductor: { id: 'superconductor', nameUa: 'Надпровідники', era: 6, prereqs: ['plastics', 'nuclear_power'], descriptionUa: 'Струм без втрат: системи життєзабезпечення для зорельота.' },
   robotics: { id: 'robotics', nameUa: 'Робототехніка', era: 6, prereqs: ['mobile_warfare', 'computers'], descriptionUa: 'Роботи на конвеєрах: заводи нового покоління.' },
+  stealth: { id: 'stealth', nameUa: 'Технологія стелс', era: 6, prereqs: ['superconductor', 'robotics'], descriptionUa: 'Літаки, яких не бачать радари.' },
+  environmentalism: { id: 'environmentalism', nameUa: 'Екологія', era: 6, prereqs: ['recycling', 'space_flight'], descriptionUa: 'Енергія сонця замість диму.' },
   genetic_engineering: { id: 'genetic_engineering', nameUa: 'Генна інженерія', era: 6, prereqs: ['medicine', 'computers'], descriptionUa: 'Ключ до коду життя.' },
 };
 

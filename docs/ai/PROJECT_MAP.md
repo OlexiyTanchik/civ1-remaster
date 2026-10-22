@@ -57,6 +57,8 @@
   Агенти в чужих містах — `AGENTS` (Дипломат, Шпигун), не порівнювати з `UnitTypeKey.Diplomat`.
   Ще прапорці `UnitConfig`: `paradrop` (`World.paradrop`), `marine` (атака з корабля — `resolveCombat(…, mods.fromShip)`), `hover` (гелікоптер: без пального, у небі його б'ють усі; AI веде як наземний `attack`), `wonderShields` (караван 50, вантажівка 80 — `helpWonder`).
   `UnitLogic.resolveCombat(a, d, tile, walls, mods)`: `mods` — `coastal` (Берегова оборона), `sam` (ЗРК), `fromShip`.
+  Авіація: `interceptor` (збиває літаки в небі — Винищувач, Стелс-винищувач; не порівнювати з `UnitTypeKey.Fighter`), `missile` (зникає після удару), `stealth` (ЗРК і AEGIS не діють), `antiAir` (AEGIS ×5).
+  Нові технології Етапу 8 стоять у `RESEARCH_ORDER` після космічних: кожна зайва технологія дорожчає наступні, і AI не встигав до 2100.
 - Перетворення рельєфу інженерами (`TRANSFORM` у `terraform.ts`, робота `transform`, клавіша O): `World.terrainChanges` → `MapRenderer.rebakeTerrain` перепікає шматки 16×16 (`TerrainBaker.rebake`). Без рендерера (симуляції) список лише росте — не страшно.
 - `TileData`: `hasRoad/hasRailroad/hasIrrigation/hasMine/hasRiver/hasHut/hasPollution`, `cityId`, `unitIds`.
 - Ідентифікатори спрайтів: `t_` рельєф, `o_` накладки, `u_<UnitTypeKey>`, `c_tier1..3`, `r_` ресурси, `i_` покращення, `b_<BuildingTypeKey>`, `w_<BuildingTypeKey>` (чудеса), `h_` житла, `bd_` фон панорами.

@@ -257,7 +257,7 @@ export class World {
         if (!atSea && unit.type === UnitTypeKey.Submarine) return { success: false }; // торпеди — лише по кораблях
         const defCity = toTile.cityId ? this.cities.get(toTile.cityId) : undefined;
         // Літак у небі (не в місті) збиває лише винищувач
-        if (!defCity && UNIT_CONFIGS[otherUnit.type].domain === 'air' && !UNIT_CONFIGS[otherUnit.type].hover && !otherUnit.carriedBy && unit.type !== UnitTypeKey.Fighter) {
+        if (!defCity && UNIT_CONFIGS[otherUnit.type].domain === 'air' && !UNIT_CONFIGS[otherUnit.type].hover && !otherUnit.carriedBy && !UNIT_CONFIGS[unit.type].interceptor) {
           return { success: false };
         }
         this.noteAggression(unit.playerId, otherUnit.playerId);
@@ -270,6 +270,12 @@ export class World {
           fromShip: !!unit.carriedBy && UNIT_CONFIGS[unit.type].domain === 'land',
         });
 
+        // Ракета після удару зникає
+        if (UNIT_CONFIGS[unit.type].missile) {
+          if (combat.attackerWon) (defCity ? [otherUnit.id] : [...toTile.unitIds]).forEach((id) => this.removeUnit(id));
+          this.removeUnit(unit.id);
+          return { success: true, combatLog: combat.logUa };
+        }
         if (combat.attackerWon) {
           // Поза містом гине весь стос (Civ 1); у місті — лише захисник
           const losers = defCity ? [otherUnit.id] : [...toTile.unitIds];
@@ -614,12 +620,13 @@ export class World {
     const shields = y.disorder ? 0 : y.shieldsGross;
     // Фабрика — удвічі частіше, АЕС чи ГЕС — удвічі рідше
     const clean = city.buildings.includes(BuildingTypeKey.NuclearPlant) || city.buildings.includes(BuildingTypeKey.HydroPlant);
+    const solar = city.buildings.includes(BuildingTypeKey.SolarPlant);
     const factor = (city.buildings.includes(BuildingTypeKey.Factory) ? 2 : 1) * (clean ? 0.5 : 1)
       * (city.buildings.includes(BuildingTypeKey.RecyclingCenter) ? 1 / 3 : 1)
       * (this.ownerWonders(city.playerId).has(BuildingTypeKey.EiffelTower) ? 0.75 : 1);
     const cars = this.players[city.playerId].knownTechs.includes('automobile') && !city.buildings.includes(BuildingTypeKey.MassTransit);
     const people = cars ? Math.max(0, city.size - 10) : 0;
-    const chance = Math.min(0.6, (Math.max(0, shields - 20) * factor + people) * 0.03);
+    const chance = Math.min(0.6, ((solar ? 0 : Math.max(0, shields - 20) * factor) + people) * 0.03);
     if (Math.random() >= chance) return undefined;
     const options = city.workedTiles
       .map((p) => this.tiles[p.y][p.x])
@@ -1533,6 +1540,9 @@ const UPGRADES: Partial<Record<UnitTypeKey, UnitTypeKey>> = {
   [UnitTypeKey.AlpineTroops]: UnitTypeKey.MechInf,
   [UnitTypeKey.Workers]: UnitTypeKey.Engineers,
   [UnitTypeKey.Caravan]: UnitTypeKey.Freight,
+  [UnitTypeKey.Fighter]: UnitTypeKey.StealthFighter,
+  [UnitTypeKey.Bomber]: UnitTypeKey.StealthBomber,
+  [UnitTypeKey.Cruiser]: UnitTypeKey.AegisCruiser,
   [UnitTypeKey.Diplomat]: UnitTypeKey.Spy,
   [UnitTypeKey.Sail]: UnitTypeKey.Caravel,
   [UnitTypeKey.Caravel]: UnitTypeKey.Frigate,

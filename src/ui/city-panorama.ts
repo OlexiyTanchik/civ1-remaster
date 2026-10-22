@@ -76,6 +76,9 @@ const BUILDING_SLOTS: Partial<Record<BuildingTypeKey, { x: number; y: number; sc
   [BuildingTypeKey.Supermarket]: { x: 110, y: 190, scale: 0.45 },
   [BuildingTypeKey.Superhighways]: { x: 20, y: 165, scale: 0.5 },
   [BuildingTypeKey.OffshorePlatform]: { x: 374, y: 70, scale: 0.4 },
+  [BuildingTypeKey.ResearchLab]: { x: 318, y: 150, scale: 0.45 },
+  [BuildingTypeKey.SolarPlant]: { x: 172, y: 210, scale: 0.45 },
+  [BuildingTypeKey.Internet]: { x: 14, y: 96, scale: 0.45 },
 };
 
 const hash = (a: number, b: number) => {

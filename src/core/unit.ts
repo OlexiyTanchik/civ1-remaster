@@ -83,9 +83,12 @@ export class UnitLogic {
     if (mods.coastal && aCfg.domain === 'sea') {
       defensePower *= 2.0;
     }
-    // ЗРК: захист ×2 проти літаків і гелікоптерів
-    if (mods.sam && aCfg.domain === 'air') {
+    // ЗРК: захист ×2 проти літаків і гелікоптерів (не стелс); AEGIS — ×5
+    if (mods.sam && aCfg.domain === 'air' && !aCfg.stealth) {
       defensePower *= 2.0;
+    }
+    if (dCfg.antiAir && aCfg.domain === 'air' && !aCfg.stealth) {
+      defensePower *= 5.0;
     }
 
     // Класичний раунд бою Civ 1: імовірність перемоги = Attack / (Attack + Defense)

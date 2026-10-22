@@ -101,6 +101,11 @@ export enum UnitTypeKey {
   Destroyer = 'destroyer',
   Freight = 'freight',
   Helicopter = 'helicopter',
+  // Етап 8: Сучасність
+  CruiseMissile = 'cruise_missile',
+  StealthFighter = 'stealth_fighter',
+  StealthBomber = 'stealth_bomber',
+  AegisCruiser = 'aegis_cruiser',
 }
 
 export interface UnitConfig {
@@ -128,6 +133,14 @@ export interface UnitConfig {
   marine?: boolean;
   /** Гелікоптер: літає без пального, але його б'ють і наземні */
   hover?: boolean;
+  /** Збиває літаки в небі (винищувачі) */
+  interceptor?: boolean;
+  /** Ракета: після удару зникає, хоч би як скінчився бій */
+  missile?: boolean;
+  /** Стелс: ЗРК і AEGIS проти нього не посилюються */
+  stealth?: boolean;
+  /** Захист ×5 проти авіації (крейсер AEGIS) */
+  antiAir?: boolean;
   /** Скільки щитів віддає на чудо (караван, вантажівка) */
   wonderShields?: number;
   /** Виробляється лише тоді, коли це чудо збудоване будь-де у світі */
@@ -238,6 +251,10 @@ export enum BuildingTypeKey {
   Supermarket = 'supermarket',
   Superhighways = 'superhighways',
   OffshorePlatform = 'offshore_platform',
+  // Етап 8: Сучасність
+  ResearchLab = 'research_lab',
+  SolarPlant = 'solar_plant',
+  Internet = 'internet',
 }
 
 /** Частина космічного корабля: каркас тримає двигуни й модулі. */
