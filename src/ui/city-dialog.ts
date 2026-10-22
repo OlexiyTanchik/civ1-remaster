@@ -78,7 +78,8 @@ export class CityDialog {
               <span>🪖 На утриманні ${units.length} юн. (безкоштовно ${free})</span>
               <span class="stat-val ${yields.upkeepShields ? 'bad' : 'good'}">${yields.upkeepShields ? `−${yields.upkeepShields} щит.` : 'без витрат'}</span>
               <span class="dim">виробляє ${yields.shieldsGross}</span>
-            </div>`;
+            </div>${yields.upkeepShields && yields.upkeepShields >= yields.shieldsGross ? `
+            <div class="city-stat"><span class="dim">⚠️ Усе виробництво йде на військо: розпустіть зайвих (🗑️, Shift+D) або дайте їм інший «🏠 Дім».</span></div>` : ''}`;
   }
 
   /** Палац будується лише тоді, коли його немає в жодному місті гравця (втрачено столицю). */
