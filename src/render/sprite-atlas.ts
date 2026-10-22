@@ -36,6 +36,9 @@ export const RESOURCE_FRAME: Partial<Record<ResourceType, string>> = {
   [ResourceType.Game]: 'r_game',
 };
 
+/** Замінники відсутніх кадрів за префіксом id. */
+const FALLBACK_FRAME: Record<string, string> = { u_: 'u_militia', b_: 'b_granary', w_: 'w_pyramids', sp_: 'sp_module' };
+
 export class SpriteAtlas {
   public static image: HTMLImageElement;
   private static frames: Record<string, FrameData> = {};
@@ -43,6 +46,7 @@ export class SpriteAtlas {
   private static textures = new Map<string, Texture>();
   /** Кадри, домальовані кодом (без генерації спрайтів). */
   private static extra = new Map<string, HTMLCanvasElement>();
+  private static warned = new Set<string>();
 
   public static async load(): Promise<void> {
     const base = '/assets/sprites/';
@@ -83,13 +87,29 @@ export class SpriteAtlas {
     return name in this.frames || this.extra.has(name);
   }
 
+  /**
+   * Кадр, якого ще нема в атласі (код нового вмісту йде раніше за спрайти), — замінник за префіксом.
+   */
+  private static resolve(name: string): string {
+    if (this.has(name)) return name;
+    const prefix = Object.keys(FALLBACK_FRAME).find((p) => name.startsWith(p));
+    const alt = prefix && this.has(FALLBACK_FRAME[prefix]) ? FALLBACK_FRAME[prefix] : Object.keys(this.frames)[0];
+    if (!this.warned.has(name)) {
+      this.warned.add(name);
+      console.warn(`Спрайт "${name}" відсутній в атласі — малюю "${alt}"`);
+    }
+    return alt;
+  }
+
   public static rect(name: string): { x: number; y: number; w: number; h: number } {
-    const f = this.frames[name];
-    if (!f) throw new Error(`Спрайт "${name}" відсутній в атласі`);
-    return f.frame;
+    name = this.resolve(name);
+    const own = this.extra.get(name);
+    if (own) return { x: 0, y: 0, w: own.width, h: own.height };
+    return this.frames[name].frame;
   }
 
   public static texture(name: string): Texture {
+    name = this.resolve(name);
     let tex = this.textures.get(name);
     if (!tex) {
       const own = this.extra.get(name);
@@ -116,6 +136,7 @@ export class SpriteAtlas {
 
   /** Малює кадр на 2D-полотні (для запікання та HUD). */
   public static draw(ctx: CanvasRenderingContext2D, name: string, dx: number, dy: number, dw?: number, dh?: number): void {
+    name = this.resolve(name);
     const own = this.extra.get(name);
     if (own) return ctx.drawImage(own, dx, dy, dw ?? own.width, dh ?? own.height);
     const { x, y, w, h } = this.rect(name);
@@ -124,6 +145,7 @@ export class SpriteAtlas {
 
   /** Окреме полотно з одним кадром (джерело для createPattern). */
   public static toCanvas(name: string): HTMLCanvasElement {
+    name = this.resolve(name);
     const own = this.extra.get(name);
     if (own) return own;
     const { w, h } = this.rect(name);
