@@ -19,7 +19,7 @@ const RESEARCH_ORDER = [
   'feudalism', 'the_republic', 'monotheism', 'university', 'bridge_building', 'banking', 'chivalry',
   'navigation', 'invention', 'gunpowder',
   'physics', 'medicine', 'economics', 'theory_of_gravity', 'democracy', 'metallurgy', 'magnetism',
-  'steam_engine', 'railroad', 'industrialization', 'chemistry', 'electricity', 'conscription',
+  'steam_engine', 'railroad', 'industrialization', 'communism', 'chemistry', 'electricity', 'conscription',
   'the_corporation', 'steel', 'electronics', 'sanitation', 'explosives', 'refining', 'theology',
   'combustion', 'automobile', 'mass_production', 'machine_tools', 'mobile_warfare', 'labor_union',
   'atomic_theory', 'flight', 'nuclear_fission', 'nuclear_power', 'radio', 'advanced_flight', 'rocketry',
@@ -119,11 +119,11 @@ export class AiController {
 
   // ---------- Устрій ----------
 
-  /** Войовничі лідери тримаються Монархії (воєнний стан), мирні йдуть до Республіки. */
+  /** Войовничі лідери тримаються воєнного стану (Монархія, далі Комунізм), мирні йдуть до Республіки. */
   private chooseGovernment(player: Player): void {
     if (player.government === 'anarchy') return;
     const warlike = (player.hostileFromTurn ?? Infinity) <= 60;
-    const wanted: GovernmentKey[] = warlike ? ['monarchy'] : ['democracy', 'republic', 'monarchy'];
+    const wanted: GovernmentKey[] = warlike ? ['communism', 'monarchy'] : ['democracy', 'republic', 'monarchy'];
     const target = wanted.find((g) => g === player.government || this.world.canAdopt(player.id, g));
     if (target && target !== player.government) this.world.startRevolution(player.id, target);
   }

@@ -217,7 +217,7 @@ export interface GameOver {
 }
 
 /** Державний устрій (Civ 1). Анархія — перехідний стан під час революції. */
-export type GovernmentKey = 'despotism' | 'monarchy' | 'republic' | 'democracy' | 'anarchy';
+export type GovernmentKey = 'despotism' | 'monarchy' | 'republic' | 'democracy' | 'communism' | 'anarchy';
 
 export interface GovernmentConfig {
   key: GovernmentKey;
@@ -227,6 +227,8 @@ export interface GovernmentConfig {
   maxRate: number;
   /** Корупція: частка торгівлі за кожну клітинку від столиці */
   corruptionPerTile: number;
+  /** Корупція однакова в кожному місті, хоч би як далеко від столиці (Комунізм) */
+  flatCorruption?: number;
   /** −1 до будь-якого видобутку клітинки понад 2 */
   tilePenalty: boolean;
   /** +1 торгівлі на клітинках, що вже дають торгівлю */

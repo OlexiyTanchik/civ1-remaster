@@ -503,6 +503,7 @@ export const TECH_TREE: Record<string, Tech> = {
   electricity: { id: 'electricity', nameUa: 'Електрика', era: 3, prereqs: ['metallurgy', 'magnetism'], descriptionUa: 'Струм у дротах.' },
   conscription: { id: 'conscription', nameUa: 'Загальний призов', era: 3, prereqs: ['democracy', 'metallurgy'], descriptionUa: 'Армія з громадян.' },
   // Сучасність I: війни XX століття
+  communism: { id: 'communism', nameUa: 'Комунізм', era: 4, prereqs: ['philosophy', 'industrialization'], descriptionUa: 'Держава робітників: відкриває устрій Комунізм.' },
   the_corporation: { id: 'the_corporation', nameUa: 'Корпорація', era: 4, prereqs: ['economics', 'industrialization'], descriptionUa: 'Акціонерні компанії, більші за королівства.' },
   steel: { id: 'steel', nameUa: 'Сталь', era: 4, prereqs: ['electricity', 'industrialization'], descriptionUa: 'Мартенівські печі: сталеві корпуси й рейки.' },
   explosives: { id: 'explosives', nameUa: 'Вибухівка', era: 4, prereqs: ['gunpowder', 'chemistry'], descriptionUa: 'Динаміт прокладає шлях: робітники працюють удвічі швидше.' },
@@ -515,7 +516,7 @@ export const TECH_TREE: Record<string, Tech> = {
   mass_production: { id: 'mass_production', nameUa: 'Масове виробництво', era: 4, prereqs: ['automobile', 'the_corporation'], descriptionUa: 'Конвеєр: усе для всіх.' },
   machine_tools: { id: 'machine_tools', nameUa: 'Верстати', era: 4, prereqs: ['steel', 'conscription'], descriptionUa: 'Точні верстати: далекобійні гармати.' },
   mobile_warfare: { id: 'mobile_warfare', nameUa: 'Мобільна війна', era: 4, prereqs: ['automobile', 'machine_tools'], descriptionUa: 'Бліцкриг: броня і мотори.' },
-  labor_union: { id: 'labor_union', nameUa: 'Профспілки', era: 4, prereqs: ['mass_production', 'conscription'], descriptionUa: 'Робітники об\'єднуються: армія на колесах.' },
+  labor_union: { id: 'labor_union', nameUa: 'Профспілки', era: 4, prereqs: ['mass_production', 'communism'], descriptionUa: 'Робітники об\'єднуються: армія на колесах.' },
   // Сучасність II: небо й атом
   atomic_theory: { id: 'atomic_theory', nameUa: 'Атомна теорія', era: 5, prereqs: ['theory_of_gravity', 'electronics'], descriptionUa: 'Атом ділиться: ядро, електрони, нейтрони.' },
   flight: { id: 'flight', nameUa: 'Польоти', era: 5, prereqs: ['combustion', 'theory_of_gravity'], descriptionUa: 'Людина в небі.' },
@@ -556,6 +557,10 @@ export const GOVERNMENTS: Record<GovernmentKey, GovernmentConfig> = {
   monarchy: {
     key: 'monarchy', nameUa: 'Монархія', prereqTech: 'monarchy', maxRate: 7, corruptionPerTile: 0.02, tilePenalty: false, tradeBonus: false, martialLaw: 3, freeUnits: 3, settlerFood: 1,
     descriptionUa: 'Без штрафу до клітинок. Військові в місті заспокоюють до 3 невдоволених. Ставки до 70%.',
+  },
+  communism: {
+    key: 'communism', nameUa: 'Комунізм', prereqTech: 'communism', maxRate: 8, corruptionPerTile: 0, flatCorruption: 0.1, tilePenalty: false, tradeBonus: false, martialLaw: 3, freeUnits: 3, settlerFood: 1,
+    descriptionUa: 'Корупція однакова в усіх містах (10%), хоч як далеко від столиці. Військові в місті заспокоюють до 3 невдоволених. Ставки до 80%.',
   },
   democracy: {
     key: 'democracy', nameUa: 'Демократія', prereqTech: 'democracy', maxRate: 9, corruptionPerTile: 0, tilePenalty: false, tradeBonus: true, martialLaw: 0, freeUnits: 0, settlerFood: 2, abroadUnhappy: 2,

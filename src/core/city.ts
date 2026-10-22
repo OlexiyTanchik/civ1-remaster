@@ -111,12 +111,12 @@ export class CityLogic {
     const upkeepShields = Math.max(0, support.units - gov.freeUnits);
     const upkeepFood = support.settlers * gov.settlerFood;
 
-    // Корупція: зростає з відстанню до столиці; суд зменшує вдвічі; столиця не корумпована
+    // Корупція: зростає з відстанню до столиці (за Комунізму — однакова); суд зменшує вдвічі; столиця не корумпована
     let corruptionShare = 0.3; // без палацу — як у Civ 1, держава без центру
     if (env.capital) {
       const dxRaw = Math.abs(city.x - env.capital.x);
       const dist = Math.max(Math.min(dxRaw, MAP_WIDTH - dxRaw), Math.abs(city.y - env.capital.y));
-      corruptionShare = Math.min(0.5, dist * GOVERNMENTS[env.government].corruptionPerTile);
+      corruptionShare = GOVERNMENTS[env.government].flatCorruption ?? Math.min(0.5, dist * GOVERNMENTS[env.government].corruptionPerTile);
     }
     if (has(BuildingTypeKey.Courthouse)) corruptionShare /= 2;
     if (has(BuildingTypeKey.Palace)) corruptionShare = 0;
@@ -157,7 +157,7 @@ export class CityLogic {
     if (env.ownerWonders.has(BuildingTypeKey.HangingGardens)) calm += 1;
     if (env.ownerWonders.has(BuildingTypeKey.Bach)) calm += 2;
     if (env.ownerWonders.has(BuildingTypeKey.CureForCancer)) calm += 1;
-    // Воєнний стан (Монархія): кожен військовий у місті заспокоює одного;
+    // Воєнний стан (Монархія, Комунізм): кожен військовий у місті заспокоює одного;
     // Жіноче виборче право — поліція: до 2 за будь-якого устрою
     const police = env.ownerWonders.has(BuildingTypeKey.WomensSuffrage) ? 2 : 0;
     calm += Math.min(env.garrison, Math.max(GOVERNMENTS[env.government].martialLaw, police));
