@@ -295,6 +295,8 @@ export interface City {
   stolenBy?: number[];
   /** Хід, коли виробництво викуплено: до кінця ходу його не змінити (інакше дешеве перепродавалось би в дороге) */
   boughtTurn?: number;
+  /** Хід, коли людина продала тут споруду (одна на хід, як у Civ 1) */
+  soldTurn?: number;
 }
 
 export interface Tech {

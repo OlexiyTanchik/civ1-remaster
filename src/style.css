@@ -534,6 +534,10 @@ body, html {
   white-space: nowrap;
 }
 .chip--wonder { border-color: #f1c40f; color: #f8e08e; }
+.chip--sell { font: inherit; font-size: 10px; color: inherit; cursor: pointer; }
+.chip--sell:hover:not(:disabled) { border-color: #e67e22; }
+.chip--sell[data-armed] { border-color: #e67e22; color: #ffb36b; }
+.chip--sell:disabled { cursor: default; opacity: 0.7; }
 .prod-list {
   flex: 1;
   min-height: 0;

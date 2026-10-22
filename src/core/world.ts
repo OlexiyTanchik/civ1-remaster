@@ -697,6 +697,17 @@ export class World {
     return unit;
   }
 
+  /** Продаж споруди людиною: одна на місто за хід, за її ціну; палац і чудеса не продаються. Повертає виручку. */
+  public sellCityBuilding(city: City, key: BuildingTypeKey): number {
+    const cfg = BUILDING_CONFIGS[key];
+    const turn = this.turnManager.turnNumber;
+    if (!cfg || cfg.isWonder || key === BuildingTypeKey.Palace || !city.buildings.includes(key) || city.soldTurn === turn) return 0;
+    city.buildings = city.buildings.filter((b) => b !== key);
+    city.soldTurn = turn;
+    this.players[city.playerId].gold += cfg.cost;
+    return cfg.cost;
+  }
+
   /** Викуповує виробництво за золото: воно з'явиться наприкінці ходу. */
   public buyProduction(city: City): boolean {
     const player = this.players[city.playerId];

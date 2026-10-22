@@ -126,6 +126,7 @@ export class CityDialog {
       ['Споруди', options.filter((o) => o.isBuilding && !BUILDING_CONFIGS[o.key as BuildingTypeKey]?.isWonder)],
       ['Чудеса світу', options.filter((o) => o.isBuilding && BUILDING_CONFIGS[o.key as BuildingTypeKey]?.isWonder)],
     ];
+    const sold = city.soldTurn === this.world.turnManager.turnNumber;
     const upkeep = city.buildings.reduce((a, b) => a + (BUILDING_CONFIGS[b]?.maintenance ?? 0), 0);
     const pct = (a: number, b: number) => Math.max(0, Math.min(100, (a / b) * 100));
 
@@ -173,7 +174,15 @@ export class CityDialog {
           <div class="city-col">
             <h4 class="city-subhead">Споруди <span class="dim">утримання −${upkeep} зл./хід</span></h4>
             <div class="building-chips">
-              ${city.buildings.map((b) => `<span class="chip${BUILDING_CONFIGS[b]?.isWonder ? ' chip--wonder' : ''}" title="${BUILDING_CONFIGS[b]?.descriptionUa ?? ''}">${BUILDING_CONFIGS[b]?.isWonder ? '🌟' : ''}${BUILDING_CONFIGS[b]?.nameUa ?? b}</span>`).join('') || '<span class="dim">ще нічого не збудовано</span>'}
+              ${city.buildings.map((b) => {
+                const cfg = BUILDING_CONFIGS[b];
+                // Звичайну споруду можна продати (зайве утримання), чудо й палац — ні
+                if (cfg && !cfg.isWonder && b !== BuildingTypeKey.Palace) {
+                  const title = sold ? 'Цього ходу тут уже продано споруду' : `${cfg.descriptionUa ?? ''} Клацніть, щоб продати за ${cfg.cost} зл.`;
+                  return `<button class="chip chip--sell" data-sell="${b}" title="${title}"${sold ? ' disabled' : ''}>${cfg.nameUa}</button>`;
+                }
+                return `<span class="chip${cfg?.isWonder ? ' chip--wonder' : ''}" title="${cfg?.descriptionUa ?? ''}">${cfg?.isWonder ? '🌟' : ''}${cfg?.nameUa ?? b}</span>`;
+              }).join('') || '<span class="dim">ще нічого не збудовано</span>'}
             </div>
 
             <h4 class="city-subhead">Виробництво</h4>
@@ -198,6 +207,22 @@ export class CityDialog {
         this.onUpdate();
         this.render();
       }
+    });
+
+    // Продаж — у два кліки: перший лише питає ціну
+    this.overlay.querySelectorAll<HTMLButtonElement>('button[data-sell]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.sell as BuildingTypeKey;
+        if (!btn.dataset.armed) {
+          btn.dataset.armed = '1';
+          btn.textContent = `Продати за ${BUILDING_CONFIGS[key].cost} зл.?`;
+          return;
+        }
+        if (this.world.sellCityBuilding(city, key)) {
+          this.onUpdate();
+          this.render();
+        }
+      });
     });
 
     const buttons = this.overlay.querySelectorAll('#prod-buttons button');
