@@ -741,6 +741,16 @@
       "id": "w_internet",
       "kind": "building",
       "prompt": "the Internet wonder: a tall glowing blue server tower with cables and a globe hologram on top"
+    },
+    {
+      "id": "w_sumy_school_1",
+      "kind": "building",
+      "prompt": "a 19th–early 20th century two-storey Ukrainian gymnasium building of red brick with white trim, tall arched windows, a small clock and a school bell above the entrance, a flagpole"
+    },
+    {
+      "id": "w_sumy_polytech",
+      "kind": "building",
+      "prompt": "a large Ukrainian university main building: wide multi-storey façade with a central entrance portico of columns, many windows, a university emblem above the door and green trees in front"
     }
   ]
 }

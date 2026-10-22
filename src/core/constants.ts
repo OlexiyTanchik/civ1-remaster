@@ -615,6 +615,15 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
     key: BuildingTypeKey.SolarPlant, nameUa: 'Сонячна електростанція', cost: 320, maintenance: 4, prereqTech: 'environmentalism', requires: BuildingTypeKey.Factory,
     descriptionUa: 'Електростанція без диму: з фабрикою ще +25% щитів, а виробництво міста зовсім не забруднює. Потрібна фабрика.',
   },
+  // Сумські чудеса: школа — Новий час, політех — XX століття
+  [BuildingTypeKey.SumySchool]: {
+    key: BuildingTypeKey.SumySchool, nameUa: 'Сумська середня школа №1', cost: 400, maintenance: 0, prereqTech: 'economics', isWonder: true,
+    descriptionUa: 'Чудо світу. Червона цегла, дзвоник над входом і вчителі, що пам\'ятають кожного учня. Усі технології на 15% дешевші; у місті +2 задоволених — випускники.',
+  },
+  [BuildingTypeKey.SumyPolytech]: {
+    key: BuildingTypeKey.SumyPolytech, nameUa: 'Сумський політехнічний університет', cost: 500, maintenance: 0, prereqTech: 'electronics', isWonder: true,
+    descriptionUa: 'Чудо світу. Колони, герб над входом і студенти, що креслять майбутнє. +100% науки в місті, +25% у кожному місті з університетом; раз на 20 ходів великий інженер дає +100 щитів будівництву.',
+  },
   [BuildingTypeKey.Internet]: {
     key: BuildingTypeKey.Internet, nameUa: 'Інтернет', cost: 600, maintenance: 0, prereqTech: 'computers', isWonder: true,
     descriptionUa: 'Чудо світу. Кожне ваше місто з університетом працює, як з дослідницькою лабораторією.',

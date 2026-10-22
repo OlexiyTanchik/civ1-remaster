@@ -260,6 +260,8 @@ export enum BuildingTypeKey {
   ResearchLab = 'research_lab',
   SolarPlant = 'solar_plant',
   Internet = 'internet',
+  SumySchool = 'sumy_school_1',
+  SumyPolytech = 'sumy_polytech',
   Coinage = 'coinage',
 }
 

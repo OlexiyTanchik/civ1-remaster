@@ -41,6 +41,7 @@ export class World {
   /** Нова гра з налаштувань або відновлення збереженої. */
   constructor(options: GameOptions = DEFAULT_OPTIONS, save?: SaveData) {
     this.options = save ? save.options : options;
+    TurnManager.techDiscount = (p) => (this.ownerWonders(p.id).has(BuildingTypeKey.SumySchool) ? 0.85 : 1);
     const size = MAP_SIZES[this.options.mapSize];
     setMapSize(size.w, size.h);
     if (save) {
@@ -1134,6 +1135,18 @@ export class World {
       if (p.isBarbarian || !this.ownerWonders(p.id).has(BuildingTypeKey.Leonardo)) continue;
       const up = this.leonardoUpgrade(p);
       if (up && p.id === human.id) completedItems.push(`🔧 Майстерня Леонардо: ${up}`);
+    }
+    // Сумський політех: раз на 20 ходів великий інженер — +100 щитів будівництву випадкового міста власника
+    if (this.turnManager.turnNumber % 20 === 0) {
+      const poly = [...this.cities.values()].find((c) => c.buildings.includes(BuildingTypeKey.SumyPolytech));
+      const mine = poly ? [...this.cities.values()].filter((c) => c.playerId === poly.playerId && c.currentProduction.key !== BuildingTypeKey.Coinage) : [];
+      if (mine.length) {
+        const c = mine[Math.floor(Math.random() * mine.length)];
+        c.shieldsStored += 100;
+        const msg = `🎓 Випускник Сумського політеху — великий інженер — дав +100 щитів місту ${c.name} (${this.players[c.playerId].nameUa})`;
+        if (c.playerId === human.id) completedItems.push(msg);
+        else this.news.push(msg);
+      }
     }
     // Забруднення: продуктивні міста (понад 20 щитів), особливо з фабриками
     for (const city of this.cities.values()) {

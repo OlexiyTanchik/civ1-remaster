@@ -61,10 +61,13 @@ export class TurnManager {
    * перша — 10 колб, десята — 100. Тому епохи змінюються повільно.
    * Після 30-ї — ще +3,5% за кожну: великі міста пізньої гри закривали все дерево до 1950 р.
    */
+  /** Знижка на дослідження від чудес власника (Сумська школа №1) — ставить World, бо гравець не знає своїх міст. */
+  public static techDiscount?: (player: Player) => number;
+
   public static researchCost(player: Player): number {
     const n = player.knownTechs.length + (player.futureTechs ?? 0);
     const late = 1 + Math.max(0, n - 30) * 0.035;
-    return Math.round((n + 1) * 10 * late * (player.researchFactor ?? 1));
+    return Math.round((n + 1) * 10 * late * (player.researchFactor ?? 1) * (this.techDiscount?.(player) ?? 1));
   }
 
   /** Технологія за id (включно з технологією майбутнього). */
