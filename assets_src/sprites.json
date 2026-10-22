@@ -1190,7 +1190,7 @@
     {
       "id": "b_city_park",
       "kind": "building",
-      "prompt": "a city park with green trees, a round fountain, benches and a small white bandstand"
+      "prompt": "a small city park: a round fountain, two benches and a few green trees around a small white bandstand, compact isolated object on a small patch of ground, no square background tile"
     },
     {
       "id": "b_stadium",
@@ -1220,17 +1220,17 @@
     {
       "id": "w_terracotta_army",
       "kind": "building",
-      "prompt": "the Terracotta Army: rows of clay warrior statues with horses in an excavation pit"
+      "prompt": "the Terracotta Army: three rows of clay terracotta warrior statues standing in a small excavation pit, compact isolated object on a small patch of ground, no square background tile"
     },
     {
       "id": "w_kyiv_lavra",
       "kind": "building",
-      "prompt": "the Kyiv Pechersk Lavra: a white Ukrainian baroque monastery with golden domes and a tall golden-domed bell tower on a green hill above a river"
+      "prompt": "the Kyiv Pechersk Lavra: a white monastery cathedral with golden domes and a tall white-and-gold bell tower beside it, compact isolated object on a small patch of ground, no square background tile"
     },
     {
       "id": "w_space_station",
       "kind": "building",
-      "prompt": "the International Space Station: modules and big golden solar panel wings in orbit above a blue Earth horizon"
+      "prompt": "a space station: a modular space station with long solar panel wings and a docked capsule, floating, no planet and no stars behind it, compact isolated object on a small patch of ground, no square background tile"
     }
   ]
 }
