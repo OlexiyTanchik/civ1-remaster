@@ -936,6 +936,47 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
     key: BuildingTypeKey.SpaceElevator, nameUa: 'Космічний ліфт', cost: 900, maintenance: 0, prereqTech: 'nanotechnology', isWonder: true, globalEffects: { shields: 20 },
     descriptionUa: 'Чудо світу. Трос із нанотрубок до орбіти: +20% щитів у кожному вашому місті.',
   },
+  // Етап 10, унікальні споруди цивілізацій: кожна будує лише свою
+  [BuildingTypeKey.Sich]: {
+    key: BuildingTypeKey.Sich, nameUa: 'Запорізька Січ', cost: 80, maintenance: 1, prereqTech: 'feudalism', civ: 'rus', effects: { content: 1, shields: 15 },
+    descriptionUa: 'Унікальна споруда Русі. Козацька фортеця на острові за порогами: +1 задоволений, +15% щитів.',
+  },
+  [BuildingTypeKey.RomanRoads]: {
+    key: BuildingTypeKey.RomanRoads, nameUa: 'Римські дороги', cost: 70, maintenance: 1, prereqTech: 'construction', civ: 'romans', effects: { trade: 2, gold: 10 },
+    descriptionUa: 'Унікальна споруда Риму. Усі дороги ведуть до Риму: +2 торгівлі, +10% золота.',
+  },
+  [BuildingTypeKey.Obelisk]: {
+    key: BuildingTypeKey.Obelisk, nameUa: 'Обеліск', cost: 50, maintenance: 1, prereqTech: 'ceremonial_burial', civ: 'egyptians', effects: { content: 2 },
+    descriptionUa: 'Унікальна споруда Єгипту. Гранітна голка з ієрогліфами на славу фараона: +2 задоволених.',
+  },
+  [BuildingTypeKey.Academy]: {
+    key: BuildingTypeKey.Academy, nameUa: 'Академія', cost: 80, maintenance: 1, prereqTech: 'philosophy', civ: 'greeks', effects: { science: 25, content: 1 },
+    descriptionUa: 'Унікальна споруда Греції. Оливковий гай Платона, де сперечаються філософи: +25% науки, +1 задоволений.',
+  },
+  [BuildingTypeKey.Ziggurat]: {
+    key: BuildingTypeKey.Ziggurat, nameUa: 'Зикурат', cost: 70, maintenance: 1, prereqTech: 'mysticism', civ: 'babylonians', effects: { science: 15, content: 1 },
+    descriptionUa: 'Унікальна споруда Вавилону. Ступінчастий храм, з якого жерці стежать за зорями: +15% науки, +1 задоволений.',
+  },
+  [BuildingTypeKey.Kontor]: {
+    key: BuildingTypeKey.Kontor, nameUa: 'Ганзейська контора', cost: 80, maintenance: 1, prereqTech: 'banking', civ: 'germans', effects: { gold: 25 },
+    descriptionUa: 'Унікальна споруда Германії. Купецький двір Ганзи: +25% золота.',
+  },
+  [BuildingTypeKey.ExamHall]: {
+    key: BuildingTypeKey.ExamHall, nameUa: 'Палата імператорських іспитів', cost: 70, maintenance: 1, prereqTech: 'literacy', civ: 'chinese', effects: { science: 15, gold: 10 },
+    descriptionUa: 'Унікальна споруда Китаю. Тут обирають чиновників за знаннями: +15% науки, +10% золота.',
+  },
+  [BuildingTypeKey.HordePastures]: {
+    key: BuildingTypeKey.HordePastures, nameUa: 'Пасовища орди', cost: 50, maintenance: 1, prereqTech: 'horseback_riding', civ: 'mongols', effects: { food: 15, shields: 10 },
+    descriptionUa: 'Унікальна споруда Монголії. Безкраї степові пасовища: +15% їжі, +10% щитів.',
+  },
+  [BuildingTypeKey.Chinampas]: {
+    key: BuildingTypeKey.Chinampas, nameUa: 'Чинампи', cost: 50, maintenance: 1, prereqTech: 'pottery', civ: 'aztecs', effects: { food: 20 },
+    descriptionUa: 'Унікальна споруда ацтеків. Плавучі сади на озері: +20% їжі.',
+  },
+  [BuildingTypeKey.RoyalDockyard]: {
+    key: BuildingTypeKey.RoyalDockyard, nameUa: 'Королівська верф', cost: 80, maintenance: 1, prereqTech: 'navigation', civ: 'english', coastal: true, effects: { shields: 20, gold: 10 },
+    descriptionUa: 'Унікальна споруда Англії. Тут будують флот, що править морями: +20% щитів, +10% золота (лише на узбережжі).',
+  },
 };
 
 /** Найбільше частин одного виду на кораблі. */

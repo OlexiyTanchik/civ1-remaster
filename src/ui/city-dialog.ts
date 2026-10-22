@@ -68,6 +68,7 @@ export class CityDialog {
       .map((u) => ({ isBuilding: false, key: u.key as string, name: u.nameUa, cost: u.cost, description: u.descriptionUa }));
     const buildings = Object.values(BUILDING_CONFIGS)
       .filter((b) => (b.key !== BuildingTypeKey.Palace || !this.hasPalace(city.playerId)) && hasTech(b.prereqTech) && !city.buildings.includes(b.key))
+      .filter((b) => !b.civ || b.civ === this.world.players[city.playerId].civ)
       .filter((b) => (!b.requires || city.buildings.includes(b.requires)) && (!b.coastal || coastal) && (!b.highland || this.world.isHighland(city)))
       .filter((b) => !b.isWonder || !this.world.isWonderBuilt(b.key))
       .filter((b) => !b.spacePart || this.world.canBuildSpacePart(city.playerId, b.key))

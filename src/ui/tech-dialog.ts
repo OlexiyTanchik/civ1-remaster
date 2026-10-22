@@ -11,7 +11,7 @@ function unlocksOf(techId: string, civ?: CivKey): string {
   const parts: string[] = [];
   for (const u of Object.values(UNIT_CONFIGS)) if (u.prereqTech === techId && unitForCiv(u, civ)) parts.push(`${u.civ ? '⭐' : '⚔️'} ${u.nameUa}`);
   for (const b of Object.values(BUILDING_CONFIGS)) {
-    if (b.prereqTech === techId) parts.push(`${b.isWonder ? '🌟' : '🏛️'} ${b.nameUa}`);
+    if (b.prereqTech === techId && (!b.civ || b.civ === civ)) parts.push(`${b.isWonder ? '🌟' : '🏛️'} ${b.nameUa}`);
   }
   if (techId === 'bridge_building') parts.push('🛤️ Дороги через річки');
   if (techId === 'explosives') parts.push('⛏️ Робітники працюють удвічі швидше');

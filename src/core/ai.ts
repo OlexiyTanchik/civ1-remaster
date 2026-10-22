@@ -149,7 +149,7 @@ export class AiController {
       if (b === BuildingTypeKey.Palace) return false; // палац — окремим правилом нижче
       const cfg = BUILDING_CONFIGS[b];
       if (!essential.has(b) && !affordable(cfg.maintenance)) return false;
-      return !has(b) && (!cfg.prereqTech || player.knownTechs.includes(cfg.prereqTech))
+      return !has(b) && (!cfg.civ || cfg.civ === player.civ) && (!cfg.prereqTech || player.knownTechs.includes(cfg.prereqTech))
         && (!cfg.isWonder || !w.isWonderBuilt(b))
         && (!cfg.requires || has(cfg.requires))
         && (!cfg.coastal || this.isCoastal(city)) && (!cfg.highland || this.world.isHighland(city));
@@ -332,7 +332,7 @@ export class AiController {
     if (cities < 14 && city.size >= 3 && fedSettlers) return set(false, UnitTypeKey.Settlers);
     // Юніти коштують утримання — тож наостанок краще будь-яка ще не збудована споруда
     const leftover = Object.values(BUILDING_CONFIGS)
-      .filter((b) => !b.isWonder && !b.spacePart && !b.coinage && b.key !== BuildingTypeKey.Palace && !has(b.key)
+      .filter((b) => !b.isWonder && !b.spacePart && !b.coinage && b.key !== BuildingTypeKey.Palace && !has(b.key) && (!b.civ || b.civ === player.civ)
         && (!b.prereqTech || player.knownTechs.includes(b.prereqTech)) && (!b.requires || has(b.requires)) && (!b.coastal || this.isCoastal(city)) && (!b.highland || this.world.isHighland(city)))
       .sort((a, b) => a.maintenance - b.maintenance || a.cost - b.cost)[0];
     if (leftover && affordable(leftover.maintenance)) return set(true, leftover.key);

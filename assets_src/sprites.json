@@ -1106,6 +1106,56 @@
       "id": "w_space_elevator",
       "kind": "building",
       "prompt": "a space elevator: a thin glowing cable rising from a large ground station into the sky with a climber capsule on it"
+    },
+    {
+      "id": "b_sich",
+      "kind": "building",
+      "prompt": "the Zaporozhian Sich: a wooden Cossack fortress on a river island with a palisade, a watchtower, a small wooden church with a green dome and white-washed huts"
+    },
+    {
+      "id": "b_roman_roads",
+      "kind": "building",
+      "prompt": "a Roman paved road with a stone milestone, a small arched bridge and a roadside way station with red tiled roof"
+    },
+    {
+      "id": "b_obelisk",
+      "kind": "building",
+      "prompt": "a tall red granite Egyptian obelisk with carved hieroglyphs and a golden tip on a stepped stone base"
+    },
+    {
+      "id": "b_academy",
+      "kind": "building",
+      "prompt": "Plato's Academy: a small Greek marble stoa with columns among olive trees and a philosopher statue"
+    },
+    {
+      "id": "b_ziggurat",
+      "kind": "building",
+      "prompt": "a Babylonian stepped ziggurat of mud bricks with a staircase up the front and a small blue-tiled shrine on top"
+    },
+    {
+      "id": "b_kontor",
+      "kind": "building",
+      "prompt": "a Hanseatic merchant kontor: a tall brick stepped-gable warehouse with a hoist beam, bales and barrels at the door"
+    },
+    {
+      "id": "b_exam_hall",
+      "kind": "building",
+      "prompt": "a Chinese imperial examination hall: a long red wooden building with a curved tiled roof, rows of small cells and a gate with lanterns"
+    },
+    {
+      "id": "b_horde_pastures",
+      "kind": "building",
+      "prompt": "Mongol steppe pastures with white felt yurts, a herd of horses and a wooden horse corral"
+    },
+    {
+      "id": "b_chinampas",
+      "kind": "building",
+      "prompt": "Aztec chinampas: rectangular floating garden plots with maize and flowers separated by canals, a small reed canoe"
+    },
+    {
+      "id": "b_royal_dockyard",
+      "kind": "building",
+      "prompt": "an English royal dockyard: a wooden ship hull on slipways under a crane, timber stacks and a brick storehouse by the water"
     }
   ]
 }

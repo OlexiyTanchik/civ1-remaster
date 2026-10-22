@@ -126,6 +126,17 @@ const BUILDING_SLOTS: Partial<Record<BuildingTypeKey, { x: number; y: number; sc
   [BuildingTypeKey.Collider]: { x: 56, y: 70, scale: 0.45 },
   [BuildingTypeKey.SeedVault]: { x: 330, y: 76, scale: 0.4 },
   [BuildingTypeKey.SpaceElevator]: { x: 268, y: 66, scale: 0.55 },
+  // Етап 10, унікальні споруди (у кожному місті стоїть лише одна з них)
+  [BuildingTypeKey.Sich]: { x: 88, y: 130, scale: 0.42 },
+  [BuildingTypeKey.RomanRoads]: { x: 88, y: 130, scale: 0.42 },
+  [BuildingTypeKey.Obelisk]: { x: 88, y: 130, scale: 0.42 },
+  [BuildingTypeKey.Academy]: { x: 88, y: 130, scale: 0.42 },
+  [BuildingTypeKey.Ziggurat]: { x: 88, y: 130, scale: 0.42 },
+  [BuildingTypeKey.Kontor]: { x: 88, y: 130, scale: 0.42 },
+  [BuildingTypeKey.ExamHall]: { x: 88, y: 130, scale: 0.42 },
+  [BuildingTypeKey.HordePastures]: { x: 88, y: 130, scale: 0.42 },
+  [BuildingTypeKey.Chinampas]: { x: 88, y: 130, scale: 0.42 },
+  [BuildingTypeKey.RoyalDockyard]: { x: 88, y: 130, scale: 0.42 },
 };
 
 const hash = (a: number, b: number) => {

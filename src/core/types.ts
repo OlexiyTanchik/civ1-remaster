@@ -348,6 +348,17 @@ export enum BuildingTypeKey {
   Collider = 'collider',
   SeedVault = 'seed_vault',
   SpaceElevator = 'space_elevator',
+  // Етап 10, унікальні споруди цивілізацій
+  Sich = 'sich',
+  RomanRoads = 'roman_roads',
+  Obelisk = 'obelisk',
+  Academy = 'academy',
+  Ziggurat = 'ziggurat',
+  Kontor = 'kontor',
+  ExamHall = 'exam_hall',
+  HordePastures = 'horde_pastures',
+  Chinampas = 'chinampas',
+  RoyalDockyard = 'royal_dockyard',
 }
 
 /** Частина космічного корабля: каркас тримає двигуни й модулі. */
@@ -426,6 +437,8 @@ export interface BuildingConfig {
   spacePart?: SpacePart;
   /** Капіталізація: не будується ніколи, щити щоходу йдуть у золото */
   coinage?: boolean;
+  /** Унікальна споруда: будує лише ця цивілізація */
+  civ?: CivKey;
   /** Загальні ефекти в цьому місті */
   effects?: BuildingEffects;
   /** Чудо: ефекти в кожному місті власника */

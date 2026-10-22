@@ -777,7 +777,7 @@ export class World {
       case 'artist': {
         // Подарунок — найдешевша ще не збудована споруда, що заспокоює людей
         const gift = Object.values(BUILDING_CONFIGS)
-          .filter((b) => !b.isWonder && !b.coastal && !b.highland && !has(b.key) && (!b.requires || has(b.requires))
+          .filter((b) => !b.isWonder && !b.coastal && !b.highland && !has(b.key) && (!b.requires || has(b.requires)) && (!b.civ || b.civ === p.civ)
             && (!b.prereqTech || p.knownTechs.includes(b.prereqTech))
             && ((b.effects?.content ?? 0) > 0 || b.key === BuildingTypeKey.Temple || b.key === BuildingTypeKey.Colosseum || b.key === BuildingTypeKey.Cathedral))
           .sort((a, b) => a.cost - b.cost)[0];
