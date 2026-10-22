@@ -3,7 +3,7 @@
  */
 import {
   MAP_WIDTH, MAP_HEIGHT, UNIT_CONFIGS, BUILDING_CONFIGS, TECH_TREE, GOVERNMENTS, SPACE_LIMITS,
-  CIVS, MAP_SIZES, DIFFICULTIES, DEFAULT_OPTIONS, AGENTS, setMapSize,
+  CIVS, MAP_SIZES, DIFFICULTIES, DEFAULT_OPTIONS, AGENTS, WARMING_LIMIT, setMapSize,
 } from './constants';
 import {
   TileData, Unit, City, Player, PlayerFog, UnitTypeKey, TerrainType, BuildingTypeKey, GovernmentKey, Spaceship, GameOver,
@@ -191,8 +191,10 @@ export class World {
     this.news.push(text);
   }
 
-  /** Клітинки зі зміненим рельєфом (інженери) — рендерер перепікає їхні шматки. */
+  /** Клітинки зі зміненим рельєфом (інженери, потепління) — рендерер перепікає їхні шматки. */
   public terrainChanges: { x: number; y: number }[] = [];
+  /** Глобальне потепління (Civ 1): накопичується від смогу понад норму; на `WARMING_LIMIT` — зміна клімату. */
+  public warming = 0;
 
   /** Чий мир порушить цей хід: бойовий юніт іде на загін чи місто цивілізації, з якою не воюємо. */
   public peaceVictim(unit: Unit, targetX: number, targetY: number): number | undefined {
@@ -688,6 +690,44 @@ export class World {
     return `☁️ Забруднення біля міста ${city.name}! Пошліть робітників очистити [P].`;
   }
 
+  /** Скільки забрудненої землі світ витримує без потепління: ~1 клітинка на 128. */
+  public warmingSafe(): number {
+    return Math.round((MAP_WIDTH * MAP_HEIGHT) / 128);
+  }
+
+  /**
+   * Глобальне потепління (Civ 1): кожна забруднена клітинка понад норму наближає зміну клімату,
+   * чиста планета повільно остигає. На межі — узбережжя заболочуються, поля висихають, ліси дичавіють.
+   */
+  private globalWarming(): void {
+    let polluted = 0;
+    for (const row of this.tiles) for (const t of row) if (t.hasPollution) polluted++;
+    const before = this.warming;
+    this.warming = Math.max(0, this.warming + (polluted > this.warmingSafe() ? polluted - this.warmingSafe() : -2));
+    if (before < WARMING_LIMIT / 2 && this.warming >= WARMING_LIMIT / 2) {
+      this.news.push(`🌡️ Клімат теплішає: забрудненої землі ${polluted} клітинок. Очищайте смог [P], інакше почнеться глобальне потепління!`);
+    }
+    if (this.warming < WARMING_LIMIT) return;
+    this.warming = 0;
+    const land: TileData[] = [];
+    for (const row of this.tiles) for (const t of row) if (t.terrain !== TerrainType.Ocean && !t.cityId) land.push(t);
+    let changed = 0;
+    for (let i = 0; i < Math.round((MAP_WIDTH * MAP_HEIGHT) / 200) && land.length; i++) {
+      const t = land.splice(Math.floor(Math.random() * land.length), 1)[0];
+      const coast = [[0, -1], [0, 1], [-1, 0], [1, 0]].some(([dx, dy]) => this.tiles[t.y + dy]?.[(t.x + dx + MAP_WIDTH) % MAP_WIDTH]?.terrain === TerrainType.Ocean);
+      const next = coast && WARMING_COAST.has(t.terrain) ? TerrainType.Swamp : WARMING_INLAND[t.terrain];
+      if (!next || next === t.terrain) continue;
+      t.terrain = next;
+      t.resource = ResourceType.None;
+      t.hasIrrigation = false;
+      t.hasMine = false;
+      this.terrainChanges.push({ x: t.x, y: t.y });
+      changed++;
+    }
+    for (const c of this.cities.values()) CityLogic.autoAssignWorkers(c, this.tiles, this.cityEnv(c));
+    this.news.push(`🌍 Глобальне потепління! Змінився клімат ${changed} клітинок: узбережжя заболочуються, поля висихають, ліси стають джунглями.`);
+  }
+
   /** Чудеса, якими володіє гравець (у будь-якому з його міст). */
   public ownerWonders(playerId: number): Set<BuildingTypeKey> {
     const out = new Set<BuildingTypeKey>();
@@ -1100,6 +1140,7 @@ export class World {
       const msg = this.pollute(city);
       if (msg && city.playerId === human.id) completedItems.push(msg);
     }
+    this.globalWarming();
 
     // 4. Хід AI і навала варварів
     // Знайомства (юніти й міста поруч), потім дипломатія й ходи AI
@@ -1385,6 +1426,7 @@ export class World {
       diplomacy: this.diplomacy.serialize(),
       barbarianId: this.barbarianId,
       gameOver: this.gameOver,
+      warming: this.warming,
     };
   }
 
@@ -1416,6 +1458,7 @@ export class World {
     this.aggression = new Map(s.aggression);
     this.diplomacy.restore(s.diplomacy);
     this.gameOver = s.gameOver;
+    this.warming = s.warming ?? 0;
   }
 
   /**
@@ -1631,7 +1674,14 @@ export interface SaveData {
   barbarianId: number;
   gameOver?: GameOver;
   diplomacy?: DiplomacyData;
+  warming?: number;
 }
+
+const WARMING_COAST = new Set([TerrainType.Grassland, TerrainType.Plains, TerrainType.Tundra, TerrainType.Forest, TerrainType.Jungle]);
+const WARMING_INLAND: Partial<Record<TerrainType, TerrainType>> = {
+  [TerrainType.Grassland]: TerrainType.Plains, [TerrainType.Plains]: TerrainType.Desert, [TerrainType.Forest]: TerrainType.Jungle,
+  [TerrainType.Glacier]: TerrainType.Tundra, [TerrainType.Tundra]: TerrainType.Plains,
+};
 
 const TERRAINS = Object.values(TerrainType);
 const RESOURCES = Object.values(ResourceType);

@@ -4,7 +4,7 @@
  */
 import { World } from '../core/world';
 import { Unit, UnitTypeKey, BuildingTypeKey } from '../core/types';
-import { MAP_WIDTH, MAP_HEIGHT, UNIT_CONFIGS, TERRAIN_DATA, TERRAIN_NAMES_UA, BUILDING_CONFIGS, GOVERNMENTS, TECH_TREE } from '../core/constants';
+import { WARMING_LIMIT, MAP_WIDTH, MAP_HEIGHT, UNIT_CONFIGS, TERRAIN_DATA, TERRAIN_NAMES_UA, BUILDING_CONFIGS, GOVERNMENTS, TECH_TREE } from '../core/constants';
 import { MiniMap } from './minimap';
 import { TurnManager } from '../core/turn-manager';
 import { CityLogic } from '../core/city';
@@ -89,6 +89,7 @@ export class Hud {
           <div class="status-row tech-link" id="hud-tech" title="Поточне дослідження (колби / ціна). Клік — обрати інше">🧪 Обрати дослідження</div>
           <div class="status-row" id="hud-pop" title="Населення всіх ваших міст">Населення: 10,000</div>
           <div class="status-row tech-link" id="hud-gov" title="Змінити державний устрій">🏛️ Лад: Деспотизм</div>
+          <div class="status-row hidden" id="hud-warming" title="Глобальне потепління: росте від забрудненої землі понад норму; на 100% — зміна клімату"></div>
           <div class="status-row" id="hud-score" title="Рахунок: задоволений житель +1, щасливий +2, чудо +20, технологія майбутнього +5, смог −5">🏆 Рахунок: 0</div>
           <div class="status-row tech-link hidden" id="hud-space" title="Космічний корабель до Альфи Центавра">🚀 Космічна гонка</div>
         </div>
@@ -396,6 +397,13 @@ export class Hud {
 
     const scoreEl = document.getElementById('hud-score');
     if (scoreEl) scoreEl.textContent = `🏆 Рахунок: ${this.world.score(0).total}`;
+    const warmEl = document.getElementById('hud-warming');
+    if (warmEl) {
+      const pct = Math.round((this.world.warming / WARMING_LIMIT) * 100);
+      warmEl.classList.toggle('hidden', pct === 0);
+      warmEl.textContent = `🌡️ Потепління: ${pct}%`;
+      warmEl.style.color = pct >= 50 ? '#ff7a5c' : '';
+    }
     // Космічна гонка з'являється в панелі, щойно хтось збудував «Аполлон» або ми вміємо літати в космос
     const spaceEl = document.getElementById('hud-space');
     if (spaceEl) {

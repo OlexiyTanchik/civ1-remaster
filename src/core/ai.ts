@@ -6,7 +6,7 @@
  */
 import type { World } from './world';
 import { City, Unit, TileData, UnitTypeKey, BuildingTypeKey, TerrainType, Player, GovernmentKey } from './types';
-import { AGENTS, UNIT_CONFIGS, BUILDING_CONFIGS, TERRAIN_DATA, FAT_CROSS_OFFSETS, MAP_WIDTH, MAP_HEIGHT, GOVERNMENTS } from './constants';
+import { AGENTS, UNIT_CONFIGS, BUILDING_CONFIGS, TERRAIN_DATA, FAT_CROSS_OFFSETS, MAP_WIDTH, MAP_HEIGHT, GOVERNMENTS, WARMING_LIMIT } from './constants';
 import { tileYield, TerraformKind, checkTerraform } from './terraform';
 import { TurnManager } from './turn-manager';
 import { FleetAi } from './ai-fleet';
@@ -219,6 +219,8 @@ export class AiController {
     // Робітники: від двох міст, а єдиному місту, що не росте, — одразу (зрошення)
     if ((cities >= 2 || yields.foodSurplus <= 0) && count(UnitTypeKey.Workers) < Math.ceil(cities / 2)) return set(false, worker);
     if (garrison < this.garrisonNeed(city)) return set(false, defender);
+    // Клімат теплішає — робітник на кожне місто, щоб встигати чистити смог
+    if (w.warming >= WARMING_LIMIT * 0.3 && count(UnitTypeKey.Workers) < cities) return set(false, worker);
     // Лише Ополчення в гарнізоні — рання навала варварів забирала такі міста одне за одним
     if (defender !== UnitTypeKey.Militia && !this.hasRealDefender(city)) return set(false, defender);
     if (threat && canBuild(BuildingTypeKey.CityWalls)) return set(true, BuildingTypeKey.CityWalls);
