@@ -621,14 +621,14 @@ export class World {
   }
 
   /** Чи збудоване чудо будь-де у світі. */
-  /** Гори чи пагорби поруч із містом — є де поставити ГЕС (річок на мапі нема). */
+  /** Річка, гори чи пагорби поруч із містом — є де поставити ГЕС (Civ 1). */
   public isHighland(city: City): boolean {
     for (let dy = -1; dy <= 1; dy++) {
       const row = this.tiles[city.y + dy];
       if (!row) continue;
       for (let dx = -1; dx <= 1; dx++) {
-        const t = row[(city.x + dx + row.length) % row.length].terrain;
-        if (t === TerrainType.Mountains || t === TerrainType.Hills) return true;
+        const t = row[(city.x + dx + row.length) % row.length];
+        if (t.hasRiver || t.terrain === TerrainType.Mountains || t.terrain === TerrainType.Hills) return true;
       }
     }
     return false;

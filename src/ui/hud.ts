@@ -4,7 +4,7 @@
  */
 import { World } from '../core/world';
 import { Unit, UnitTypeKey, BuildingTypeKey } from '../core/types';
-import { MAP_WIDTH, MAP_HEIGHT, UNIT_CONFIGS, TERRAIN_DATA, BUILDING_CONFIGS, GOVERNMENTS } from '../core/constants';
+import { MAP_WIDTH, MAP_HEIGHT, UNIT_CONFIGS, TERRAIN_DATA, TERRAIN_NAMES_UA, BUILDING_CONFIGS, GOVERNMENTS, TECH_TREE } from '../core/constants';
 import { MiniMap } from './minimap';
 import { TurnManager } from '../core/turn-manager';
 import { MapRenderer } from '../render/map-renderer';
@@ -24,6 +24,8 @@ function turnsWord(n: number): string {
   if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return 'ходи';
   return 'ходів';
 }
+
+const allTechsKnown = (known: string[]) => Object.keys(TECH_TREE).every((id) => known.includes(id));
 
 export class Hud {
   private sidebarEl: HTMLElement;
@@ -202,7 +204,11 @@ export class Hud {
         ? 'Заснуйте перше місто: оберіть поселенців і натисніть [B]. Найкраще — на траві чи рівнині біля річки або моря.'
         : undefined;
     }
-    if (!human.currentTechId) return 'Оберіть дослідження: клік на «🧪» у панелі. Обробка бронзи, Алфавіт і Гончарство — добрий початок.';
+    if (!human.currentTechId && !allTechsKnown(human.knownTechs)) {
+      return human.knownTechs.length
+        ? 'Оберіть наступне дослідження: клік на «🧪» у панелі.'
+        : 'Оберіть дослідження: клік на «🧪» у панелі. Обробка бронзи, Алфавіт і Гончарство — добрий початок.';
+    }
     const roads = cities.some((c) => [[0, 1], [1, 0], [0, -1], [-1, 0]].some(([dx, dy]) => {
       const t = w.tiles[c.y + dy]?.[(c.x + dx + w.tiles[0].length) % w.tiles[0].length];
       return t?.hasRoad && !t.cityId;
@@ -286,7 +292,8 @@ export class Hud {
         const t = TurnManager.techById(human.currentTechId)!;
         techEl.textContent = `🧪 ${t.nameUa} (${human.researchProgress}/${TurnManager.researchCost(human)})`;
       } else {
-        techEl.textContent = '🧪 Обрати дослідження';
+        // Наприкінці гри обирати вже нічого — не кличемо до порожнього списку
+        techEl.textContent = allTechsKnown(human.knownTechs) ? '🧪 Усе досліджено' : '🧪 Обрати дослідження';
       }
     }
 
@@ -336,7 +343,7 @@ export class Hud {
           selectedUnit.homeCityId ? `🏠 ${this.world.cities.get(selectedUnit.homeCityId)?.name ?? '—'}` : '',
           cfg.fuel ? `⛽ Пальне: ${selectedUnit.fuel ?? cfg.fuel}/${cfg.fuel} ход. — сідайте в місті чи на авіаносці` : '',
         ].filter(Boolean).join(' • ');
-        terrainEl.textContent = `Рельєф: ${currentTile.terrain} (Захист: x${terrainYield.defenseBonus})${notes ? ' • ' + notes : ''}`;
+        terrainEl.textContent = `Рельєф: ${TERRAIN_NAMES_UA[currentTile.terrain]}${currentTile.hasRiver ? ', річка' : ''} (Захист: x${terrainYield.defenseBonus})${notes ? ' • ' + notes : ''}`;
       }
 
       if (portraitCanvas) {

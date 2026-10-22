@@ -259,7 +259,7 @@ export interface BuildingConfig {
   requires?: BuildingTypeKey;
   /** Лише в прибережному місті */
   coastal?: boolean;
-  /** Лише біля гір чи пагорбів (ГЕС) */
+  /** Лише біля річки, гір чи пагорбів (ГЕС) */
   highland?: boolean;
   /** Будується лише тоді, коли це чудо збудоване будь-де у світі */
   requiresWonder?: BuildingTypeKey;

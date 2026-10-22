@@ -100,6 +100,13 @@ export const TERRAIN_DATA: Record<TerrainType, TerrainYield> = {
   [TerrainType.Swamp]:     { food: 1, shields: 0, trade: 0, moveCost: 2, defenseBonus: 1.5, color: 0x384a30 },
 };
 
+export const TERRAIN_NAMES_UA: Record<TerrainType, string> = {
+  [TerrainType.Ocean]: 'океан', [TerrainType.Grassland]: 'луки', [TerrainType.Plains]: 'рівнина',
+  [TerrainType.Desert]: 'пустеля', [TerrainType.Tundra]: 'тундра', [TerrainType.Glacier]: 'льодовик',
+  [TerrainType.Hills]: 'пагорби', [TerrainType.Mountains]: 'гори', [TerrainType.Forest]: 'ліс',
+  [TerrainType.Jungle]: 'джунглі', [TerrainType.Swamp]: 'болото',
+};
+
 // Конфігурація бойових та цивільних юнітів Civ 1
 export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
   [UnitTypeKey.Settlers]: {
@@ -405,7 +412,7 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
   },
   [BuildingTypeKey.HydroPlant]: {
     key: BuildingTypeKey.HydroPlant, nameUa: 'ГЕС', cost: 240, maintenance: 4, prereqTech: 'electronics', requires: BuildingTypeKey.Factory, highland: true,
-    descriptionUa: 'Як електростанція (+25% щитів з фабрикою, не додається до неї), але забруднення вдвічі рідше. Лише біля гір чи пагорбів.',
+    descriptionUa: 'Як електростанція (+25% щитів з фабрикою, не додається до неї), але забруднення вдвічі рідше. Лише біля річки, гір чи пагорбів.',
   },
   [BuildingTypeKey.MfgPlant]: {
     key: BuildingTypeKey.MfgPlant, nameUa: 'Завод', cost: 320, maintenance: 6, prereqTech: 'robotics', requires: BuildingTypeKey.Factory,

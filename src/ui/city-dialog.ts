@@ -89,7 +89,7 @@ export class CityDialog {
     if (!cost) return '';
     const gold = this.world.players[city.playerId].gold;
     return `<div class="city-stat">
-      <button class="btn-action" id="city-buy-btn"${gold < cost ? ' disabled' : ''} title="Решта щитів за золото; з порожнім запасом — удвічі дорожче, чудеса — теж удвічі">💰 Купити за ${cost} зл.</button>
+      <button class="btn-primary" id="city-buy-btn"${gold < cost ? ' disabled' : ''} title="Решта щитів за золото; з порожнім запасом — удвічі дорожче, чудеса — теж удвічі">💰 Купити за ${cost} зл.</button>
       <span class="dim">у скарбниці ${gold}</span>
     </div>`;
   }
