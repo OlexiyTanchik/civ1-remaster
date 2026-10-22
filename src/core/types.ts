@@ -99,6 +99,17 @@ export enum UnitTypeKey {
   Marines = 'marines',
   Partisans = 'partisans',
   Fanatics = 'fanatics',
+  // Унікальні юніти цивілізацій
+  Cossacks = 'cossacks',
+  Praetorians = 'praetorians',
+  WarChariot = 'war_chariot',
+  Hoplites = 'hoplites',
+  BabylonBowmen = 'babylon_bowmen',
+  Panzer = 'panzer',
+  ChuKoNu = 'chu_ko_nu',
+  Keshik = 'keshik',
+  JaguarWarriors = 'jaguar_warriors',
+  Longbowmen = 'longbowmen',
   Elephants = 'elephants',
   Awacs = 'awacs',
   Destroyer = 'destroyer',
@@ -130,6 +141,9 @@ export interface UnitConfig {
   allTerrainAsRoad?: boolean;
   /** Будується лише за цього устрою і тоді ж не потребує утримання (Фанатики) */
   requiresGovernment?: GovernmentKey;
+  /** Унікальний юніт: будує лише ця цивілізація, замість `replaces` */
+  civ?: CivKey;
+  replaces?: UnitTypeKey;
   /** Радіус огляду (типово 2) */
   vision?: number;
   /** Десант: зі свого міста з повним рухом — стрибок на клітинку за стільки клітинок */
@@ -261,7 +275,7 @@ export enum BuildingTypeKey {
   SolarPlant = 'solar_plant',
   Internet = 'internet',
   SumySchool = 'sumy_school_1',
-  SumyPolytech = 'sumy_polytech',
+  SumDU = 'sumdu',
   Coinage = 'coinage',
 }
 

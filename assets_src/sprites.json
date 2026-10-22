@@ -748,9 +748,59 @@
       "prompt": "a three-storey Soviet-era Ukrainian school building seen from the front: long horizontal façade of pale cream plaster with light yellow trim, regular rows of white-framed windows, a single-storey entrance porch in the centre with a flat green canopy on thin green posts, two tall dark green fir trees in front on each side, a light paved forecourt"
     },
     {
-      "id": "w_sumy_polytech",
+      "id": "w_sumdu",
       "kind": "building",
-      "prompt": "a large Ukrainian university main building: wide multi-storey façade with a central entrance portico of columns, many windows, a university emblem above the door and green trees in front"
+      "prompt": "a Soviet-modernist Ukrainian university campus seen from the front: on the left a tall beige concrete high-rise tower block with many horizontal rows of windows and small antennas on the roof; in front of it a long low two-storey terracotta red building with three projecting cantilevered boxes over the entrances, each box with a small blue shield emblem, beige concrete frames between the blocks, a wide light paved plaza in front and a few green trees"
+    },
+    {
+      "id": "u_cossacks",
+      "kind": "unit",
+      "prompt": "a Ukrainian Zaporozhian Cossack horseman with a long topknot, red sharovary trousers, a sabre raised and a musket on the back, riding a galloping horse"
+    },
+    {
+      "id": "u_praetorians",
+      "kind": "unit",
+      "prompt": "a Roman Praetorian guard in a gilded muscle cuirass with a purple cloak, a large oval red scutum shield and a gladius"
+    },
+    {
+      "id": "u_war_chariot",
+      "kind": "unit",
+      "prompt": "an ancient Egyptian war chariot with two horses, a driver and an archer with a composite bow, gold and blue decorations"
+    },
+    {
+      "id": "u_hoplites",
+      "kind": "unit",
+      "prompt": "an ancient Greek hoplite with a bronze Corinthian helmet with a red crest, a round bronze aspis shield and a long spear"
+    },
+    {
+      "id": "u_babylon_bowmen",
+      "kind": "unit",
+      "prompt": "a Babylonian archer in a long blue tunic with a curly beard, a tall conical cap and a large wicker shield, drawing a bow"
+    },
+    {
+      "id": "u_panzer",
+      "kind": "unit",
+      "prompt": "a grey German WW2 Panzer IV tank with a long barrel gun, side skirts and a black-white cross emblem"
+    },
+    {
+      "id": "u_chu_ko_nu",
+      "kind": "unit",
+      "prompt": "a Chinese soldier in lamellar armour with a red tassel helmet holding a repeating crossbow chu-ko-nu with a magazine on top"
+    },
+    {
+      "id": "u_keshik",
+      "kind": "unit",
+      "prompt": "a Mongol keshik horse archer in a fur-trimmed hat and lamellar armour shooting a recurve bow from a galloping steppe pony"
+    },
+    {
+      "id": "u_jaguar_warriors",
+      "kind": "unit",
+      "prompt": "an Aztec jaguar warrior wearing a jaguar pelt with the head as a helmet, holding a macuahuitl obsidian club and a round feathered shield"
+    },
+    {
+      "id": "u_longbowmen",
+      "kind": "unit",
+      "prompt": "an English yeoman longbowman in a green hood and brown gambeson drawing a tall longbow"
     }
   ]
 }

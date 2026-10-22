@@ -80,7 +80,8 @@ const BUILDING_SLOTS: Partial<Record<BuildingTypeKey, { x: number; y: number; sc
   [BuildingTypeKey.SolarPlant]: { x: 172, y: 210, scale: 0.45 },
   [BuildingTypeKey.Internet]: { x: 14, y: 96, scale: 0.45 },
   [BuildingTypeKey.SumySchool]: { x: 74, y: 164, scale: 0.45 },
-  [BuildingTypeKey.SumyPolytech]: { x: 136, y: 204, scale: 0.5 },
+  // Вежа СумДУ висока — на дальньому плані за палацом, щоб нікого не закривала
+  [BuildingTypeKey.SumDU]: { x: 186, y: 74, scale: 0.5 },
 };
 
 const hash = (a: number, b: number) => {

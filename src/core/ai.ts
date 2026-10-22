@@ -6,7 +6,7 @@
  */
 import type { World } from './world';
 import { City, Unit, TileData, UnitTypeKey, BuildingTypeKey, TerrainType, Player, GovernmentKey } from './types';
-import { AGENTS, UNIT_CONFIGS, BUILDING_CONFIGS, TERRAIN_DATA, FAT_CROSS_OFFSETS, MAP_WIDTH, MAP_HEIGHT, GOVERNMENTS, WARMING_LIMIT } from './constants';
+import { AGENTS, UNIT_CONFIGS, BUILDING_CONFIGS, TERRAIN_DATA, FAT_CROSS_OFFSETS, MAP_WIDTH, MAP_HEIGHT, GOVERNMENTS, WARMING_LIMIT, unitForCiv } from './constants';
 import { tileYield, TerraformKind, checkTerraform } from './terraform';
 import { TurnManager } from './turn-manager';
 import { FleetAi } from './ai-fleet';
@@ -389,14 +389,16 @@ export class AiController {
   private bestUnit(player: Player, by: 'attack' | 'defense'): UnitTypeKey {
     const units = Object.values(UNIT_CONFIGS).filter(
       (u) => u.domain === 'land' && u.attack > 0 && (!u.prereqTech || player.knownTechs.includes(u.prereqTech))
-        && (!u.requiresGovernment || u.requiresGovernment === player.government)
+        && (!u.requiresGovernment || u.requiresGovernment === player.government) && unitForCiv(u, player.civ)
     );
     const pool = units.filter((u) => (by === 'attack' ? u.attack > u.defense : u.defense >= u.attack));
     const list = pool.length ? pool : units;
     // Рівні за обороною — беремо Пікінерів (бонус проти вершників)
-    const def = (u: { key: UnitTypeKey; defense: number }) => u.defense + (u.key === UnitTypeKey.Pikemen ? 0.5 : 0);
+    const def = (u: { key: UnitTypeKey; defense: number }) => u.defense + (u.key === UnitTypeKey.Pikemen || u.key === UnitTypeKey.ChuKoNu ? 0.5 : 0);
     // Рівні за атакою — беремо міцнішого (Танки, а не Артилерію)
-    list.sort((a, b) => (by === 'attack' ? b.attack - a.attack || b.defense - a.defense : def(b) - def(a)) || a.cost - b.cost);
+    // Свій унікальний юніт — гордість нації: AI бере його, поки він не надто відстав від новітніх
+    const atk = (u: { attack: number; civ?: string }) => u.attack + (u.civ ? 2.5 : 0);
+    list.sort((a, b) => (by === 'attack' ? atk(b) - atk(a) || b.defense - a.defense : def(b) + (b.civ ? 1 : 0) - def(a) - (a.civ ? 1 : 0)) || a.cost - b.cost);
     return list[0]?.key ?? UnitTypeKey.Militia;
   }
 

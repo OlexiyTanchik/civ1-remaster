@@ -157,9 +157,9 @@ export class CityLogic {
     // Лабораторія (чи Інтернет у місті з університетом) — ще +50%
     if (has(BuildingTypeKey.University) && (has(BuildingTypeKey.ResearchLab) || env.ownerWonders.has(BuildingTypeKey.Internet))) sciBonus += 0.5;
     if (env.ownerWonders.has(BuildingTypeKey.Seti)) sciBonus += 0.5;
-    // Сумський політех: +100% у своєму місті, +25% у кожному місті власника з університетом
-    if (has(BuildingTypeKey.SumyPolytech)) sciBonus += 1;
-    if (env.ownerWonders.has(BuildingTypeKey.SumyPolytech) && has(BuildingTypeKey.University)) sciBonus += 0.25;
+    // СумДУ: +100% у своєму місті, +25% у кожному місті власника з університетом
+    if (has(BuildingTypeKey.SumDU)) sciBonus += 1;
+    if (env.ownerWonders.has(BuildingTypeKey.SumDU) && has(BuildingTypeKey.University)) sciBonus += 0.25;
     science = Math.floor(science * sciBonus * (gov.scienceFactor ?? 1));
 
     // Щастя: серед працюючих перші 4 задоволені, решта невдоволені (артисти не бунтують)

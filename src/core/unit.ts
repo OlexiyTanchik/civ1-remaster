@@ -5,7 +5,8 @@ import { UNIT_CONFIGS, TERRAIN_DATA, MAP_WIDTH } from './constants';
 import { Unit, TileData, UnitTypeKey } from './types';
 
 /** Кіннота, проти якої стоять піки. */
-const MOUNTED = new Set([UnitTypeKey.Cavalry, UnitTypeKey.Chariot, UnitTypeKey.Elephants, UnitTypeKey.Knights, UnitTypeKey.Crusaders]);
+const MOUNTED = new Set([UnitTypeKey.Cavalry, UnitTypeKey.Chariot, UnitTypeKey.Elephants, UnitTypeKey.Knights, UnitTypeKey.Crusaders,
+  UnitTypeKey.WarChariot, UnitTypeKey.Keshik, UnitTypeKey.Cossacks]);
 
 export class UnitLogic {
   /**
@@ -66,7 +67,7 @@ export class UnitLogic {
     defensePower *= terrainBonus;
 
     // Пікінери проти вершників — захист ×2 (танки й мотопіхота — не коні)
-    if (defender.type === UnitTypeKey.Pikemen && MOUNTED.has(attacker.type)) {
+    if ((defender.type === UnitTypeKey.Pikemen || defender.type === UnitTypeKey.ChuKoNu) && MOUNTED.has(attacker.type)) {
       defensePower *= 2;
     }
 

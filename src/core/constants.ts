@@ -330,7 +330,59 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
     key: UnitTypeKey.AegisCruiser, name: 'AEGIS Cruiser', nameUa: 'Крейсер AEGIS', attack: 8, defense: 8, moves: 5, cost: 100, domain: 'sea', antiAir: true,
     prereqTech: 'rocketry', descriptionUa: 'Ракетний крейсер: проти літаків і ракет захист ×5.',
   },
+  // Унікальні юніти: кожна цивілізація має свій замість звичайного юніта тієї ж епохи
+  [UnitTypeKey.Cossacks]: {
+    key: UnitTypeKey.Cossacks, name: 'Cossacks', nameUa: 'Козаки', attack: 6, defense: 2, moves: 3, cost: 50, domain: 'land',
+    civ: 'rus', replaces: UnitTypeKey.Dragoons, prereqTech: 'leadership', descriptionUa: 'Унікальний юніт Русі замість Драгунів: запорожці на баских конях — швидші й сильніші в атаці.',
+  },
+  [UnitTypeKey.Praetorians]: {
+    key: UnitTypeKey.Praetorians, name: 'Praetorians', nameUa: 'Преторіанці', attack: 4, defense: 2, moves: 1, cost: 25, domain: 'land',
+    civ: 'romans', replaces: UnitTypeKey.Legion, prereqTech: 'iron_working', descriptionUa: 'Унікальний юніт Риму замість Легіону: гвардія імператора, міцніша в обороні.',
+  },
+  [UnitTypeKey.WarChariot]: {
+    key: UnitTypeKey.WarChariot, name: 'War Chariot', nameUa: 'Колісниця фараона', attack: 4, defense: 2, moves: 2, cost: 40, domain: 'land',
+    civ: 'egyptians', replaces: UnitTypeKey.Chariot, prereqTech: 'the_wheel', descriptionUa: 'Унікальний юніт Єгипту замість Колісниці: легка колісниця з лучником, не така вразлива в обороні.',
+  },
+  [UnitTypeKey.Hoplites]: {
+    key: UnitTypeKey.Hoplites, name: 'Hoplites', nameUa: 'Гопліти', attack: 1, defense: 3, moves: 1, cost: 20, domain: 'land',
+    civ: 'greeks', replaces: UnitTypeKey.Phalanx, prereqTech: 'bronze_working', descriptionUa: 'Унікальний юніт Греції замість Фаланги: щит до щита — найкраща рання оборона.',
+  },
+  [UnitTypeKey.BabylonBowmen]: {
+    key: UnitTypeKey.BabylonBowmen, name: 'Babylonian Bowmen', nameUa: 'Лучники Вавилону', attack: 3, defense: 3, moves: 1, cost: 30, domain: 'land',
+    civ: 'babylonians', replaces: UnitTypeKey.Archers, prereqTech: 'warrior_code', descriptionUa: 'Унікальний юніт Вавилону замість Лучників: тримають мури не гірше за мушкетерів.',
+  },
+  [UnitTypeKey.Panzer]: {
+    key: UnitTypeKey.Panzer, name: 'Panzer', nameUa: 'Панцер', attack: 10, defense: 6, moves: 4, cost: 80, domain: 'land',
+    civ: 'germans', replaces: UnitTypeKey.Armor, prereqTech: 'mobile_warfare', descriptionUa: 'Унікальний юніт Германії замість Танків: швидший і краще броньований.',
+  },
+  [UnitTypeKey.ChuKoNu]: {
+    key: UnitTypeKey.ChuKoNu, name: 'Chu-Ko-Nu', nameUa: 'Чу-ко-ну', attack: 3, defense: 2, moves: 1, cost: 25, domain: 'land',
+    civ: 'chinese', replaces: UnitTypeKey.Pikemen, prereqTech: 'feudalism', descriptionUa: 'Унікальний юніт Китаю замість Пікінерів: багатозарядні арбалети — б\'ють сильніше й так само тримають кінноту (×2).',
+  },
+  [UnitTypeKey.Keshik]: {
+    key: UnitTypeKey.Keshik, name: 'Keshik', nameUa: 'Кешик', attack: 4, defense: 2, moves: 3, cost: 40, domain: 'land',
+    civ: 'mongols', replaces: UnitTypeKey.Knights, prereqTech: 'chivalry', descriptionUa: 'Унікальний юніт Монголії замість Лицарів: кінні лучники хана — 3 ходи.',
+  },
+  [UnitTypeKey.JaguarWarriors]: {
+    key: UnitTypeKey.JaguarWarriors, name: 'Jaguar Warriors', nameUa: 'Воїни-ягуари', attack: 4, defense: 1, moves: 1, cost: 15, domain: 'land',
+    civ: 'aztecs', replaces: UnitTypeKey.Legion, prereqTech: 'iron_working', descriptionUa: 'Унікальний юніт ацтеків замість Легіону: дешеві й люті воїни в шкурах ягуара.',
+  },
+  [UnitTypeKey.Longbowmen]: {
+    key: UnitTypeKey.Longbowmen, name: 'Longbowmen', nameUa: 'Лучники-йомени', attack: 4, defense: 2, moves: 1, cost: 30, domain: 'land',
+    civ: 'english', replaces: UnitTypeKey.Archers, prereqTech: 'warrior_code', descriptionUa: 'Унікальний юніт Англії замість Лучників: довгий лук б\'є далі й сильніше.',
+  },
 };
+
+/** Юніт для цивілізації: унікальні — лише своїй, а звичайний, якого її унікальний замінює, — їй ні. */
+export function unitForCiv(cfg: UnitConfig, civ?: CivKey): boolean {
+  if (cfg.civ) return cfg.civ === civ;
+  return !civ || !Object.values(UNIT_CONFIGS).some((u) => u.civ === civ && u.replaces === cfg.key);
+}
+
+/** Чим цивілізація будує цей юніт: своїм унікальним, якщо він його замінює. */
+export function civUnit(type: UnitTypeKey, civ?: CivKey): UnitTypeKey {
+  return Object.values(UNIT_CONFIGS).find((u) => u.civ && u.civ === civ && u.replaces === type)?.key ?? type;
+}
 
 /** Хто діє в чужих містах (посольство, крадіжка, підкуп, саботаж). */
 export const AGENTS: ReadonlySet<UnitTypeKey> = new Set([UnitTypeKey.Diplomat, UnitTypeKey.Spy]);
@@ -615,14 +667,14 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
     key: BuildingTypeKey.SolarPlant, nameUa: 'Сонячна електростанція', cost: 320, maintenance: 4, prereqTech: 'environmentalism', requires: BuildingTypeKey.Factory,
     descriptionUa: 'Електростанція без диму: з фабрикою ще +25% щитів, а виробництво міста зовсім не забруднює. Потрібна фабрика.',
   },
-  // Сумські чудеса XX століття: типова радянська школа й політех
+  // Сумські чудеса XX століття: типова радянська школа й СумДУ
   [BuildingTypeKey.SumySchool]: {
     key: BuildingTypeKey.SumySchool, nameUa: 'Сумська спеціалізована школа №1 ім. В. Стрельченка', cost: 450, maintenance: 0, prereqTech: 'sanitation', isWonder: true,
     descriptionUa: 'Чудо світу. Комунальна установа Сумська спеціалізована школа І-ІІІ ступенів № 1 ім. В. Стрельченка, м. Суми, Сумської області. Довгий світлий фасад, ялини біля ґанку й учителі, що пам\'ятають кожного учня. Усі технології на 15% дешевші; у місті +2 задоволених — випускники.',
   },
-  [BuildingTypeKey.SumyPolytech]: {
-    key: BuildingTypeKey.SumyPolytech, nameUa: 'Сумський політехнічний університет', cost: 500, maintenance: 0, prereqTech: 'electronics', isWonder: true,
-    descriptionUa: 'Чудо світу. Колони, герб над входом і студенти, що креслять майбутнє. +100% науки в місті, +25% у кожному місті з університетом; раз на 20 ходів великий інженер дає +100 щитів будівництву.',
+  [BuildingTypeKey.SumDU]: {
+    key: BuildingTypeKey.SumDU, nameUa: 'Сумський державний університет (СумДУ)', cost: 500, maintenance: 0, prereqTech: 'electronics', isWonder: true,
+    descriptionUa: 'Чудо світу. Колишній Сумський політехнічний інститут: вежа над містом, червоні корпуси з синіми гербами й студенти, що креслять майбутнє. +100% науки в місті, +25% у кожному місті з університетом; раз на 20 ходів великий інженер дає +100 щитів будівництву.',
   },
   [BuildingTypeKey.Internet]: {
     key: BuildingTypeKey.Internet, nameUa: 'Інтернет', cost: 600, maintenance: 0, prereqTech: 'computers', isWonder: true,

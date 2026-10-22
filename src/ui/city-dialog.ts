@@ -4,7 +4,7 @@
 import { City, UnitTypeKey, BuildingTypeKey } from '../core/types';
 import { World, isObsoleteUnit } from '../core/world';
 import { CityLogic } from '../core/city';
-import { UNIT_CONFIGS, BUILDING_CONFIGS, GOVERNMENTS } from '../core/constants';
+import { UNIT_CONFIGS, BUILDING_CONFIGS, GOVERNMENTS, unitForCiv } from '../core/constants';
 import { drawCityPanorama, PANORAMA_W, PANORAMA_H } from './city-panorama';
 
 export class CityDialog {
@@ -62,6 +62,7 @@ export class CityDialog {
       .filter((u) => hasTech(u.prereqTech) && (u.domain !== 'sea' || coastal))
       .filter((u) => !u.requiresWonder || this.world.isWonderBuilt(u.requiresWonder))
       .filter((u) => !u.requiresGovernment || u.requiresGovernment === this.world.players[city.playerId].government)
+      .filter((u) => unitForCiv(u, this.world.players[city.playerId].civ))
       // Застарілі ховаємо, але поточне виробництво лишаємо видимим
       .filter((u) => !isObsoleteUnit(u.key, known) || city.currentProduction.key === u.key)
       .map((u) => ({ isBuilding: false, key: u.key as string, name: u.nameUa, cost: u.cost, description: u.descriptionUa }));

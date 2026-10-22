@@ -1,15 +1,15 @@
 /**
  * Модальне вікно вибору наукового дослідження (Науковий Радник Civ 1).
  */
-import { Player, Tech } from '../core/types';
+import { CivKey, Player, Tech } from '../core/types';
 import { TurnManager } from '../core/turn-manager';
 import { SoundEffects } from './sound-fx';
-import { UNIT_CONFIGS, BUILDING_CONFIGS, TECH_TREE, GOVERNMENTS } from '../core/constants';
+import { UNIT_CONFIGS, BUILDING_CONFIGS, TECH_TREE, GOVERNMENTS, unitForCiv } from '../core/constants';
 
 /** Що саме відкриває технологія: юніти, споруди, чудеса, наступні технології. */
-function unlocksOf(techId: string): string {
+function unlocksOf(techId: string, civ?: CivKey): string {
   const parts: string[] = [];
-  for (const u of Object.values(UNIT_CONFIGS)) if (u.prereqTech === techId) parts.push(`⚔️ ${u.nameUa}`);
+  for (const u of Object.values(UNIT_CONFIGS)) if (u.prereqTech === techId && unitForCiv(u, civ)) parts.push(`${u.civ ? '⭐' : '⚔️'} ${u.nameUa}`);
   for (const b of Object.values(BUILDING_CONFIGS)) {
     if (b.prereqTech === techId) parts.push(`${b.isWonder ? '🌟' : '🏛️'} ${b.nameUa}`);
   }
@@ -55,7 +55,7 @@ export class TechDialog {
                 <span class="tech-cost">🧪 ${cost} колб</span>
               </div>
               <p>${tech.descriptionUa}</p>
-              <p class="tech-unlocks">${unlocksOf(tech.id) || '—'}</p>
+              <p class="tech-unlocks">${unlocksOf(tech.id, player.civ) || '—'}</p>
               <button class="btn-primary" data-id="${tech.id}">Досліджувати</button>
             </div>
           `).join('')}

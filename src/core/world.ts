@@ -3,7 +3,7 @@
  */
 import {
   MAP_WIDTH, MAP_HEIGHT, UNIT_CONFIGS, BUILDING_CONFIGS, TECH_TREE, GOVERNMENTS, SPACE_LIMITS,
-  CIVS, MAP_SIZES, DIFFICULTIES, DEFAULT_OPTIONS, AGENTS, WARMING_LIMIT, setMapSize,
+  CIVS, MAP_SIZES, DIFFICULTIES, DEFAULT_OPTIONS, AGENTS, WARMING_LIMIT, civUnit, setMapSize,
 } from './constants';
 import {
   TileData, Unit, City, Player, PlayerFog, UnitTypeKey, TerrainType, BuildingTypeKey, GovernmentKey, Spaceship, GameOver,
@@ -657,6 +657,8 @@ export class World {
         next = UPGRADES[next];
       }
       if (!target) continue;
+      target = civUnit(target, player.civ);
+      if (target === unit.type) continue;
       const from = UNIT_CONFIGS[unit.type].nameUa;
       unit.type = target;
       return `${from} → ${UNIT_CONFIGS[target].nameUa}`;
@@ -1047,7 +1049,7 @@ export class World {
         }
         if (mine) idleCities.push(city.id);
         // Запасне ополчення з city.ts у 1900-х — марнування щитів: беремо сучасного оборонця
-        if (city.currentProduction.key === UnitTypeKey.Militia) city.currentProduction = { isBuilding: false, key: bestBasicDefender(this.players[city.playerId].knownTechs) };
+        if (city.currentProduction.key === UnitTypeKey.Militia) city.currentProduction = { isBuilding: false, key: civUnit(bestBasicDefender(this.players[city.playerId].knownTechs), this.players[city.playerId].civ) };
         if (cfg.isWonder) {
           if (cfg.key === BuildingTypeKey.Apollo) this.revealAllCities(city.playerId);
           if (cfg.key === BuildingTypeKey.MarcoPolo) this.diplomacy.meetEveryone(city.playerId);
@@ -1136,14 +1138,14 @@ export class World {
       const up = this.leonardoUpgrade(p);
       if (up && p.id === human.id) completedItems.push(`🔧 Майстерня Леонардо: ${up}`);
     }
-    // Сумський політех: раз на 20 ходів великий інженер — +100 щитів будівництву випадкового міста власника
+    // СумДУ: раз на 20 ходів великий інженер — +100 щитів будівництву випадкового міста власника
     if (this.turnManager.turnNumber % 20 === 0) {
-      const poly = [...this.cities.values()].find((c) => c.buildings.includes(BuildingTypeKey.SumyPolytech));
+      const poly = [...this.cities.values()].find((c) => c.buildings.includes(BuildingTypeKey.SumDU));
       const mine = poly ? [...this.cities.values()].filter((c) => c.playerId === poly.playerId && c.currentProduction.key !== BuildingTypeKey.Coinage) : [];
       if (mine.length) {
         const c = mine[Math.floor(Math.random() * mine.length)];
         c.shieldsStored += 100;
-        const msg = `🎓 Випускник Сумського політеху — великий інженер — дав +100 щитів місту ${c.name} (${this.players[c.playerId].nameUa})`;
+        const msg = `🎓 Випускник СумДУ — великий інженер — дав +100 щитів місту ${c.name} (${this.players[c.playerId].nameUa})`;
         if (c.playerId === human.id) completedItems.push(msg);
         else this.news.push(msg);
       }
@@ -1745,4 +1747,14 @@ const UPGRADES: Partial<Record<UnitTypeKey, UnitTypeKey>> = {
   [UnitTypeKey.Frigate]: UnitTypeKey.Ironclad,
   [UnitTypeKey.Galleon]: UnitTypeKey.Transport,
   [UnitTypeKey.Ironclad]: UnitTypeKey.Cruiser,
+  // Унікальні застарівають так само, як ті, кого замінюють
+  [UnitTypeKey.Cossacks]: UnitTypeKey.Armor,
+  [UnitTypeKey.Praetorians]: UnitTypeKey.Musketeers,
+  [UnitTypeKey.WarChariot]: UnitTypeKey.Knights,
+  [UnitTypeKey.Hoplites]: UnitTypeKey.Pikemen,
+  [UnitTypeKey.BabylonBowmen]: UnitTypeKey.Musketeers,
+  [UnitTypeKey.ChuKoNu]: UnitTypeKey.Musketeers,
+  [UnitTypeKey.Keshik]: UnitTypeKey.Crusaders,
+  [UnitTypeKey.JaguarWarriors]: UnitTypeKey.Musketeers,
+  [UnitTypeKey.Longbowmen]: UnitTypeKey.Musketeers,
 };
