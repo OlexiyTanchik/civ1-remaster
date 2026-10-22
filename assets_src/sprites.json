@@ -1025,7 +1025,7 @@
     {
       "id": "w_hollywood",
       "kind": "building",
-      "prompt": "Hollywood: a film studio lot on green hills with two crossing searchlight beams, a big film camera on a crane, a giant film reel and white studio hangars"
+      "prompt": "Hollywood: a compact white film studio hangar with a big film camera on a crane and a giant film reel beside it, two searchlight beams, compact isolated object on a small patch of ground, no square background tile"
     },
     {
       "id": "w_panama_canal",
@@ -1090,7 +1090,7 @@
     {
       "id": "b_ocean_habitat",
       "kind": "building",
-      "prompt": "an underwater city habitat: glass domes on the sea floor connected by tubes, glowing windows, fish around"
+      "prompt": "an ocean habitat: a cluster of glass domes connected by tubes standing on a small rocky islet with a little water around its base, glowing windows, compact isolated object on a small patch of ground, no square background tile"
     },
     {
       "id": "w_collider",
@@ -1105,7 +1105,7 @@
     {
       "id": "w_space_elevator",
       "kind": "building",
-      "prompt": "a space elevator: a thin glowing cable rising from a large ground station into the sky with a climber capsule on it"
+      "prompt": "a space elevator: a massive futuristic ground station with a thick glowing cable rising straight up out of it and a climber capsule on it, compact isolated object on a small patch of ground, no square background tile"
     },
     {
       "id": "b_sich",
@@ -1145,17 +1145,17 @@
     {
       "id": "b_horde_pastures",
       "kind": "building",
-      "prompt": "Mongol steppe pastures with white felt yurts, a herd of horses and a wooden horse corral"
+      "prompt": "a small Mongol camp: two white felt yurts and a little wooden horse corral with two horses, on a small patch of steppe grass, compact isolated object on a small patch of ground, no square background tile"
     },
     {
       "id": "b_chinampas",
       "kind": "building",
-      "prompt": "Aztec chinampas: rectangular floating garden plots with maize and flowers separated by canals, a small reed canoe"
+      "prompt": "Aztec chinampas: a small group of three rectangular garden plots with maize, separated by narrow canals, a reed hut on one plot, compact isolated object on a small patch of ground, no square background tile"
     },
     {
       "id": "b_royal_dockyard",
       "kind": "building",
-      "prompt": "an English royal dockyard: a wooden ship hull on slipways under a crane, timber stacks and a brick storehouse by the water"
+      "prompt": "an English royal dockyard: a brick storehouse with a wooden crane and a wooden ship hull on a short slipway, compact isolated object on a small patch of ground, no square background tile"
     },
     {
       "id": "u_conquistadors",
