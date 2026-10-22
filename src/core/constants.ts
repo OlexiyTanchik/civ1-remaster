@@ -198,6 +198,10 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
     key: UnitTypeKey.Artillery, name: 'Artillery', nameUa: 'Артилерія', attack: 10, defense: 1, moves: 1, cost: 50, domain: 'land',
     prereqTech: 'machine_tools', descriptionUa: 'Далекобійні гармати: руйнують будь-яку оборону, але самі беззахисні.',
   },
+  [UnitTypeKey.Howitzer]: {
+    key: UnitTypeKey.Howitzer, name: 'Howitzer', nameUa: 'Гаубиця', attack: 12, defense: 2, moves: 2, cost: 70, domain: 'land',
+    prereqTech: 'robotics', descriptionUa: 'Самохідна гаубиця: міські мури проти неї не допомагають.',
+  },
   [UnitTypeKey.Armor]: {
     key: UnitTypeKey.Armor, name: 'Armor', nameUa: 'Танки', attack: 10, defense: 5, moves: 3, cost: 80, domain: 'land',
     prereqTech: 'mobile_warfare', descriptionUa: 'Броня і гусениці: швидкий і могутній удар.',

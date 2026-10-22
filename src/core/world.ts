@@ -248,7 +248,8 @@ export class World {
           return { success: false };
         }
         this.noteAggression(unit.playerId, otherUnit.playerId);
-        const walls = !!defCity && (defCity.buildings.includes(BuildingTypeKey.CityWalls)
+        // Гаубиця, як у Civ 1, мурів не помічає
+        const walls = !!defCity && unit.type !== UnitTypeKey.Howitzer && (defCity.buildings.includes(BuildingTypeKey.CityWalls)
           || this.ownerWonders(defCity.playerId).has(BuildingTypeKey.GreatWall));
         const combat = UnitLogic.resolveCombat(unit, otherUnit, toTile, walls);
 
@@ -1400,7 +1401,6 @@ const TERRAINS = Object.values(TerrainType);
 const RESOURCES = Object.values(ResourceType);
 const TILE_FLAGS = ['hasRoad', 'hasRailroad', 'hasIrrigation', 'hasMine', 'hasRiver', 'hasPollution', 'hasHut'] as const;
 
-/** Що чим застаріває (для Майстерні Леонардо). */
 /** Застарілий, як у Civ 1: технологія його наступника вже відома. */
 export function isObsoleteUnit(type: UnitTypeKey, knownTechs: string[]): boolean {
   const next = UPGRADES[type];
@@ -1416,6 +1416,7 @@ export function bestBasicDefender(knownTechs: string[]): UnitTypeKey {
   return type;
 }
 
+/** Що чим застаріває (для Майстерні Леонардо). */
 const UPGRADES: Partial<Record<UnitTypeKey, UnitTypeKey>> = {
   [UnitTypeKey.Militia]: UnitTypeKey.Phalanx,
   [UnitTypeKey.Phalanx]: UnitTypeKey.Pikemen,
@@ -1426,6 +1427,7 @@ const UPGRADES: Partial<Record<UnitTypeKey, UnitTypeKey>> = {
   [UnitTypeKey.Legion]: UnitTypeKey.Musketeers,
   [UnitTypeKey.Catapult]: UnitTypeKey.Cannon,
   [UnitTypeKey.Cannon]: UnitTypeKey.Artillery,
+  [UnitTypeKey.Artillery]: UnitTypeKey.Howitzer,
   [UnitTypeKey.Cavalry]: UnitTypeKey.Knights,
   [UnitTypeKey.Chariot]: UnitTypeKey.Knights,
   [UnitTypeKey.Knights]: UnitTypeKey.Crusaders,

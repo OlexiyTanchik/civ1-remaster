@@ -74,6 +74,7 @@ export enum UnitTypeKey {
   Transport = 'transport',
   // Сучасність I
   Artillery = 'artillery',
+  Howitzer = 'howitzer',
   Armor = 'armor',
   MechInf = 'mech_inf',
   Cruiser = 'cruiser',

@@ -41,6 +41,8 @@ export class SpriteAtlas {
   private static frames: Record<string, FrameData> = {};
   private static source: TextureSource;
   private static textures = new Map<string, Texture>();
+  /** Кадри, домальовані кодом (без генерації спрайтів). */
+  private static extra = new Map<string, HTMLCanvasElement>();
 
   public static async load(): Promise<void> {
     const base = '/assets/sprites/';
@@ -54,10 +56,31 @@ export class SpriteAtlas {
     });
     this.source = Texture.from(this.image).source;
     this.source.scaleMode = 'nearest';
+    if (!this.has('u_howitzer') && this.has('u_artillery')) this.extra.set('u_howitzer', this.drawHowitzer());
+  }
+
+  /** Гаубиця — перефарбована в темний камуфляж Артилерія з гусеницями. */
+  private static drawHowitzer(): HTMLCanvasElement {
+    const { x, y, w, h } = this.rect('u_artillery');
+    const c = document.createElement('canvas');
+    c.width = w;
+    c.height = h;
+    const ctx = c.getContext('2d')!;
+    ctx.drawImage(this.image, x, y, w, h, 0, 0, w, h);
+    ctx.globalCompositeOperation = 'source-atop';
+    ctx.fillStyle = 'rgba(48, 64, 24, 0.45)';
+    ctx.fillRect(0, 0, w, h);
+    ctx.globalCompositeOperation = 'source-over';
+    const u = Math.max(1, Math.round(w / 32));
+    ctx.fillStyle = '#1c1c14';
+    ctx.fillRect(Math.round(w * 0.18), h - 5 * u, Math.round(w * 0.64), 3 * u);
+    ctx.fillStyle = '#6b6b55';
+    for (let i = 0; i < 5; i++) ctx.fillRect(Math.round(w * 0.22) + i * Math.round(w * 0.12), h - 4 * u, u, u);
+    return c;
   }
 
   public static has(name: string): boolean {
-    return name in this.frames;
+    return name in this.frames || this.extra.has(name);
   }
 
   public static rect(name: string): { x: number; y: number; w: number; h: number } {
@@ -69,6 +92,13 @@ export class SpriteAtlas {
   public static texture(name: string): Texture {
     let tex = this.textures.get(name);
     if (!tex) {
+      const own = this.extra.get(name);
+      if (own) {
+        tex = Texture.from(own);
+        tex.source.scaleMode = 'nearest';
+        this.textures.set(name, tex);
+        return tex;
+      }
       const { x, y, w, h } = this.rect(name);
       tex = new Texture({ source: this.source, frame: new Rectangle(x, y, w, h) });
       this.textures.set(name, tex);
@@ -86,12 +116,16 @@ export class SpriteAtlas {
 
   /** Малює кадр на 2D-полотні (для запікання та HUD). */
   public static draw(ctx: CanvasRenderingContext2D, name: string, dx: number, dy: number, dw?: number, dh?: number): void {
+    const own = this.extra.get(name);
+    if (own) return ctx.drawImage(own, dx, dy, dw ?? own.width, dh ?? own.height);
     const { x, y, w, h } = this.rect(name);
     ctx.drawImage(this.image, x, y, w, h, dx, dy, dw ?? w, dh ?? h);
   }
 
   /** Окреме полотно з одним кадром (джерело для createPattern). */
   public static toCanvas(name: string): HTMLCanvasElement {
+    const own = this.extra.get(name);
+    if (own) return own;
     const { w, h } = this.rect(name);
     const c = document.createElement('canvas');
     c.width = w;
