@@ -46,6 +46,9 @@
 - Мапа `world.tiles[y][x]`, 80×50 типово (64×40 / 112×70), **зациклена по X** (завжди `(x + W) % W`), по Y — ні. Відстань: `world.distance()` (Чебишов із зацикленням).
 - Світові пікселі = клітинка × `TILE_SIZE` (64). Рельєф запечений у полотна по 1024 px.
 - Війна лише за дипломатією: `ai.mayAttack` → `diplomacy.atWar` (варвари — завжди). Усі напади йдуть через `World.noteAggression` → `diplomacy.onAggression`.
+- Людина: хід на загін/місто тих, з ким мир (`World.peaceVictim`), — лише після повтору (`main.ts`, `pendingTreachery`). Сенат: `diplomacy.senateForbidsWar` (Демократія — не можна нападати/оголошувати війну); за Республіки й Демократії мирну пропозицію AI приймає сам.
+- Продаж споруди людиною — `World.sellCityBuilding` (одна на місто за хід, `City.soldTurn`); автопродаж при банкрутстві — `sellBuilding`.
+- Спрайти, домальовані кодом без атласу: `SpriteAtlas.extra` (Гаубиця з Артилерії).
 - Гравці: `0` — людина, `1..N` — суперники (`player.civ`, `hostileFromTurn` з характеру: 45/80/110), останній — варвари (`world.barbarianId`, `isBarbarian`). `new World()` без опцій — Русь проти Риму й Єгипту.
 - Складність: `cityEnv` дає `baseContent` (людині) і `costFactor` (AI); `player.researchFactor` (людині).
 - `Unit`: `task` (робота R/I/M/P), `veteran`, `carriedBy` (id корабля чи авіаносця), `fuel` (літаки), `aiTarget`. Пасажири стоять на клітинці корабля, але сховані.
