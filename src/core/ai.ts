@@ -179,7 +179,15 @@ export class AiController {
     // Змішана армія: швидких ударних (кіннота, броня) — не менше, ніж повільних облогових
     const strikers = myUnits.filter((u) => UNIT_CONFIGS[u.type].domain === 'land' && UNIT_CONFIGS[u.type].attack > UNIT_CONFIGS[u.type].defense);
     const fast = strikers.filter((u) => UNIT_CONFIGS[u.type].moves >= 2).length;
-    const attacker = this.bestUnit(player, fast < strikers.length - fast ? 'mobile' : 'attack');
+    const usual = this.bestUnit(player, fast < strikers.length - fast ? 'mobile' : 'attack');
+    // Ворожі мури поруч — облога тим, хто їх не помічає (таран, гаубиця): мури втричі слабшать решту
+    const walled = [...w.cities.values()].some((c) => c.playerId !== player.id && c.buildings.includes(BuildingTypeKey.CityWalls)
+      && w.distance(c.x, c.y, city.x, city.y) <= 10 && w.diplomacy.atWar(player.id, c.playerId));
+    const breaker = walled ? Object.values(UNIT_CONFIGS)
+      .filter((u) => u.domain === 'land' && (u.ignoresWalls || u.key === UnitTypeKey.Howitzer) && unitForCiv(u, player.civ)
+        && (!u.prereqTech || player.knownTechs.includes(u.prereqTech)))
+      .sort((a, b) => b.attack - a.attack)[0] : undefined;
+    const attacker = breaker && breaker.attack * 3 >= UNIT_CONFIGS[usual].attack ? breaker.key : usual;
     const hostile = this.isHostilePhase(player);
 
     if (garrison < 1) {

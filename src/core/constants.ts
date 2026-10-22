@@ -403,7 +403,7 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
   },
   [UnitTypeKey.Cuirassiers]: {
     key: UnitTypeKey.Cuirassiers, name: 'Cuirassiers', nameUa: 'Кірасири', attack: 6, defense: 3, moves: 2, cost: 60, domain: 'land',
-    prereqTech: 'metallurgy', descriptionUa: 'Важка кіннота в сталевих кірасах.',
+    prereqTech: 'metallurgy', descriptionUa: 'Важка кіннота в сталевих кірасах. Як і всю кінноту, пікінери тримають її вдвічі краще.',
   },
   [UnitTypeKey.ShipOfTheLine]: {
     key: UnitTypeKey.ShipOfTheLine, name: 'Ship of the Line', nameUa: 'Лінійний корабель', attack: 6, defense: 4, moves: 4, cost: 70, domain: 'sea',
@@ -428,7 +428,7 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
   },
   [UnitTypeKey.AntiTankGun]: {
     key: UnitTypeKey.AntiTankGun, name: 'Anti-Tank Gun', nameUa: 'Протитанкова гармата', attack: 5, defense: 7, moves: 1, cost: 60, domain: 'land',
-    prereqTech: 'mobile_warfare', descriptionUa: 'Тримає оборону проти танків і бронетехніки.',
+    prereqTech: 'mobile_warfare', descriptionUa: 'Тримає оборону проти танків і бронетехніки: проти них захист ×2.',
   },
   [UnitTypeKey.RocketArtillery]: {
     key: UnitTypeKey.RocketArtillery, name: 'Rocket Artillery', nameUa: 'Реактивна артилерія', attack: 12, defense: 1, moves: 2, cost: 80, domain: 'land',

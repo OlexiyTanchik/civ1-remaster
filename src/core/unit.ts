@@ -6,7 +6,9 @@ import { Unit, TileData, UnitTypeKey } from './types';
 
 /** Кіннота, проти якої стоять піки. */
 const MOUNTED = new Set([UnitTypeKey.Cavalry, UnitTypeKey.Chariot, UnitTypeKey.Elephants, UnitTypeKey.Knights, UnitTypeKey.Crusaders,
-  UnitTypeKey.WarChariot, UnitTypeKey.Keshik, UnitTypeKey.Cossacks, UnitTypeKey.HorseArchers]);
+  UnitTypeKey.WarChariot, UnitTypeKey.Keshik, UnitTypeKey.Cossacks, UnitTypeKey.HorseArchers, UnitTypeKey.Cuirassiers]);
+/** Бронетехніка: протитанкова гармата тримає її вдвічі краще */
+const ARMORED = new Set([UnitTypeKey.ArmoredCar, UnitTypeKey.Armor, UnitTypeKey.Panzer, UnitTypeKey.ModernArmor, UnitTypeKey.HoverTank, UnitTypeKey.BattleMech]);
 
 export class UnitLogic {
   /**
@@ -70,6 +72,7 @@ export class UnitLogic {
     if ((defender.type === UnitTypeKey.Pikemen || defender.type === UnitTypeKey.ChuKoNu) && MOUNTED.has(attacker.type)) {
       defensePower *= 2;
     }
+    if (defender.type === UnitTypeKey.AntiTankGun && ARMORED.has(attacker.type)) defensePower *= 2;
 
     // Бонус укріплення (+50%)
     if (defender.isFortified && !inSky) {
