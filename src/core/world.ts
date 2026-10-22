@@ -1910,4 +1910,8 @@ const UPGRADES: Partial<Record<UnitTypeKey, UnitTypeKey>> = {
   [UnitTypeKey.Battleship]: UnitTypeKey.PlasmaCruiser,
   [UnitTypeKey.Submarine]: UnitTypeKey.MissileSubmarine,
   [UnitTypeKey.MechInf]: UnitTypeKey.LaserInfantry,
+  [UnitTypeKey.Conquistadors]: UnitTypeKey.Dragoons,
+  [UnitTypeKey.Snipers]: UnitTypeKey.LaserInfantry,
+  [UnitTypeKey.Zeppelin]: UnitTypeKey.Bomber,
+  [UnitTypeKey.Balloon]: UnitTypeKey.Awacs,
 };

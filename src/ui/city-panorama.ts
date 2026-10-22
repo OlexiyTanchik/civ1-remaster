@@ -137,6 +137,17 @@ const BUILDING_SLOTS: Partial<Record<BuildingTypeKey, { x: number; y: number; sc
   [BuildingTypeKey.HordePastures]: { x: 88, y: 130, scale: 0.42 },
   [BuildingTypeKey.Chinampas]: { x: 88, y: 130, scale: 0.42 },
   [BuildingTypeKey.RoyalDockyard]: { x: 88, y: 130, scale: 0.42 },
+  // Етап 10, друга хвиля
+  [BuildingTypeKey.FishingWharf]: { x: 380, y: 210, scale: 0.4 },
+  [BuildingTypeKey.CityPark]: { x: 172, y: 196, scale: 0.4 },
+  [BuildingTypeKey.Stadium]: { x: 120, y: 126, scale: 0.5 },
+  [BuildingTypeKey.Zoo]: { x: 30, y: 160, scale: 0.42 },
+  [BuildingTypeKey.ContainerPort]: { x: 340, y: 210, scale: 0.42 },
+  [BuildingTypeKey.VerticalFarm]: { x: 246, y: 150, scale: 0.42 },
+  [BuildingTypeKey.ChichenItza]: { x: 70, y: 92, scale: 0.45 },
+  [BuildingTypeKey.TerracottaArmy]: { x: 290, y: 120, scale: 0.45 },
+  [BuildingTypeKey.KyivLavra]: { x: 168, y: 92, scale: 0.5 },
+  [BuildingTypeKey.SpaceStation]: { x: 330, y: 60, scale: 0.4 },
 };
 
 const hash = (a: number, b: number) => {

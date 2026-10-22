@@ -463,6 +463,27 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
     key: UnitTypeKey.PlasmaCruiser, name: 'Plasma Cruiser', nameUa: 'Плазмовий крейсер', attack: 24, defense: 20, moves: 6, cost: 220, domain: 'sea',
     prereqTech: 'fusion', descriptionUa: 'Термоядерний корабель із плазмовими гарматами.',
   },
+  // Етап 10, друга хвиля
+  [UnitTypeKey.Conquistadors]: {
+    key: UnitTypeKey.Conquistadors, name: 'Conquistadors', nameUa: 'Конкістадори', attack: 3, defense: 2, moves: 2, cost: 40, domain: 'land', allTerrainAsRoad: true, vision: 3,
+    prereqTech: 'navigation', descriptionUa: 'Шукачі золота за морем: будь-який рельєф — як дорога, бачать на 3 клітинки.',
+  },
+  [UnitTypeKey.Balloon]: {
+    key: UnitTypeKey.Balloon, name: 'Balloon', nameUa: 'Повітряна куля', attack: 0, defense: 1, moves: 6, cost: 30, domain: 'air', fuel: 2, vision: 5,
+    prereqTech: 'physics', descriptionUa: 'Монгольф\'єр: бачить на 5 клітинок, тримається в небі 2 ходи.',
+  },
+  [UnitTypeKey.Zeppelin]: {
+    key: UnitTypeKey.Zeppelin, name: 'Zeppelin', nameUa: 'Цепелін', attack: 6, defense: 2, moves: 6, cost: 80, domain: 'air', fuel: 3,
+    prereqTech: 'combustion', descriptionUa: 'Повільний дирижабль-бомбардувальник: 3 ходи в небі, огляд згори.',
+  },
+  [UnitTypeKey.Snipers]: {
+    key: UnitTypeKey.Snipers, name: 'Snipers', nameUa: 'Снайпери', attack: 6, defense: 4, moves: 1, cost: 50, domain: 'land', allTerrainAsRoad: true,
+    prereqTech: 'tactics', descriptionUa: 'Влучні стрільці, що ховаються в будь-якому рельєфі й рухаються ним, як дорогою.',
+  },
+  [UnitTypeKey.FlakGun]: {
+    key: UnitTypeKey.FlakGun, name: 'Flak Gun', nameUa: 'Зенітна гармата', attack: 1, defense: 4, moves: 1, cost: 50, domain: 'land', antiAir: true,
+    prereqTech: 'flight', descriptionUa: 'Зенітка: проти літаків і гелікоптерів захист ×5.',
+  },
 };
 
 /** Юніт для цивілізації: унікальні — лише своїй, а звичайний, якого її унікальний замінює, — їй ні. */
@@ -976,6 +997,47 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
   [BuildingTypeKey.RoyalDockyard]: {
     key: BuildingTypeKey.RoyalDockyard, nameUa: 'Королівська верф', cost: 80, maintenance: 1, prereqTech: 'navigation', civ: 'english', coastal: true, effects: { shields: 20, gold: 10 },
     descriptionUa: 'Унікальна споруда Англії. Тут будують флот, що править морями: +20% щитів, +10% золота (лише на узбережжі).',
+  },
+  // Етап 10, друга хвиля
+  [BuildingTypeKey.FishingWharf]: {
+    key: BuildingTypeKey.FishingWharf, nameUa: 'Рибальська пристань', cost: 50, maintenance: 1, prereqTech: 'map_making', coastal: true, effects: { food: 10, trade: 1 },
+    descriptionUa: 'Човни й сіті: +10% їжі, +1 торгівлі (лише на узбережжі).',
+  },
+  [BuildingTypeKey.CityPark]: {
+    key: BuildingTypeKey.CityPark, nameUa: 'Міський парк', cost: 80, maintenance: 1, prereqTech: 'sanitation', effects: { content: 1, luxury: 25 },
+    descriptionUa: 'Алеї, фонтани й лавки: +1 задоволений, +25% розкоші.',
+  },
+  [BuildingTypeKey.Stadium]: {
+    key: BuildingTypeKey.Stadium, nameUa: 'Стадіон', cost: 140, maintenance: 3, prereqTech: 'the_corporation', effects: { content: 3 },
+    descriptionUa: 'Футбол щонеділі: +3 задоволених.',
+  },
+  [BuildingTypeKey.Zoo]: {
+    key: BuildingTypeKey.Zoo, nameUa: 'Зоопарк', cost: 90, maintenance: 2, prereqTech: 'theology', effects: { content: 1, science: 10 },
+    descriptionUa: 'Звірі з усіх континентів: +1 задоволений, +10% науки.',
+  },
+  [BuildingTypeKey.ContainerPort]: {
+    key: BuildingTypeKey.ContainerPort, nameUa: 'Контейнерний термінал', cost: 160, maintenance: 3, prereqTech: 'mass_production', coastal: true, effects: { gold: 25, shields: 10 },
+    descriptionUa: 'Крани й тисячі контейнерів: +25% золота, +10% щитів (лише на узбережжі).',
+  },
+  [BuildingTypeKey.VerticalFarm]: {
+    key: BuildingTypeKey.VerticalFarm, nameUa: 'Вертикальна ферма', cost: 180, maintenance: 3, prereqTech: 'robotics', effects: { food: 20 },
+    descriptionUa: 'Грядки поверхами під світлодіодами: +20% їжі.',
+  },
+  [BuildingTypeKey.ChichenItza]: {
+    key: BuildingTypeKey.ChichenItza, nameUa: 'Чичен-Іца', cost: 300, maintenance: 0, prereqTech: 'astronomy', isWonder: true, effects: { science: 25 }, globalEffects: { luxury: 25 },
+    descriptionUa: 'Чудо світу. Піраміда-календар майя: +25% розкоші в кожному вашому місті, тут — +25% науки.',
+  },
+  [BuildingTypeKey.TerracottaArmy]: {
+    key: BuildingTypeKey.TerracottaArmy, nameUa: 'Теракотова армія', cost: 300, maintenance: 0, prereqTech: 'iron_working', isWonder: true, globalEffects: { shields: 10 },
+    descriptionUa: 'Чудо світу. Вісім тисяч глиняних воїнів імператора: +10% щитів у кожному вашому місті.',
+  },
+  [BuildingTypeKey.KyivLavra]: {
+    key: BuildingTypeKey.KyivLavra, nameUa: 'Києво-Печерська лавра', cost: 450, maintenance: 0, prereqTech: 'theology', isWonder: true, effects: { science: 25 }, globalEffects: { content: 1 },
+    descriptionUa: 'Чудо світу. Печери, золоті бані й друкарня над Дніпром: +1 задоволений у кожному вашому місті, тут — +25% науки.',
+  },
+  [BuildingTypeKey.SpaceStation]: {
+    key: BuildingTypeKey.SpaceStation, nameUa: 'Міжнародна космічна станція', cost: 700, maintenance: 0, prereqTech: 'space_flight', isWonder: true, globalEffects: { science: 15 },
+    descriptionUa: 'Чудо світу. Лабораторія на орбіті, спільна для всіх народів: +15% науки в кожному вашому місті.',
   },
 };
 

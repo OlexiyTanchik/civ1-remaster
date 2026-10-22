@@ -1156,6 +1156,81 @@
       "id": "b_royal_dockyard",
       "kind": "building",
       "prompt": "an English royal dockyard: a wooden ship hull on slipways under a crane, timber stacks and a brick storehouse by the water"
+    },
+    {
+      "id": "u_conquistadors",
+      "kind": "unit",
+      "prompt": "a Spanish conquistador in a morion helmet and steel breastplate on a horse, holding a lance and a banner"
+    },
+    {
+      "id": "u_balloon",
+      "kind": "unit",
+      "prompt": "an 18th century Montgolfier hot air balloon, blue and gold with ornaments, a small basket with a lookout"
+    },
+    {
+      "id": "u_zeppelin",
+      "kind": "unit",
+      "prompt": "a grey WW1 zeppelin airship with a long cigar-shaped hull, tail fins and a small gondola underneath"
+    },
+    {
+      "id": "u_snipers",
+      "kind": "unit",
+      "prompt": "a sniper in a green ghillie camouflage suit lying prone with a long scoped rifle"
+    },
+    {
+      "id": "u_flak_gun",
+      "kind": "unit",
+      "prompt": "a WW2 anti-aircraft flak gun with a long barrel pointed up at the sky on a cross-shaped mount"
+    },
+    {
+      "id": "b_fishing_wharf",
+      "kind": "building",
+      "prompt": "a wooden fishing wharf on stilts with nets drying, fish baskets and a small rowing boat"
+    },
+    {
+      "id": "b_city_park",
+      "kind": "building",
+      "prompt": "a city park with green trees, a round fountain, benches and a small white bandstand"
+    },
+    {
+      "id": "b_stadium",
+      "kind": "building",
+      "prompt": "an oval football stadium with stands full of people, floodlight towers and a green pitch"
+    },
+    {
+      "id": "b_zoo",
+      "kind": "building",
+      "prompt": "a city zoo entrance gate with a giraffe, an elephant enclosure and palm trees behind a fence"
+    },
+    {
+      "id": "b_container_port",
+      "kind": "building",
+      "prompt": "a container port with a big gantry crane and stacks of colourful shipping containers on the quay"
+    },
+    {
+      "id": "b_vertical_farm",
+      "kind": "building",
+      "prompt": "a modern glass tower vertical farm with green plants growing on every floor under purple grow lights"
+    },
+    {
+      "id": "w_chichen_itza",
+      "kind": "building",
+      "prompt": "Chichen Itza: the Mayan stepped pyramid El Castillo with a temple on top and staircases on all four sides"
+    },
+    {
+      "id": "w_terracotta_army",
+      "kind": "building",
+      "prompt": "the Terracotta Army: rows of clay warrior statues with horses in an excavation pit"
+    },
+    {
+      "id": "w_kyiv_lavra",
+      "kind": "building",
+      "prompt": "the Kyiv Pechersk Lavra: a white Ukrainian baroque monastery with golden domes and a tall golden-domed bell tower on a green hill above a river"
+    },
+    {
+      "id": "w_space_station",
+      "kind": "building",
+      "prompt": "the International Space Station: modules and big golden solar panel wings in orbit above a blue Earth horizon"
     }
   ]
 }

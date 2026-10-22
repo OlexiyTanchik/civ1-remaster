@@ -146,6 +146,12 @@ export enum UnitTypeKey {
   HoverTank = 'hover_tank',
   BattleMech = 'battle_mech',
   PlasmaCruiser = 'plasma_cruiser',
+  // Етап 10, друга хвиля
+  Conquistadors = 'conquistadors',
+  Balloon = 'balloon',
+  Zeppelin = 'zeppelin',
+  Snipers = 'snipers',
+  FlakGun = 'flak_gun',
 }
 
 export interface UnitConfig {
@@ -359,6 +365,17 @@ export enum BuildingTypeKey {
   HordePastures = 'horde_pastures',
   Chinampas = 'chinampas',
   RoyalDockyard = 'royal_dockyard',
+  // Етап 10, друга хвиля
+  FishingWharf = 'fishing_wharf',
+  CityPark = 'city_park',
+  Stadium = 'stadium',
+  Zoo = 'zoo',
+  ContainerPort = 'container_port',
+  VerticalFarm = 'vertical_farm',
+  ChichenItza = 'chichen_itza',
+  TerracottaArmy = 'terracotta_army',
+  KyivLavra = 'kyiv_lavra',
+  SpaceStation = 'space_station',
 }
 
 /** Частина космічного корабля: каркас тримає двигуни й модулі. */
