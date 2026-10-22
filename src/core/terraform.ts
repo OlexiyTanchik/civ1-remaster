@@ -6,11 +6,11 @@
 import { TileData, TerrainType, ResourceType, Player, UnitTypeKey } from './types';
 import { TERRAIN_DATA, MAP_WIDTH, MAP_HEIGHT } from './constants';
 
-export type TerraformKind = 'road' | 'irrigation' | 'mine' | 'clean';
+export type TerraformKind = 'road' | 'irrigation' | 'mine' | 'clean' | 'transform';
 
 /** Хто вміє працювати на землі: робітники (основне заняття) і поселенці (як у Civ 1). */
 export function canTerraform(type: UnitTypeKey): boolean {
-  return type === UnitTypeKey.Workers || type === UnitTypeKey.Settlers;
+  return type === UnitTypeKey.Workers || type === UnitTypeKey.Settlers || type === UnitTypeKey.Engineers;
 }
 
 export const TERRAFORM_INFO: Record<TerraformKind, { nameUa: string; letter: string; hotkey: string }> = {
@@ -18,6 +18,15 @@ export const TERRAFORM_INFO: Record<TerraformKind, { nameUa: string; letter: str
   irrigation: { nameUa: 'Іригація', letter: 'I', hotkey: 'I' },
   mine: { nameUa: 'Шахта', letter: 'M', hotkey: 'M' },
   clean: { nameUa: 'Очищення', letter: 'P', hotkey: 'P' },
+  transform: { nameUa: 'Перетворення', letter: 'O', hotkey: 'O' },
+};
+
+/** Перетворення рельєфу інженерами: на що й скільки ходів (до прискорення інженерів удвічі). */
+export const TRANSFORM: Partial<Record<TerrainType, { to: TerrainType; turns: number }>> = {
+  [TerrainType.Forest]: { to: TerrainType.Plains, turns: 10 },
+  [TerrainType.Plains]: { to: TerrainType.Forest, turns: 10 },
+  [TerrainType.Swamp]: { to: TerrainType.Grassland, turns: 15 },
+  [TerrainType.Jungle]: { to: TerrainType.Grassland, turns: 15 },
 };
 
 /** Підпис роботи «дорога»: на клітинці з дорогою це вже залізниця. */
@@ -89,6 +98,11 @@ export function checkTerraform(
 ): TerraformCheck {
   if (tile.cityId) return { ok: false, turns: 0, reason: 'У місті вже все є' };
 
+  if (kind === 'transform') {
+    const t = TRANSFORM[tile.terrain];
+    return t ? { ok: true, turns: t.turns } : { ok: false, turns: 0, reason: 'Перетворюють ліс, рівнину, болото й джунглі' };
+  }
+
   if (kind === 'clean') {
     return tile.hasPollution ? { ok: true, turns: 3 } : { ok: false, turns: 0, reason: 'Тут чисто' };
   }
@@ -127,6 +141,15 @@ export function applyTerraform(tile: TileData, kind: TerraformKind): void {
     else tile.hasRoad = true;
   }
   if (kind === 'clean') tile.hasPollution = false;
+  if (kind === 'transform') {
+    const t = TRANSFORM[tile.terrain];
+    if (!t) return;
+    // Новий рельєф — з нуля: шахта й іригація старого тут не мають сенсу, ресурс зникає з лісом чи болотом
+    tile.terrain = t.to;
+    tile.resource = ResourceType.None;
+    tile.hasMine = false;
+    tile.hasIrrigation = false;
+  }
   if (kind === 'irrigation') {
     tile.hasIrrigation = true;
     tile.hasMine = false;

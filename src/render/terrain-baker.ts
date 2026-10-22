@@ -98,6 +98,11 @@ export class TerrainBaker {
     return chunks;
   }
 
+  /** Перепікає шматок заново (інженери змінили рельєф). */
+  public static rebake(world: World, chunk: TerrainChunk): void {
+    chunk.canvas = this.bakeChunk(world, chunk.x / T, chunk.y / T);
+  }
+
   private static loadTextures(): void {
     if (this.textures.size) return;
     for (const [type, frame] of Object.entries(TERRAIN_FRAME)) {

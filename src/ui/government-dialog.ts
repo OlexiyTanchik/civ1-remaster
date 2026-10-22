@@ -2,7 +2,7 @@
  * Вибір державного устрою (революція, як у Civ 1): 2 ходи анархії, потім новий лад.
  */
 import { World } from '../core/world';
-import { GovernmentKey } from '../core/types';
+import { GovernmentKey, BuildingTypeKey } from '../core/types';
 import { GOVERNMENTS, TECH_TREE } from '../core/constants';
 
 const CHOICES: GovernmentKey[] = ['despotism', 'monarchy', 'communism', 'republic', 'democracy'];
@@ -35,7 +35,9 @@ export class GovernmentDialog {
           <h2>🏛️ Державний устрій</h2>
           <button class="btn-close" id="gov-close-btn">✖</button>
         </div>
-        <p class="modal-subtitle">${status} Зміна устрою — це революція: 2 ходи анархії без податків і науки.</p>
+        <p class="modal-subtitle">${status} ${this.world.ownerWonders(0).has(BuildingTypeKey.StatueOfLiberty)
+          ? 'Статуя Свободи: новий устрій — одразу, без анархії.'
+          : 'Зміна устрою — це революція: 2 ходи анархії без податків і науки.'}</p>
         <div class="tech-list">
           ${CHOICES.map((key) => {
             const g = GOVERNMENTS[key];

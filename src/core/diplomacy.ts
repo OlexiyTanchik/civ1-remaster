@@ -6,7 +6,7 @@
  */
 import type { World } from './world';
 import { BuildingTypeKey, City, Player, Tech, UnitTypeKey } from './types';
-import { UNIT_CONFIGS, BUILDING_CONFIGS, MAP_WIDTH, MAP_HEIGHT } from './constants';
+import { AGENTS, UNIT_CONFIGS, BUILDING_CONFIGS, MAP_WIDTH, MAP_HEIGHT } from './constants';
 import { TurnManager } from './turn-manager';
 
 export interface Relation {
@@ -456,7 +456,7 @@ export class Diplomacy {
     const w = this.world;
     const unit = w.units.get(unitId);
     const city = w.cities.get(cityId);
-    if (!unit || !city || unit.type !== UnitTypeKey.Diplomat || city.playerId === unit.playerId) return '';
+    if (!unit || !city || !AGENTS.has(unit.type) || city.playerId === unit.playerId) return '';
     if (w.distance(unit.x, unit.y, city.x, city.y) > 1) return '';
     const me = this.civ(unit.playerId);
     const them = this.civ(city.playerId);
@@ -465,7 +465,11 @@ export class Diplomacy {
     // Підкуп і саботаж — ворожі дії: у мирі це віроломний напад (до знайомства — просто війна)
     if (action === 'incite' || action === 'sabotage') w.noteAggression(me.id, them.id);
     this.meet(me.id, them.id);
-    w.removeUnit(unit.id);
+    // Шпигун — професіонал: після посольства лишається живим, після крадіжки чи саботажу — навпіл
+    const spySurvives = unit.type === UnitTypeKey.Spy && (action === 'embassy' || (action !== 'incite' && Math.random() < 0.5));
+    if (spySurvives) unit.movesLeft = 0;
+    else w.removeUnit(unit.id);
+    const agent = UNIT_CONFIGS[unit.type].nameUa;
     if (action === 'embassy') {
       me.embassies = [...new Set([...(me.embassies ?? []), them.id])];
       this.mood(them.id, me.id, 0.5);
@@ -494,6 +498,6 @@ export class Diplomacy {
     city.stolenBy.push(me.id);
     // Шпигунство в мирний час — дипломатичний скандал
     if (!this.relation(me.id, them.id).war) this.mood(them.id, me.id, -3);
-    return `🕵️ Дипломат викрав у місті ${city.name}: «${tech.nameUa}»!`;
+    return `🕵️ ${agent} — викрадено в місті ${city.name}: «${tech.nameUa}»!`;
   }
 }

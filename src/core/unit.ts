@@ -49,7 +49,8 @@ export class UnitLogic {
     attacker: Unit,
     defender: Unit,
     defTile: TileData,
-    hasWalls: boolean = false
+    hasWalls: boolean = false,
+    coastalDefense: boolean = false
   ): { attackerWon: boolean; logUa: string } {
     const aCfg = UNIT_CONFIGS[attacker.type];
     const dCfg = UNIT_CONFIGS[defender.type];
@@ -76,6 +77,10 @@ export class UnitLogic {
     // Бонус міських мурів або Великого муру (потроєння захисту проти сухопутних сил)
     if (hasWalls && aCfg.domain === 'land') {
       defensePower *= 3.0;
+    }
+    // Берегова оборона: захист ×2 проти кораблів
+    if (coastalDefense && aCfg.domain === 'sea') {
+      defensePower *= 2.0;
     }
 
     // Класичний раунд бою Civ 1: імовірність перемоги = Attack / (Attack + Defense)

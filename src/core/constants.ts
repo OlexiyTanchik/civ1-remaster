@@ -254,7 +254,28 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
     key: UnitTypeKey.Galleon, name: 'Galleon', nameUa: 'Галеон', attack: 0, defense: 2, moves: 4, cost: 40, domain: 'sea', capacity: 4,
     prereqTech: 'magnetism', descriptionUa: 'Вантажне вітрильне судно: везе 4 юніти, але не воює.',
   },
+  // Етап 8: Середньовіччя / Новий час
+  [UnitTypeKey.Engineers]: {
+    key: UnitTypeKey.Engineers, name: 'Engineers', nameUa: 'Інженери', attack: 0, defense: 2, moves: 2, cost: 40, domain: 'land',
+    prereqTech: 'explosives', descriptionUa: 'Працюють на землі вдвічі швидше й перетворюють рельєф [O]: ліс ↔ рівнина, болото й джунглі → луки.',
+  },
+  [UnitTypeKey.Dragoons]: {
+    key: UnitTypeKey.Dragoons, name: 'Dragoons', nameUa: 'Драгуни', attack: 5, defense: 2, moves: 2, cost: 50, domain: 'land',
+    prereqTech: 'leadership', descriptionUa: 'Кіннота з мушкетами: швидкий удар і непогана оборона.',
+  },
+  [UnitTypeKey.AlpineTroops]: {
+    key: UnitTypeKey.AlpineTroops, name: 'Alpine Troops', nameUa: 'Альпійські стрільці', attack: 5, defense: 5, moves: 1, cost: 50, domain: 'land',
+    allTerrainAsRoad: true,
+    prereqTech: 'tactics', descriptionUa: 'Гірська піхота: будь-який рельєф проходить, як дорогою, і міцно тримає оборону.',
+  },
+  [UnitTypeKey.Spy]: {
+    key: UnitTypeKey.Spy, name: 'Spy', nameUa: 'Шпигун', attack: 0, defense: 0, moves: 3, cost: 30, domain: 'land',
+    prereqTech: 'espionage', descriptionUa: 'Як дипломат, але професіонал: після посольства лишається живим, після крадіжки чи саботажу — у половині випадків.',
+  },
 };
+
+/** Хто діє в чужих містах (посольство, крадіжка, підкуп, саботаж). */
+export const AGENTS: ReadonlySet<UnitTypeKey> = new Set([UnitTypeKey.Diplomat, UnitTypeKey.Spy]);
 
 // Будівлі міст Civ 1
 export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
@@ -489,6 +510,27 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
     key: BuildingTypeKey.SunTzu, nameUa: 'Військова академія Сунь-цзи', cost: 300, maintenance: 0, prereqTech: 'feudalism', isWonder: true,
     descriptionUa: 'Чудо світу. Нові наземні війська в усіх ваших містах — ветерани, як із казарм.',
   },
+  // Етап 8: Середньовіччя / Новий час
+  [BuildingTypeKey.CoastalDefense]: {
+    key: BuildingTypeKey.CoastalDefense, nameUa: 'Берегова оборона', cost: 60, maintenance: 1, prereqTech: 'metallurgy', coastal: true,
+    descriptionUa: 'Подвоює захист міста від кораблів. Лише в приморському місті.',
+  },
+  [BuildingTypeKey.PortFacility]: {
+    key: BuildingTypeKey.PortFacility, nameUa: 'Портові споруди', cost: 80, maintenance: 2, prereqTech: 'steam_engine', coastal: true,
+    descriptionUa: 'Усі нові кораблі міста — ветерани. Лише в приморському місті.',
+  },
+  [BuildingTypeKey.PoliceStation]: {
+    key: BuildingTypeKey.PoliceStation, nameUa: 'Поліція', cost: 60, maintenance: 2, prereqTech: 'communism',
+    descriptionUa: 'Кожен загін за кордоном засмучує на одного жителя менше; гарнізон заспокоює до двох невдоволених.',
+  },
+  [BuildingTypeKey.StatueOfLiberty]: {
+    key: BuildingTypeKey.StatueOfLiberty, nameUa: 'Статуя Свободи', cost: 400, maintenance: 0, prereqTech: 'democracy', isWonder: true,
+    descriptionUa: 'Чудо світу. Зміна устрою — одразу, без анархії.',
+  },
+  [BuildingTypeKey.EiffelTower]: {
+    key: BuildingTypeKey.EiffelTower, nameUa: 'Ейфелева вежа', cost: 300, maintenance: 0, prereqTech: 'industrialization', isWonder: true,
+    descriptionUa: 'Чудо світу. Усі ваші міста забруднюють довкілля на чверть рідше.',
+  },
 };
 
 /** Найбільше частин одного виду на кораблі. */
@@ -548,8 +590,11 @@ export const TECH_TREE: Record<string, Tech> = {
   railroad: { id: 'railroad', nameUa: 'Залізниця', era: 3, prereqs: ['steam_engine', 'bridge_building'], descriptionUa: 'Сталеві колії зшивають країну.' },
   industrialization: { id: 'industrialization', nameUa: 'Індустріалізація', era: 3, prereqs: ['railroad', 'banking'], descriptionUa: 'Фабрики, димарі — і смог над містами.' },
   electricity: { id: 'electricity', nameUa: 'Електрика', era: 3, prereqs: ['metallurgy', 'magnetism'], descriptionUa: 'Струм у дротах.' },
+  leadership: { id: 'leadership', nameUa: 'Лідерство', era: 3, prereqs: ['chivalry', 'gunpowder'], descriptionUa: 'Офіцери ведуть у бій кінноту з мушкетами.' },
   conscription: { id: 'conscription', nameUa: 'Загальний призов', era: 3, prereqs: ['democracy', 'metallurgy'], descriptionUa: 'Армія з громадян.' },
   // Сучасність I: війни XX століття
+  tactics: { id: 'tactics', nameUa: 'Тактика', era: 4, prereqs: ['conscription', 'leadership'], descriptionUa: 'Маневр і рельєф як зброя: гірська піхота.' },
+  espionage: { id: 'espionage', nameUa: 'Шпигунство', era: 4, prereqs: ['democracy', 'tactics'], descriptionUa: 'Розвідка стає професією.' },
   communism: { id: 'communism', nameUa: 'Комунізм', era: 4, prereqs: ['philosophy', 'industrialization'], descriptionUa: 'Держава робітників: відкриває устрій Комунізм.' },
   the_corporation: { id: 'the_corporation', nameUa: 'Корпорація', era: 4, prereqs: ['economics', 'industrialization'], descriptionUa: 'Акціонерні компанії, більші за королівства.' },
   steel: { id: 'steel', nameUa: 'Сталь', era: 4, prereqs: ['electricity', 'industrialization'], descriptionUa: 'Мартенівські печі: сталеві корпуси й рейки.' },

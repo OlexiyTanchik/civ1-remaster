@@ -89,6 +89,11 @@ export enum UnitTypeKey {
   // Етап 8: Античність
   Explorer = 'explorer',
   Galleon = 'galleon',
+  // Етап 8: Середньовіччя / Новий час
+  Engineers = 'engineers',
+  Dragoons = 'dragoons',
+  AlpineTroops = 'alpine_troops',
+  Spy = 'spy',
 }
 
 export interface UnitConfig {
@@ -126,7 +131,7 @@ export interface Unit {
   isFortified: boolean;
   isSentry: boolean;
   /** Поточна робота поселенця (дорога / іригація / шахта) */
-  task?: { kind: 'road' | 'irrigation' | 'mine' | 'clean'; turnsLeft: number };
+  task?: { kind: 'road' | 'irrigation' | 'mine' | 'clean' | 'transform'; turnsLeft: number };
   /** Ветеран: +50% атаки й захисту (казарми або перемога в бою) */
   veteran?: boolean;
   /** Корабель, на якому пливе сухопутний юніт (чи авіаносець, на якому стоїть літак) */
@@ -207,6 +212,12 @@ export enum BuildingTypeKey {
   TempleOfArtemis = 'temple_artemis',
   StatueOfZeus = 'statue_zeus',
   SunTzu = 'sun_tzu',
+  // Етап 8: Середньовіччя / Новий час
+  CoastalDefense = 'coastal_defense',
+  PortFacility = 'port_facility',
+  PoliceStation = 'police_station',
+  StatueOfLiberty = 'statue_liberty',
+  EiffelTower = 'eiffel_tower',
 }
 
 /** Частина космічного корабля: каркас тримає двигуни й модулі. */

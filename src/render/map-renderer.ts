@@ -2,13 +2,13 @@
  * Рендерер карти на PixiJS.
  * Оптимізована архітектура без витоків пам'яті: спрайти створюються один раз і лише оновлюють стан.
  */
-import { Application, Container, Sprite, Graphics, Text, TextStyle } from 'pixi.js';
+import { Application, Container, Sprite, Graphics, Text, TextStyle, Texture } from 'pixi.js';
 import { World } from '../core/world';
 import { MAP_WIDTH, MAP_HEIGHT, TILE_SIZE, UNIT_CONFIGS } from '../core/constants';
 import { Unit } from '../core/types';
 import { ImprovementRenderer } from './improvement-renderer';
 import { SpriteAtlas } from './sprite-atlas';
-import { TerrainChunk } from './terrain-baker';
+import { TerrainChunk, TerrainBaker, CHUNK } from './terrain-baker';
 import { TERRAFORM_INFO } from '../core/terraform';
 
 /** Кроки зуму: цілі та «половинні» кратності тримають піксель-арт рівним. */
@@ -26,6 +26,7 @@ export class MapRenderer {
 
   // Постійна сітка спрайтів (без перестворення кожен кадр!)
   private fogSprites: Graphics[][] = [];
+  private chunkSprites: Sprite[] = [];
   private unitSprites: Map<string, Container> = new Map();
   private cityContainers: Map<string, Container> = new Map();
 
@@ -79,6 +80,7 @@ export class MapRenderer {
       sprite.texture.source.scaleMode = 'nearest';
       sprite.position.set(chunk.x, chunk.y);
       this.terrainLayer.addChild(sprite);
+      this.chunkSprites.push(sprite);
     }
 
     for (let y = 0; y < MAP_HEIGHT; y++) {
@@ -201,6 +203,30 @@ export class MapRenderer {
   /**
    * Оновлення туману, юнітів та міст при зміні стану гри (викликається за подією, не щокадру!).
    */
+  private rebakeTerrain(): void {
+    const changes = this.world.terrainChanges.splice(0);
+    if (!changes.length) return;
+    const dirty = new Set<number>();
+    const span = CHUNK * TILE_SIZE;
+    for (const { x, y } of changes) {
+      for (const [dx, dy] of [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1]]) {
+        const tx = ((x + dx) % MAP_WIDTH + MAP_WIDTH) % MAP_WIDTH;
+        const ty = y + dy;
+        if (ty < 0 || ty >= MAP_HEIGHT) continue;
+        const i = this.terrainChunks.findIndex((c) => tx * TILE_SIZE >= c.x && tx * TILE_SIZE < c.x + span && ty * TILE_SIZE >= c.y && ty * TILE_SIZE < c.y + span);
+        if (i >= 0) dirty.add(i);
+      }
+    }
+    for (const i of dirty) {
+      const chunk = this.terrainChunks[i];
+      TerrainBaker.rebake(this.world, chunk);
+      const old = this.chunkSprites[i].texture;
+      this.chunkSprites[i].texture = Texture.from(chunk.canvas);
+      this.chunkSprites[i].texture.source.scaleMode = 'nearest';
+      old.destroy(true);
+    }
+  }
+
   public refreshAll(): void {
     const humanFog = this.world.playerFogs.get(0);
 
@@ -213,7 +239,10 @@ export class MapRenderer {
       }
     }
 
-    // 2. Оновлення берегових ліній, доріг та річок
+    // 2. Рельєф, змінений інженерами: перепікаємо шматки (з сусідами — краї змішуються)
+    this.rebakeTerrain();
+
+    // Оновлення берегових ліній, доріг та річок
     this.improvements.refresh();
 
     // 3. Оновлення юнітів

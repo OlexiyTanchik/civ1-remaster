@@ -3,7 +3,7 @@
  */
 import {
   MAP_WIDTH, MAP_HEIGHT, UNIT_CONFIGS, BUILDING_CONFIGS, TECH_TREE, GOVERNMENTS, SPACE_LIMITS,
-  CIVS, MAP_SIZES, DIFFICULTIES, DEFAULT_OPTIONS, setMapSize,
+  CIVS, MAP_SIZES, DIFFICULTIES, DEFAULT_OPTIONS, AGENTS, setMapSize,
 } from './constants';
 import {
   TileData, Unit, City, Player, PlayerFog, UnitTypeKey, TerrainType, BuildingTypeKey, GovernmentKey, Spaceship, GameOver,
@@ -191,9 +191,12 @@ export class World {
     this.news.push(text);
   }
 
+  /** Клітинки зі зміненим рельєфом (інженери) — рендерер перепікає їхні шматки. */
+  public terrainChanges: { x: number; y: number }[] = [];
+
   /** Чий мир порушить цей хід: бойовий юніт іде на загін чи місто цивілізації, з якою не воюємо. */
   public peaceVictim(unit: Unit, targetX: number, targetY: number): number | undefined {
-    if (UNIT_CONFIGS[unit.type].attack === 0 || unit.type === UnitTypeKey.Diplomat) return undefined;
+    if (UNIT_CONFIGS[unit.type].attack === 0 || AGENTS.has(unit.type)) return undefined;
     const tile = this.tiles[targetY]?.[(targetX + MAP_WIDTH) % MAP_WIDTH];
     if (!tile) return undefined;
     const owners = tile.unitIds.map((id) => this.units.get(id)?.playerId);
@@ -217,7 +220,7 @@ export class World {
     const air = UNIT_CONFIGS[unit.type].domain === 'air';
 
     // Дипломат у чужому місті: людина обирає дію у вікні, AI — одразу (`aiDiplomatChoice`)
-    if (unit.type === UnitTypeKey.Diplomat && toTile.cityId) {
+    if (AGENTS.has(unit.type) && toTile.cityId) {
       const target = this.cities.get(toTile.cityId)!;
       if (target.playerId !== unit.playerId) {
         if (!this.players[unit.playerId].isAi) return { success: false, diplomatCity: target.id };
@@ -261,7 +264,8 @@ export class World {
         // Гаубиця, як у Civ 1, мурів не помічає
         const walls = !!defCity && unit.type !== UnitTypeKey.Howitzer && (defCity.buildings.includes(BuildingTypeKey.CityWalls)
           || this.ownerWonders(defCity.playerId).has(BuildingTypeKey.GreatWall));
-        const combat = UnitLogic.resolveCombat(unit, otherUnit, toTile, walls);
+        const coastal = !!defCity && defCity.buildings.includes(BuildingTypeKey.CoastalDefense);
+        const combat = UnitLogic.resolveCombat(unit, otherUnit, toTile, walls, coastal);
 
         if (combat.attackerWon) {
           // Поза містом гине весь стос (Civ 1); у місті — лише захисник
@@ -608,7 +612,8 @@ export class World {
     // Фабрика — удвічі частіше, АЕС чи ГЕС — удвічі рідше
     const clean = city.buildings.includes(BuildingTypeKey.NuclearPlant) || city.buildings.includes(BuildingTypeKey.HydroPlant);
     const factor = (city.buildings.includes(BuildingTypeKey.Factory) ? 2 : 1) * (clean ? 0.5 : 1)
-      * (city.buildings.includes(BuildingTypeKey.RecyclingCenter) ? 1 / 3 : 1);
+      * (city.buildings.includes(BuildingTypeKey.RecyclingCenter) ? 1 / 3 : 1)
+      * (this.ownerWonders(city.playerId).has(BuildingTypeKey.EiffelTower) ? 0.75 : 1);
     const cars = this.players[city.playerId].knownTechs.includes('automobile') && !city.buildings.includes(BuildingTypeKey.MassTransit);
     const people = cars ? Math.max(0, city.size - 10) : 0;
     const chance = Math.min(0.6, (Math.max(0, shields - 20) * factor + people) * 0.03);
@@ -697,12 +702,13 @@ export class World {
     return unit;
   }
 
-  /** Чи новий юніт міста — ветеран: казарми (наземні й кораблі), аеропорт (літаки), Сунь-цзи (наземні всюди). */
+  /** Чи новий юніт міста — ветеран: казарми (наземні й кораблі), аеропорт (літаки), Сунь-цзи (наземні всюди), портові споруди (кораблі). */
   public trainsVeteran(city: City, type: UnitTypeKey): boolean {
     const cfg = UNIT_CONFIGS[type];
     if (cfg.attack === 0 || type === UnitTypeKey.Nuclear) return false;
     if (cfg.domain === 'air') return city.buildings.includes(BuildingTypeKey.Airport);
     if (cfg.domain === 'land' && this.ownerWonders(city.playerId).has(BuildingTypeKey.SunTzu)) return true;
+    if (cfg.domain === 'sea' && city.buildings.includes(BuildingTypeKey.PortFacility)) return true;
     return city.buildings.includes(BuildingTypeKey.Barracks);
   }
 
@@ -756,6 +762,13 @@ export class World {
   public startRevolution(playerId: number, gov: GovernmentKey): boolean {
     if (!this.canAdopt(playerId, gov)) return false;
     const p = this.players[playerId];
+    // Статуя Свободи: новий устрій одразу, без анархії
+    if (this.ownerWonders(playerId).has(BuildingTypeKey.StatueOfLiberty)) {
+      p.government = gov;
+      p.targetGovernment = undefined;
+      this.clampRates(p);
+      return true;
+    }
     p.government = 'anarchy';
     p.revolutionTurns = 2;
     p.targetGovernment = gov;
@@ -909,6 +922,7 @@ export class World {
         if (unit.task.turnsLeft <= 0) {
           const tile = this.tiles[unit.y][unit.x];
           applyTerraform(tile, unit.task.kind);
+          if (unit.task.kind === 'transform') this.terrainChanges.push({ x: tile.x, y: tile.y });
           // Жителі переходять на покращену клітинку одразу: місто без надлишку їжі не росте, і без цього зрошення не діяло б ніколи
           for (const c of this.cities.values()) {
             const dx = Math.abs(c.x - tile.x);
@@ -1384,11 +1398,12 @@ export class World {
   public checkTask(unitId: string, kind: TerraformKind): TerraformCheck {
     const unit = this.units.get(unitId);
     if (!unit || !canTerraform(unit.type)) return { ok: false, turns: 0, reason: 'Лише робітники чи поселенці' };
+    if (kind === 'transform' && unit.type !== UnitTypeKey.Engineers) return { ok: false, turns: 0, reason: 'Рельєф перетворюють лише інженери' };
     const tile = this.tiles[unit.y][unit.x];
     const player = this.players[unit.playerId];
     const check = checkTerraform(this.tiles, tile, kind, player);
     // Вибухівка: робітники (не поселенці) працюють удвічі швидше, як інженери Civ 1
-    if (check.ok && unit.type === UnitTypeKey.Workers && player.knownTechs.includes('explosives')) {
+    if (check.ok && (unit.type === UnitTypeKey.Engineers || (unit.type === UnitTypeKey.Workers && player.knownTechs.includes('explosives')))) {
       check.turns = Math.max(1, Math.ceil(check.turns / 2));
     }
     return check;
@@ -1459,7 +1474,11 @@ const UPGRADES: Partial<Record<UnitTypeKey, UnitTypeKey>> = {
   [UnitTypeKey.Cavalry]: UnitTypeKey.Knights,
   [UnitTypeKey.Chariot]: UnitTypeKey.Knights,
   [UnitTypeKey.Knights]: UnitTypeKey.Crusaders,
-  [UnitTypeKey.Crusaders]: UnitTypeKey.Armor,
+  [UnitTypeKey.Crusaders]: UnitTypeKey.Dragoons,
+  [UnitTypeKey.Dragoons]: UnitTypeKey.Armor,
+  [UnitTypeKey.AlpineTroops]: UnitTypeKey.MechInf,
+  [UnitTypeKey.Workers]: UnitTypeKey.Engineers,
+  [UnitTypeKey.Diplomat]: UnitTypeKey.Spy,
   [UnitTypeKey.Sail]: UnitTypeKey.Caravel,
   [UnitTypeKey.Caravel]: UnitTypeKey.Frigate,
   [UnitTypeKey.Frigate]: UnitTypeKey.Ironclad,

@@ -168,7 +168,7 @@ export class CityLogic {
     if (env.ownerWonders.has(BuildingTypeKey.CureForCancer)) calm += 1;
     // Воєнний стан (Монархія, Комунізм): кожен військовий у місті заспокоює одного;
     // Жіноче виборче право — поліція: до 2 за будь-якого устрою
-    const police = env.ownerWonders.has(BuildingTypeKey.WomensSuffrage) ? 2 : 0;
+    const police = env.ownerWonders.has(BuildingTypeKey.WomensSuffrage) || has(BuildingTypeKey.PoliceStation) ? 2 : 0;
     calm += Math.min(env.garrison, Math.max(GOVERNMENTS[env.government].martialLaw, police));
     // Театр Шекспіра: у місті немає невдоволених
     if (has(BuildingTypeKey.Shakespeare)) calm += unhappy;
@@ -176,7 +176,7 @@ export class CityLogic {
     unhappy -= calmed;
     content += calmed;
     // Армія за кордоном (Республіка 1, Демократія 2 за юніт); Жіноче виборче право — поліція, −1 за юніт
-    const perUnit = Math.max(0, (gov.abroadUnhappy ?? 0) - (env.ownerWonders.has(BuildingTypeKey.WomensSuffrage) ? 1 : 0));
+    const perUnit = Math.max(0, (gov.abroadUnhappy ?? 0) - (env.ownerWonders.has(BuildingTypeKey.WomensSuffrage) || has(BuildingTypeKey.PoliceStation) ? 1 : 0));
     const abroad = Math.max(0, (support.abroad ?? 0) - (env.ownerWonders.has(BuildingTypeKey.StatueOfZeus) ? 1 : 0));
     const abroadUnhappy = Math.min(content, abroad * perUnit);
     content -= abroadUnhappy;

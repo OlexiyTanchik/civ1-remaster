@@ -304,7 +304,10 @@ async function bootstrap() {
 
   hud.onOpenGovernment = () => {
     govDialog.show((gov) => {
-      hud.addLogMessage(`🔥 Революція! Два ходи анархії, потім — ${GOVERNMENTS[gov].nameUa}.`);
+      // Статуя Свободи міняє устрій без анархії
+      hud.addLogMessage(world.players[0].government === gov
+        ? `🗽 Новий устрій без анархії (Статуя Свободи): ${GOVERNMENTS[gov].nameUa}.`
+        : `🔥 Революція! Два ходи анархії, потім — ${GOVERNMENTS[gov].nameUa}.`);
       renderer.refreshAll();
       hud.update(selectedUnit);
     });
@@ -353,7 +356,7 @@ async function bootstrap() {
       return;
     }
     // Роботи поселенців: R/I/M (та сама клавіша в українській розкладці)
-    const tfKey: Record<string, TerraformKind> = { KeyR: 'road', KeyI: 'irrigation', KeyM: 'mine', KeyP: 'clean' };
+    const tfKey: Record<string, TerraformKind> = { KeyR: 'road', KeyI: 'irrigation', KeyM: 'mine', KeyP: 'clean', KeyO: 'transform' };
     if (tfKey[e.code]) {
       hud.onTerraform?.(tfKey[e.code]);
       return;

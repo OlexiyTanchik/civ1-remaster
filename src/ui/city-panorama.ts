@@ -67,6 +67,11 @@ const BUILDING_SLOTS: Partial<Record<BuildingTypeKey, { x: number; y: number; sc
   [BuildingTypeKey.TempleOfArtemis]: { x: 174, y: 150, scale: 0.5 },
   [BuildingTypeKey.StatueOfZeus]: { x: 370, y: 156, scale: 0.45 },
   [BuildingTypeKey.SunTzu]: { x: 52, y: 130, scale: 0.5 },
+  [BuildingTypeKey.CoastalDefense]: { x: 350, y: 214, scale: 0.45 },
+  [BuildingTypeKey.PortFacility]: { x: 300, y: 214, scale: 0.45 },
+  [BuildingTypeKey.PoliceStation]: { x: 236, y: 140, scale: 0.4 },
+  [BuildingTypeKey.StatueOfLiberty]: { x: 112, y: 112, scale: 0.4 },
+  [BuildingTypeKey.EiffelTower]: { x: 224, y: 80, scale: 0.55 },
 };
 
 const hash = (a: number, b: number) => {

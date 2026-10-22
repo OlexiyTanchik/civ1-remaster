@@ -7,3 +7,4 @@ _to_delete
 assets_src/test
 .claude/settings.local.json
 tmp-save.json
+docs/ai/tools/pano.png

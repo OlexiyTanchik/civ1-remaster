@@ -16,8 +16,8 @@ const TIPS_KEY = 'civ1-remaster-tips';
 /** Поради радника — лише на початку партії, далі гравець уже освоївся */
 const TIPS_UNTIL_TURN = 120;
 
-const TERRAFORM_KINDS: TerraformKind[] = ['road', 'irrigation', 'mine', 'clean'];
-const TERRAFORM_ICONS: Record<TerraformKind, string> = { road: '🛤️', irrigation: '💧', mine: '⛏️', clean: '🧹' };
+const TERRAFORM_KINDS: TerraformKind[] = ['road', 'irrigation', 'mine', 'clean', 'transform'];
+const TERRAFORM_ICONS: Record<TerraformKind, string> = { road: '🛤️', irrigation: '💧', mine: '⛏️', clean: '🧹', transform: '🌱' };
 
 function turnsWord(n: number): string {
   const m10 = n % 10, m100 = n % 100;
@@ -431,7 +431,8 @@ export class Hud {
     for (const k of TERRAFORM_KINDS) {
       const btn = document.getElementById(`btn-tf-${k}`) as HTMLButtonElement | null;
       if (!btn) continue;
-      if (!unit || !canTerraform(unit.type)) {
+      // Перетворення рельєфу — лише інженерам: іншим кнопка лише заважала б
+      if (!unit || !canTerraform(unit.type) || (k === 'transform' && unit.type !== UnitTypeKey.Engineers)) {
         btn.style.display = 'none';
         continue;
       }

@@ -53,7 +53,9 @@
 - Складність: `cityEnv` дає `baseContent` (людині) і `costFactor` (AI); `player.researchFactor` (людині).
 - `Unit`: `task` (робота R/I/M/P), `veteran`, `carriedBy` (id корабля чи авіаносця), `fuel` (літаки), `aiTarget`. Пасажири стоять на клітинці корабля, але сховані.
 - `UnitConfig`: `capacity` (сухопутні пасажири), `airCapacity` (літаки на авіаносці), `fuel` (ходів у повітрі), `requiresWonder` (ядерна ракета — Мангеттен будь-де).
-  Етап 8: `allTerrainAsRoad` (будь-який рельєф — 1/3 руху, Дослідник), `vision` (радіус огляду, типово 2). Ветеран новому юніту — лише через `World.trainsVeteran` (казарми, аеропорт, Сунь-цзи).
+  Етап 8: `allTerrainAsRoad` (будь-який рельєф — 1/3 руху, Дослідник), `vision` (радіус огляду, типово 2). Ветеран новому юніту — лише через `World.trainsVeteran` (казарми, аеропорт, портові споруди, Сунь-цзи).
+  Агенти в чужих містах — `AGENTS` (Дипломат, Шпигун), не порівнювати з `UnitTypeKey.Diplomat`.
+- Перетворення рельєфу інженерами (`TRANSFORM` у `terraform.ts`, робота `transform`, клавіша O): `World.terrainChanges` → `MapRenderer.rebakeTerrain` перепікає шматки 16×16 (`TerrainBaker.rebake`). Без рендерера (симуляції) список лише росте — не страшно.
 - `TileData`: `hasRoad/hasRailroad/hasIrrigation/hasMine/hasRiver/hasHut/hasPollution`, `cityId`, `unitIds`.
 - Ідентифікатори спрайтів: `t_` рельєф, `o_` накладки, `u_<UnitTypeKey>`, `c_tier1..3`, `r_` ресурси, `i_` покращення, `b_<BuildingTypeKey>`, `w_<BuildingTypeKey>` (чудеса), `h_` житла, `bd_` фон панорами.
 
@@ -98,6 +100,7 @@
 - Ключ: `.env.local` (`GEMINI_API_KEY`), у `.gitignore`.
 
 ## Як перевіряти
+- Панораму міста без браузера: скрипт складає `bd_land` і всі `BUILDING_SLOTS` з атласу (`python -I docs/ai/tools/pano.py [КлючіДляРамки…]` → `docs/ai/tools/pano.png`, у git не йде) — так знайдено чудеса, сховані за палацом.
 - Логіку — у браузері (Vite dev): `const {World} = await import('/src/core/world.ts'); const w = new World(); …` — той самий код, що в грі. Можна створювати юніти/міста, примусово кидати `Math.random`.
 - Повна партія без людини: `w.players[0].isAi = true` (інакше бездіяльна людина гине й гра закінчується). Три AI — довше: ганяти шматками по 50–100 ходів, світ тримати в `window`.
 - Симуляції AI: `for (t…) w.processTurnEnd()`. **Ліміт виклику ~45 с** — 2 світи по 300 ходів ≈ 28 с.

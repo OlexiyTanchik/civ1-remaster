@@ -6,7 +6,7 @@
  */
 import type { World } from './world';
 import { City, Unit, UnitTypeKey, BuildingTypeKey, TerrainType, Player, GovernmentKey } from './types';
-import { UNIT_CONFIGS, BUILDING_CONFIGS, TERRAIN_DATA, FAT_CROSS_OFFSETS, MAP_WIDTH, MAP_HEIGHT, GOVERNMENTS } from './constants';
+import { AGENTS, UNIT_CONFIGS, BUILDING_CONFIGS, TERRAIN_DATA, FAT_CROSS_OFFSETS, MAP_WIDTH, MAP_HEIGHT, GOVERNMENTS } from './constants';
 import { tileYield, TerraformKind, checkTerraform } from './terraform';
 import { TurnManager } from './turn-manager';
 import { FleetAi } from './ai-fleet';
@@ -19,11 +19,13 @@ const RESEARCH_ORDER = [
   'feudalism', 'the_republic', 'monotheism', 'university', 'bridge_building', 'banking', 'chivalry',
   'navigation', 'invention', 'gunpowder',
   'physics', 'medicine', 'economics', 'theory_of_gravity', 'democracy', 'metallurgy', 'magnetism',
-  'steam_engine', 'railroad', 'industrialization', 'communism', 'chemistry', 'electricity', 'conscription',
+  'steam_engine', 'railroad', 'industrialization', 'communism', 'chemistry', 'electricity', 'conscription', 'leadership',
   'the_corporation', 'steel', 'electronics', 'sanitation', 'explosives', 'refining', 'theology',
   'combustion', 'automobile', 'mass_production', 'recycling', 'machine_tools', 'mobile_warfare', 'labor_union',
   'atomic_theory', 'flight', 'nuclear_fission', 'nuclear_power', 'radio', 'advanced_flight', 'rocketry',
-  'computers', 'space_flight', 'robotics', 'plastics', 'superconductor', 'genetic_engineering',
+  'computers', 'space_flight', 'robotics', 'plastics', 'superconductor',
+  // Гірська піхота й шпигуни — після космічних технологій: кожна зайва технологія дорожчає наступні, і космос не встигав до 2100
+  'tactics', 'espionage', 'genetic_engineering',
 ];
 
 /** Корабель, який AI вважає готовим до старту: 3 двигуни, 3 модулі, 6 каркасів (політ 14 р., успіх 100%). */
@@ -156,7 +158,11 @@ export class AiController {
     const yields = w.cityYields(city);
     const cities = this.citiesOf(player.id).length;
     const myUnits = [...w.units.values()].filter((u) => u.playerId === player.id);
-    const count = (t: UnitTypeKey) => myUnits.filter((u) => u.type === t).length;
+    // Інженери замінюють робітників, шпигун — дипломата: рахуємо разом
+    const count = (t: UnitTypeKey) => myUnits.filter((u) => u.type === t || (t === UnitTypeKey.Workers && u.type === UnitTypeKey.Engineers)
+      || (t === UnitTypeKey.Diplomat && u.type === UnitTypeKey.Spy)).length;
+    const worker = player.knownTechs.includes('explosives') ? UnitTypeKey.Engineers : UnitTypeKey.Workers;
+    const agent = player.knownTechs.includes('espionage') ? UnitTypeKey.Spy : UnitTypeKey.Diplomat;
     const military = myUnits.filter((u) => UNIT_CONFIGS[u.type].attack > 0).length;
     const armyFull = military >= cities * 2 + 2;
     // «Аполлон» — першим: без нього космічна гонка не встигає до 2100
@@ -209,11 +215,13 @@ export class AiController {
       return set(false, UnitTypeKey.Explorer);
     }
     // Робітники: від двох міст, а єдиному місту, що не росте, — одразу (зрошення)
-    if ((cities >= 2 || yields.foodSurplus <= 0) && count(UnitTypeKey.Workers) < Math.ceil(cities / 2)) return set(false, UnitTypeKey.Workers);
+    if ((cities >= 2 || yields.foodSurplus <= 0) && count(UnitTypeKey.Workers) < Math.ceil(cities / 2)) return set(false, worker);
     if (garrison < this.garrisonNeed(city)) return set(false, defender);
     // Лише Ополчення в гарнізоні — рання навала варварів забирала такі міста одне за одним
     if (defender !== UnitTypeKey.Militia && !this.hasRealDefender(city)) return set(false, defender);
     if (threat && canBuild(BuildingTypeKey.CityWalls)) return set(true, BuildingTypeKey.CityWalls);
+    if (canBuild(BuildingTypeKey.CoastalDefense) && this.enemyFleetNear(city, player.id)) return set(true, BuildingTypeKey.CoastalDefense);
+    if (yields.abroadUnhappy > 0 && canBuild(BuildingTypeKey.PoliceStation)) return set(true, BuildingTypeKey.PoliceStation);
     // Ворог має ядерні ракети — великі міста ставлять протиракетну оборону
     if (city.size >= 8 && canBuild(BuildingTypeKey.SdiDefense)
       && [...w.units.values()].some((u) => u.type === UnitTypeKey.Nuclear && w.diplomacy.atWar(player.id, u.playerId))) {
@@ -247,12 +255,13 @@ export class AiController {
     if (yields.corruption >= 2 && canBuild(BuildingTypeKey.Courthouse)) return set(true, BuildingTypeKey.Courthouse);
     // Войовничі готують ветеранів у великих містах
     if (hostile && city.size >= 4 && canBuild(BuildingTypeKey.Barracks)) return set(true, BuildingTypeKey.Barracks);
+    if (hostile && city.size >= 8 && canBuild(BuildingTypeKey.PortFacility)) return set(true, BuildingTypeKey.PortFacility);
     // Утримання: нові війська — лише там, де лишаються щити після утримання
     const canUpkeep = yields.shields >= 3;
     // Дипломат — знайомитись і відкривати посольства; з повною скарбницею на війні — підкуповувати міста
     const bribe = hostile && player.gold >= 600;
     if (canUpkeep && city.size >= 3 && player.knownTechs.includes('writing') && count(UnitTypeKey.Diplomat) < 1 && (this.needEmbassy(player).length || bribe)) {
-      return set(false, UnitTypeKey.Diplomat);
+      return set(false, agent);
     }
     if (hostile && !armyFull && canUpkeep && count(attacker as UnitTypeKey) < Math.ceil(cities / 2)) return set(false, attacker);
     // Флот і авіація для войовничих і тих, кому загрожують
@@ -282,7 +291,7 @@ export class AiController {
     if (!armyFull && canUpkeep) return set(false, hostile ? attacker : defender);
     // Армії досить: щити — у чудеса (як любить AI Civ 1), інакше корисне без утримання
     if (wonder) return set(true, wonder.key);
-    if (count(UnitTypeKey.Workers) < cities) return set(false, UnitTypeKey.Workers);
+    if (count(UnitTypeKey.Workers) < cities) return set(false, worker);
     if (cities < 14 && city.size >= 3 && fedSettlers) return set(false, UnitTypeKey.Settlers);
     // Юніти коштують утримання — тож наостанок краще будь-яка ще не збудована споруда
     const leftover = Object.values(BUILDING_CONFIGS)
@@ -292,7 +301,7 @@ export class AiController {
     if (leftover && affordable(leftover.maintenance)) return set(true, leftover.key);
     if (player.knownTechs.includes('trade') && count(UnitTypeKey.Caravan) < 3) return set(false, UnitTypeKey.Caravan); // запас на чудеса
     // Без межі міста, яким нічого будувати, клепали робітників сотнями (107 на 18 міст)
-    if (count(UnitTypeKey.Workers) < cities * 2) return set(false, UnitTypeKey.Workers);
+    if (count(UnitTypeKey.Workers) < cities * 2) return set(false, worker);
     // Караван без чуда сам розпуститься за 20 ходів — тож не накопичується, як робітники
     return set(false, player.knownTechs.includes('trade') ? UnitTypeKey.Caravan : defender);
   }
@@ -365,9 +374,9 @@ export class AiController {
     if (unit.carriedBy && cfg.domain === 'land') return; // пасажир: ним керує пором
     if (unit.aiMission && this.fleet.awaitFerry(unit)) return;
     if (unit.type === UnitTypeKey.Settlers) return this.settle(unit);
-    if (unit.type === UnitTypeKey.Workers) return this.work(unit);
+    if (unit.type === UnitTypeKey.Workers || unit.type === UnitTypeKey.Engineers) return this.work(unit);
     if (unit.type === UnitTypeKey.Caravan) return this.caravan(unit);
-    if (unit.type === UnitTypeKey.Diplomat) return this.diplomat(unit);
+    if (AGENTS.has(unit.type)) return this.diplomat(unit);
     if (unit.type === UnitTypeKey.Explorer) return this.scoutLand(unit);
     if (cfg.domain === 'air') return this.fleet.moveAir(unit);
     if (cfg.domain === 'sea') return this.fleet.moveShip(unit);
@@ -461,7 +470,7 @@ export class AiController {
     const busy = (x: number, y: number) => w.tiles[y][x].unitIds.some((id) => id !== unit.id && !!w.units.get(id)?.task);
     const here = busy(unit.x, unit.y) ? undefined : this.bestTaskAt(unit, unit.x, unit.y);
     // Забруднену клітинку місто кидає обробляти — тож чистимо будь-яку в радіусі, інакше смог лишався навіки
-    const anyInRadius = here === 'irrigation' || here === 'clean';
+    const anyInRadius = here === 'irrigation' || here === 'clean' || here === 'transform';
     if (here && (this.isWorkedByOwn(unit.playerId, unit.x, unit.y) || (anyInRadius && this.inOwnRadius(unit.playerId, unit.x, unit.y)))) {
       unit.aiWait = 0;
       w.startTask(unit.id, here);
@@ -478,7 +487,7 @@ export class AiController {
         const d = w.distance(unit.x, unit.y, pos.x, pos.y) + (worked ? 0 : 3);
         if (d >= bestD) continue;
         const task = this.bestTaskAt(unit, pos.x, pos.y);
-        if (task && (worked || task === 'irrigation' || task === 'clean') && !busy(pos.x, pos.y)
+        if (task && (worked || task === 'irrigation' || task === 'clean' || task === 'transform') && !busy(pos.x, pos.y)
           && w.tiles[pos.y][pos.x].unitIds.every((id) => w.units.get(id)?.playerId === unit.playerId)) {
           bestD = d;
           best = pos;
@@ -492,7 +501,7 @@ export class AiController {
     }
     // Роботи давно нема — зайвий робітник лише їсть щити утримання
     unit.aiWait = (unit.aiWait ?? 0) + 1;
-    const workers = [...w.units.values()].filter((u) => u.playerId === unit.playerId && u.type === UnitTypeKey.Workers).length;
+    const workers = [...w.units.values()].filter((u) => u.playerId === unit.playerId && (u.type === UnitTypeKey.Workers || u.type === UnitTypeKey.Engineers)).length;
     if (unit.aiWait > 20 && unit.homeCityId && workers > this.citiesOf(unit.playerId).length) w.removeUnit(unit.id);
     else this.defend(unit); // до найближчого міста
   }
@@ -503,6 +512,8 @@ export class AiController {
     const player = this.world.players[unit.playerId];
     const check = (k: TerraformKind) => checkTerraform(this.world.tiles, tile, k, player).ok;
     if (check('clean')) return 'clean'; // забруднення — першочергово
+    // Болото й джунглі дають 1/0/0 — луки годують удвічі краще
+    if (unit.type === UnitTypeKey.Engineers && (tile.terrain === TerrainType.Swamp || tile.terrain === TerrainType.Jungle)) return 'transform';
     if (tile.terrain === TerrainType.Hills && !tile.hasMine && check('mine')) return 'mine';
     if (check('irrigation')) return 'irrigation';
     if (check('mine') && tile.terrain !== TerrainType.Desert) return 'mine';
@@ -602,6 +613,13 @@ export class AiController {
       return;
     }
     this.explore(unit);
+  }
+
+  /** Ворожий бойовий корабель за 6 клітинок від міста. */
+  private enemyFleetNear(city: City, playerId: number): boolean {
+    const w = this.world;
+    return [...w.units.values()].some((u) => this.isWarship(u.type) && u.playerId !== playerId
+      && w.diplomacy.atWar(playerId, u.playerId) && w.distance(u.x, u.y, city.x, city.y) <= 6);
   }
 
   /** Чи лишилось у радіусі 10 від міста понад 20 нерозвіданих клітинок суші. */
