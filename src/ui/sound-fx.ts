@@ -150,7 +150,7 @@ export class SoundEffects {
   public static playForMessages(messages: string[]): void {
     const rules: [(m: string) => boolean, () => void][] = [
       [(m) => m.startsWith('🚀') && /запустили|стартував/.test(m), () => this.playLaunch()],
-      [(m) => m.startsWith('🔥') && m.includes('захопили'), () => this.playCapture()],
+      [(m) => m.startsWith('🔥') && m.includes('захоплено'), () => this.playCapture()],
       [(m) => m.startsWith('⚔️') && m.includes('війн'), () => this.playWar()],
       [(m) => m.startsWith('💀'), () => this.playLoss()],
       [(m) => m.startsWith('🌟'), () => this.playWonder()],

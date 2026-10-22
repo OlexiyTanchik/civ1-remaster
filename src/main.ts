@@ -150,7 +150,7 @@ async function bootstrap() {
     showMeetings();
     if (!res.success) return;
     if (res.combatLog) {
-      if (res.combatLog.includes('захопили')) SoundEffects.playCapture();
+      if (res.combatLog.includes('захоплено')) SoundEffects.playCapture();
       else SoundEffects.playCombat();
       hud.addLogMessage(`⚔️ ${res.combatLog}`);
     } else if (res.event) {

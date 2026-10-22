@@ -1279,7 +1279,7 @@ export class World {
     CityLogic.autoAssignWorkers(city, this.tiles);
     const msg = incited
       ? `💰 Місто ${city.name} (${oldOwner.nameUa}) повстало й перейшло до: ${this.players[newOwner].nameUa}!`
-      : `🔥 ${this.players[newOwner].nameUa} захопили місто ${city.name} (${oldOwner.nameUa})!`;
+      : `🔥 Місто ${city.name} (${oldOwner.nameUa}) захоплено — тепер воно належить: ${this.players[newOwner].nameUa}!`;
     if (newOwner !== 0) this.news.push(msg); // свої захоплення людина бачить одразу
     return msg;
   }

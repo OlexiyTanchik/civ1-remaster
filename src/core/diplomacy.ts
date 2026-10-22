@@ -195,7 +195,7 @@ export class Diplomacy {
       this.meetings.push({ from: a, kind: 'war', text: `«${pa.leaderUa}: ваш народ слабкий, а наші війська голодні до слави. Відтепер між нами — війна!»` });
     }
     if (a === 0 && pb.isAi) this.world.pushNews(`⚔️ Ви оголосили війну: ${pb.nameUa}${treachery ? ' (мирну угоду порушено — інші лідери це запам\'ятають)' : ''}`);
-    this.news(`⚔️ ${pa.nameUa} оголосили війну: ${pb.nameUa}`, a, b);
+    this.news(`⚔️ Оголошено війну: ${pa.nameUa} → ${pb.nameUa}`, a, b);
   }
 
   public makePeace(a: number, b: number): void {
@@ -205,7 +205,7 @@ export class Diplomacy {
     r.since = this.turn();
     this.mood(a, b, 1);
     this.mood(b, a, 1);
-    this.news(`🕊️ ${this.civ(a).nameUa} і ${this.civ(b).nameUa} уклали мир`, a, b);
+    this.news(`🕊️ Укладено мир: ${this.civ(a).nameUa} і ${this.civ(b).nameUa}`, a, b);
   }
 
   /** Технології, які `from` знає, а `to` — ні (і які `to` вже може зрозуміти — є всі передумови). */
