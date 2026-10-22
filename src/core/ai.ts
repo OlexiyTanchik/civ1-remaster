@@ -173,6 +173,8 @@ export class AiController {
     // Робітники: від двох міст, а єдиному місту, що не росте, — одразу (зрошення)
     if ((cities >= 2 || yields.foodSurplus <= 0) && count(UnitTypeKey.Workers) < Math.ceil(cities / 2)) return set(false, UnitTypeKey.Workers);
     if (garrison < this.garrisonNeed(city)) return set(false, defender);
+    // Лише Ополчення в гарнізоні — рання навала варварів забирала такі міста одне за одним
+    if (defender !== UnitTypeKey.Militia && !this.hasRealDefender(city)) return set(false, defender);
     if (threat && canBuild(BuildingTypeKey.CityWalls)) return set(true, BuildingTypeKey.CityWalls);
     // Ворог має ядерні ракети — великі міста ставлять протиракетну оборону
     if (city.size >= 8 && canBuild(BuildingTypeKey.SdiDefense)
@@ -718,6 +720,13 @@ export class AiController {
       .map((id) => this.world.units.get(id))
       .filter((u) => u && u.playerId === city.playerId && UNIT_CONFIGS[u.type].attack > 0 && UNIT_CONFIGS[u.type].domain === 'land')
       .length;
+  }
+
+  /** Чи стоїть у місті хтось, кращий за Ополчення. */
+  private hasRealDefender(city: City): boolean {
+    return this.world.tiles[city.y][city.x].unitIds
+      .map((id) => this.world.units.get(id))
+      .some((u) => u && u.playerId === city.playerId && u.type !== UnitTypeKey.Militia && UNIT_CONFIGS[u.type].defense >= 2 && UNIT_CONFIGS[u.type].domain === 'land');
   }
 
   /** Чи є ворожі бойові юніти поруч (варвари — завжди вороги; інші — коли воюють). */

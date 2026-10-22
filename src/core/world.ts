@@ -87,12 +87,15 @@ export class World {
   }
 
   private spawnInitialSettlers(): void {
+    const starts: { x: number; y: number }[] = [];
     for (const player of this.players) {
       if (player.isBarbarian) continue;
       let spawned = false;
       let tries = 0;
       while (!spawned && tries < 1000) {
         tries++;
+        // Сусіди не стартують на виду одне в одного (інакше знайомство в 3950 до н.е.); вимогу послаблюємо, якщо мапа тісна
+        const minDist = tries < 400 ? Math.floor(MAP_WIDTH / 5) : tries < 800 ? 8 : 0;
         const rx = Math.floor(Math.random() * MAP_WIDTH);
         const ry = Math.floor(MAP_HEIGHT * 0.25 + Math.random() * (MAP_HEIGHT * 0.5));
         const tile = this.tiles[ry][rx];
@@ -110,6 +113,8 @@ export class World {
             }
           }
           if (landCount < 7) continue;
+          if (starts.some((p) => this.distance(p.x, p.y, rx, ry) < minDist)) continue;
+          starts.push({ x: rx, y: ry });
 
           this.createUnit(player.id, UnitTypeKey.Settlers, rx, ry);
           this.revealFog(player.id, rx, ry, 3);
