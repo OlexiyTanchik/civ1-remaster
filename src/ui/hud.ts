@@ -419,8 +419,9 @@ export class Hud {
     if (disbandBtn) disbandBtn.style.display = unit ? 'block' : 'none';
     const helpBtn = document.getElementById('btn-help-wonder') as HTMLButtonElement | null;
     if (helpBtn) {
-      helpBtn.style.display = unit?.type === UnitTypeKey.Caravan ? 'block' : 'none';
-      if (unit?.type === UnitTypeKey.Caravan) {
+      const trader = !!unit && !!UNIT_CONFIGS[unit.type].wonderShields;
+      helpBtn.style.display = trader ? 'block' : 'none';
+      if (trader) {
         const tile = this.world.tiles[unit.y][unit.x];
         const city = tile.cityId ? this.world.cities.get(tile.cityId) : undefined;
         const ok = !!city && city.currentProduction.isBuilding && !!BUILDING_CONFIGS[city.currentProduction.key as BuildingTypeKey]?.isWonder;

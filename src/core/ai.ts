@@ -25,7 +25,7 @@ const RESEARCH_ORDER = [
   'atomic_theory', 'flight', 'nuclear_fission', 'nuclear_power', 'radio', 'advanced_flight', 'rocketry',
   'computers', 'space_flight', 'robotics', 'plastics', 'superconductor',
   // Гірська піхота й шпигуни — після космічних технологій: кожна зайва технологія дорожчає наступні, і космос не встигав до 2100
-  'tactics', 'espionage', 'genetic_engineering',
+  'tactics', 'espionage', 'refrigeration', 'miniaturization', 'combined_arms', 'amphibious_warfare', 'guerrilla_warfare', 'genetic_engineering',
 ];
 
 /** Корабель, який AI вважає готовим до старту: 3 двигуни, 3 модулі, 6 каркасів (політ 14 р., успіх 100%). */
@@ -160,8 +160,9 @@ export class AiController {
     const myUnits = [...w.units.values()].filter((u) => u.playerId === player.id);
     // Інженери замінюють робітників, шпигун — дипломата: рахуємо разом
     const count = (t: UnitTypeKey) => myUnits.filter((u) => u.type === t || (t === UnitTypeKey.Workers && u.type === UnitTypeKey.Engineers)
-      || (t === UnitTypeKey.Diplomat && u.type === UnitTypeKey.Spy)).length;
+      || (t === UnitTypeKey.Diplomat && u.type === UnitTypeKey.Spy) || (t === UnitTypeKey.Caravan && u.type === UnitTypeKey.Freight)).length;
     const worker = player.knownTechs.includes('explosives') ? UnitTypeKey.Engineers : UnitTypeKey.Workers;
+    const trader = player.knownTechs.includes('the_corporation') ? UnitTypeKey.Freight : UnitTypeKey.Caravan;
     const agent = player.knownTechs.includes('espionage') ? UnitTypeKey.Spy : UnitTypeKey.Diplomat;
     const military = myUnits.filter((u) => UNIT_CONFIGS[u.type].attack > 0).length;
     const armyFull = military >= cities * 2 + 2;
@@ -230,6 +231,13 @@ export class AiController {
     if (city.size >= 5 && garrison < 2) return set(false, defender);
     if (city.size >= 9 && canBuild(BuildingTypeKey.Aqueduct)) return set(true, BuildingTypeKey.Aqueduct);
     if (city.size >= 15 && canBuild(BuildingTypeKey.Sewer)) return set(true, BuildingTypeKey.Sewer);
+    // Ворожа авіація — ЗРК у великих містах
+    if (city.size >= 8 && canBuild(BuildingTypeKey.SamBattery) && [...w.units.values()].some((u) => UNIT_CONFIGS[u.type].domain === 'air'
+      && u.type !== UnitTypeKey.Nuclear && w.diplomacy.atWar(player.id, u.playerId))) return set(true, BuildingTypeKey.SamBattery);
+    if (city.size >= 10 && canBuild(BuildingTypeKey.Supermarket)) return set(true, BuildingTypeKey.Supermarket);
+    if (city.size >= 12 && canBuild(BuildingTypeKey.Superhighways)) return set(true, BuildingTypeKey.Superhighways);
+    if (yields.shields < 15 && canBuild(BuildingTypeKey.OffshorePlatform)
+      && city.workedTiles.filter((p) => w.tiles[p.y][p.x].terrain === TerrainType.Ocean).length >= 4) return set(true, BuildingTypeKey.OffshorePlatform);
     // З автомобілями великі міста димлять — метро й трамваї
     if (city.size >= 12 && player.knownTechs.includes('automobile') && canBuild(BuildingTypeKey.MassTransit)) return set(true, BuildingTypeKey.MassTransit);
     // Фабрика з понад 20 щитами вже димить
@@ -274,6 +282,13 @@ export class AiController {
     if (canUpkeep && city.size >= 8 && (threat || hostile) && player.knownTechs.includes('flight') && count(UnitTypeKey.Fighter) < Math.ceil(cities / 3)) {
       return set(false, UnitTypeKey.Fighter);
     }
+    if (hostile && canUpkeep && city.size >= 8 && player.knownTechs.includes('combined_arms')) {
+      if (count(UnitTypeKey.Helicopter) < Math.ceil(cities / 4)) return set(false, UnitTypeKey.Helicopter);
+      if (count(UnitTypeKey.Paratroopers) < 2) return set(false, UnitTypeKey.Paratroopers);
+    }
+    if (hostile && canUpkeep && this.isCoastal(city) && player.knownTechs.includes('amphibious_warfare') && count(UnitTypeKey.Marines) < 2) {
+      return set(false, UnitTypeKey.Marines);
+    }
     if (hostile && canUpkeep && city.size >= 8 && player.knownTechs.includes('advanced_flight') && count(UnitTypeKey.Bomber) < Math.ceil(cities / 4)) {
       return set(false, UnitTypeKey.Bomber);
     }
@@ -286,7 +301,7 @@ export class AiController {
     if (wonder && (has(BuildingTypeKey.Palace) || cities < 3)) return set(true, wonder.key);
     // Каравани — лише коли якесь місто справді будує чудо, і не більше трьох
     const wonderSite = allCities.some((c) => c.currentProduction.isBuilding && BUILDING_CONFIGS[c.currentProduction.key as BuildingTypeKey]?.isWonder);
-    if (wonderSite && player.knownTechs.includes('trade') && count(UnitTypeKey.Caravan) < 3) return set(false, UnitTypeKey.Caravan);
+    if (wonderSite && player.knownTechs.includes('trade') && count(UnitTypeKey.Caravan) < 3) return set(false, trader);
     if (wonder && city.size >= 5) return set(true, wonder.key);
     if (!armyFull && canUpkeep) return set(false, hostile ? attacker : defender);
     // Армії досить: щити — у чудеса (як любить AI Civ 1), інакше корисне без утримання
@@ -299,11 +314,11 @@ export class AiController {
         && (!b.prereqTech || player.knownTechs.includes(b.prereqTech)) && (!b.requires || has(b.requires)) && (!b.coastal || this.isCoastal(city)) && (!b.highland || this.world.isHighland(city)))
       .sort((a, b) => a.maintenance - b.maintenance || a.cost - b.cost)[0];
     if (leftover && affordable(leftover.maintenance)) return set(true, leftover.key);
-    if (player.knownTechs.includes('trade') && count(UnitTypeKey.Caravan) < 3) return set(false, UnitTypeKey.Caravan); // запас на чудеса
+    if (player.knownTechs.includes('trade') && count(UnitTypeKey.Caravan) < 3) return set(false, trader); // запас на чудеса
     // Без межі міста, яким нічого будувати, клепали робітників сотнями (107 на 18 міст)
     if (count(UnitTypeKey.Workers) < cities * 2) return set(false, worker);
     // Караван без чуда сам розпуститься за 20 ходів — тож не накопичується, як робітники
-    return set(false, player.knownTechs.includes('trade') ? UnitTypeKey.Caravan : defender);
+    return set(false, player.knownTechs.includes('trade') ? trader : defender);
   }
 
   /**
@@ -375,7 +390,8 @@ export class AiController {
     if (unit.aiMission && this.fleet.awaitFerry(unit)) return;
     if (unit.type === UnitTypeKey.Settlers) return this.settle(unit);
     if (unit.type === UnitTypeKey.Workers || unit.type === UnitTypeKey.Engineers) return this.work(unit);
-    if (unit.type === UnitTypeKey.Caravan) return this.caravan(unit);
+    if (cfg.wonderShields) return this.caravan(unit);
+    if (cfg.hover) return this.attack(unit); // гелікоптер воює, як наземний ударний загін
     if (AGENTS.has(unit.type)) return this.diplomat(unit);
     if (unit.type === UnitTypeKey.Explorer) return this.scoutLand(unit);
     if (cfg.domain === 'air') return this.fleet.moveAir(unit);
@@ -676,7 +692,8 @@ export class AiController {
       return;
     }
     // Суходолом цілей нема — десант на вороже місто за морем
-    const far = this.isHostilePhase(player) ? this.fleet.overseasTarget(unit) : undefined;
+    if (cfg.paradrop && this.paradrop(unit)) return;
+    const far = this.isHostilePhase(player) && cfg.domain === 'land' ? this.fleet.overseasTarget(unit) : undefined;
     if (far) {
       unit.aiMission = { kind: 'board', purpose: 'invade', target: far };
       unit.isFortified = false;
@@ -684,6 +701,21 @@ export class AiController {
       return;
     }
     if (cfg.attack > 0) this.defend(unit);
+  }
+
+  /** Десантники: стрибок до ворожого міста за 10 клітинок, де шанси добрі (або воно порожнє). */
+  private paradrop(unit: Unit): boolean {
+    const w = this.world;
+    const player = w.players[unit.playerId];
+    const reach = UNIT_CONFIGS[unit.type].paradrop ?? 0;
+    for (const city of w.cities.values()) {
+      if (city.playerId === unit.playerId || !this.mayAttack(player, city.playerId) || w.distance(unit.x, unit.y, city.x, city.y) > reach + 1) continue;
+      if (this.garrisonAt(city) > 0 && this.odds(unit, city.x, city.y) < 0.55) continue;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]]) {
+        if (w.paradrop(unit.id, city.x + dx, city.y + dy).ok) return true;
+      }
+    }
+    return false;
   }
 
   /** Шанси атаки за формулою бою (без випадковості): атака / (атака + захист). */

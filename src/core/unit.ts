@@ -50,13 +50,14 @@ export class UnitLogic {
     defender: Unit,
     defTile: TileData,
     hasWalls: boolean = false,
-    coastalDefense: boolean = false
+    mods: { coastal?: boolean; sam?: boolean; fromShip?: boolean } = {}
   ): { attackerWon: boolean; logUa: string } {
     const aCfg = UNIT_CONFIGS[attacker.type];
     const dCfg = UNIT_CONFIGS[defender.type];
 
     // Ветерани: +50% атаки й захисту
-    const attackPower = Math.max(1, aCfg.attack) * (attacker.veteran ? 1.5 : 1);
+    // З корабля на берег б'є на повну лише морська піхота
+    const attackPower = Math.max(1, aCfg.attack) * (attacker.veteran ? 1.5 : 1) * (mods.fromShip && !aCfg.marine ? 0.5 : 1);
     let defensePower = Math.max(1, dCfg.defense) * (defender.veteran ? 1.5 : 1);
 
     // Бонус місцевості (літаку в небі рельєф не допомагає)
@@ -79,7 +80,11 @@ export class UnitLogic {
       defensePower *= 3.0;
     }
     // Берегова оборона: захист ×2 проти кораблів
-    if (coastalDefense && aCfg.domain === 'sea') {
+    if (mods.coastal && aCfg.domain === 'sea') {
+      defensePower *= 2.0;
+    }
+    // ЗРК: захист ×2 проти літаків і гелікоптерів
+    if (mods.sam && aCfg.domain === 'air') {
       defensePower *= 2.0;
     }
 

@@ -117,6 +117,15 @@ async function bootstrap() {
       }
     }
 
+    // Десантники в місті: клік по далекій клітинці — стрибок
+    if (selectedUnit && UNIT_CONFIGS[selectedUnit.type].paradrop && world.distance(selectedUnit.x, selectedUnit.y, tileX, tileY) > 1) {
+      const res = world.paradrop(selectedUnit.id, tileX, tileY);
+      hud.addLogMessage(res.ok ? `🪂 ${UNIT_CONFIGS[selectedUnit.type].nameUa} висадилися з неба.` : `🪂 ${res.reason}`);
+      renderer.refreshAll();
+      if (res.ok) selectNextAvailableUnit();
+      return;
+    }
+
     // Якщо є обраний юніт і клікнули на сусідню клітинку - рухаємося
     moveSelected(tileX, tileY);
   };

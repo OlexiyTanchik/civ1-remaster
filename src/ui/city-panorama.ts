@@ -72,6 +72,10 @@ const BUILDING_SLOTS: Partial<Record<BuildingTypeKey, { x: number; y: number; sc
   [BuildingTypeKey.PoliceStation]: { x: 236, y: 140, scale: 0.4 },
   [BuildingTypeKey.StatueOfLiberty]: { x: 112, y: 112, scale: 0.4 },
   [BuildingTypeKey.EiffelTower]: { x: 224, y: 80, scale: 0.55 },
+  [BuildingTypeKey.SamBattery]: { x: 212, y: 138, scale: 0.4 },
+  [BuildingTypeKey.Supermarket]: { x: 110, y: 190, scale: 0.45 },
+  [BuildingTypeKey.Superhighways]: { x: 20, y: 165, scale: 0.5 },
+  [BuildingTypeKey.OffshorePlatform]: { x: 374, y: 70, scale: 0.4 },
 };
 
 const hash = (a: number, b: number) => {

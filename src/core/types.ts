@@ -94,6 +94,13 @@ export enum UnitTypeKey {
   Dragoons = 'dragoons',
   AlpineTroops = 'alpine_troops',
   Spy = 'spy',
+  // Етап 8: XX століття
+  Paratroopers = 'paratroopers',
+  Marines = 'marines',
+  Partisans = 'partisans',
+  Destroyer = 'destroyer',
+  Freight = 'freight',
+  Helicopter = 'helicopter',
 }
 
 export interface UnitConfig {
@@ -115,6 +122,14 @@ export interface UnitConfig {
   allTerrainAsRoad?: boolean;
   /** Радіус огляду (типово 2) */
   vision?: number;
+  /** Десант: зі свого міста з повним рухом — стрибок на клітинку за стільки клітинок */
+  paradrop?: number;
+  /** Морська піхота: атакує з корабля без втрат (решта — удвічі слабше) */
+  marine?: boolean;
+  /** Гелікоптер: літає без пального, але його б'ють і наземні */
+  hover?: boolean;
+  /** Скільки щитів віддає на чудо (караван, вантажівка) */
+  wonderShields?: number;
   /** Виробляється лише тоді, коли це чудо збудоване будь-де у світі */
   requiresWonder?: BuildingTypeKey;
   prereqTech?: string;
@@ -218,6 +233,11 @@ export enum BuildingTypeKey {
   PoliceStation = 'police_station',
   StatueOfLiberty = 'statue_liberty',
   EiffelTower = 'eiffel_tower',
+  // Етап 8: XX століття
+  SamBattery = 'sam_battery',
+  Supermarket = 'supermarket',
+  Superhighways = 'superhighways',
+  OffshorePlatform = 'offshore_platform',
 }
 
 /** Частина космічного корабля: каркас тримає двигуни й модулі. */

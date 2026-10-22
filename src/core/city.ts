@@ -225,8 +225,12 @@ export class CityLogic {
       if (has(BuildingTypeKey.Colossus)) y.trade += 1;
       if (has(BuildingTypeKey.Harbour)) y.food += 1;
     }
+    if (tile.terrain === TerrainType.Ocean && has(BuildingTypeKey.OffshorePlatform)) y.shields += 1;
     const out = this.applyGovernment(y, env);
     if (has(BuildingTypeKey.KingRichards)) out.shields += 1;
+    // Супермаркет — ферми на зрошених полях, автостради — торгівля вздовж доріг
+    if (has(BuildingTypeKey.Supermarket) && tile.hasIrrigation) out.food += Math.floor(out.food / 2);
+    if (has(BuildingTypeKey.Superhighways) && tile.hasRoad) out.trade += Math.floor(out.trade / 2);
     return out;
   }
 

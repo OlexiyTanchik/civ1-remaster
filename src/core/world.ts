@@ -257,15 +257,18 @@ export class World {
         if (!atSea && unit.type === UnitTypeKey.Submarine) return { success: false }; // торпеди — лише по кораблях
         const defCity = toTile.cityId ? this.cities.get(toTile.cityId) : undefined;
         // Літак у небі (не в місті) збиває лише винищувач
-        if (!defCity && UNIT_CONFIGS[otherUnit.type].domain === 'air' && !otherUnit.carriedBy && unit.type !== UnitTypeKey.Fighter) {
+        if (!defCity && UNIT_CONFIGS[otherUnit.type].domain === 'air' && !UNIT_CONFIGS[otherUnit.type].hover && !otherUnit.carriedBy && unit.type !== UnitTypeKey.Fighter) {
           return { success: false };
         }
         this.noteAggression(unit.playerId, otherUnit.playerId);
         // Гаубиця, як у Civ 1, мурів не помічає
         const walls = !!defCity && unit.type !== UnitTypeKey.Howitzer && (defCity.buildings.includes(BuildingTypeKey.CityWalls)
           || this.ownerWonders(defCity.playerId).has(BuildingTypeKey.GreatWall));
-        const coastal = !!defCity && defCity.buildings.includes(BuildingTypeKey.CoastalDefense);
-        const combat = UnitLogic.resolveCombat(unit, otherUnit, toTile, walls, coastal);
+        const combat = UnitLogic.resolveCombat(unit, otherUnit, toTile, walls, {
+          coastal: !!defCity && defCity.buildings.includes(BuildingTypeKey.CoastalDefense),
+          sam: !!defCity && defCity.buildings.includes(BuildingTypeKey.SamBattery),
+          fromShip: !!unit.carriedBy && UNIT_CONFIGS[unit.type].domain === 'land',
+        });
 
         if (combat.attackerWon) {
           // Поза містом гине весь стос (Civ 1); у місті — лише захисник
@@ -801,15 +804,16 @@ export class World {
   /** Караван у своєму місті віддає 50 щитів на чудо, яке там будується. */
   public helpWonder(unitId: string): { ok: boolean; reason?: string; city?: City } {
     const unit = this.units.get(unitId);
-    if (!unit || unit.type !== UnitTypeKey.Caravan) return { ok: false, reason: 'Лише караван' };
+    const gift = unit && UNIT_CONFIGS[unit.type].wonderShields;
+    if (!unit || !gift) return { ok: false, reason: 'Лише караван чи вантажівка' };
     const cityId = this.tiles[unit.y][unit.x].cityId;
     const city = cityId ? this.cities.get(cityId) : undefined;
-    if (!city || city.playerId !== unit.playerId) return { ok: false, reason: 'Караван має бути у вашому місті' };
+    if (!city || city.playerId !== unit.playerId) return { ok: false, reason: 'Потрібно бути у вашому місті' };
     const prod = city.currentProduction;
     if (!prod.isBuilding || !BUILDING_CONFIGS[prod.key as BuildingTypeKey]?.isWonder) {
       return { ok: false, reason: 'Місто зараз не будує чудо світу' };
     }
-    city.shieldsStored += 50;
+    city.shieldsStored += gift;
     this.removeUnit(unitId);
     return { ok: true, city };
   }
@@ -1279,6 +1283,54 @@ export class World {
    * Захоплення міста: новий власник, населення −1, палац руйнується.
    * Підкуп дипломатом (`incited`): без втрати жителів, загони в місті переходять разом із ним.
    */
+  /** Партизанська війна: при захопленні міста довкола з'являються ветерани-партизани колишнього власника (до 4). */
+  private raisePartisans(city: City, ownerId: number): number {
+    const owner = this.players[ownerId];
+    if (!owner.alive || owner.isBarbarian || !owner.knownTechs.includes('guerrilla_warfare')) return 0;
+    const want = Math.min(4, Math.max(1, Math.floor(city.size / 2)));
+    let made = 0;
+    for (let r = 1; r <= 2 && made < want; r++) {
+      for (let dy = -r; dy <= r && made < want; dy++) {
+        for (let dx = -r; dx <= r && made < want; dx++) {
+          if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+          const y = city.y + dy;
+          if (y < 0 || y >= MAP_HEIGHT) continue;
+          const x = (city.x + dx + MAP_WIDTH) % MAP_WIDTH;
+          const t = this.tiles[y][x];
+          if (t.terrain === TerrainType.Ocean || t.cityId || t.unitIds.length) continue;
+          const p = this.createUnit(ownerId, UnitTypeKey.Partisans, x, y);
+          p.veteran = true;
+          p.isFortified = true;
+          made++;
+        }
+      }
+    }
+    return made;
+  }
+
+  /** Десант: зі свого міста, поки не ходив, — на розвідану вільну клітинку суші в радіусі. */
+  public paradrop(unitId: string, x: number, y: number): { ok: boolean; reason?: string } {
+    const unit = this.units.get(unitId);
+    const cfg = unit && UNIT_CONFIGS[unit.type];
+    if (!unit || !cfg?.paradrop) return { ok: false, reason: 'Стрибають лише десантники' };
+    const from = this.tiles[unit.y][unit.x];
+    if (!from.cityId || this.cities.get(from.cityId)!.playerId !== unit.playerId) return { ok: false, reason: 'Стрибають лише зі свого міста' };
+    if (unit.movesLeft < cfg.moves) return { ok: false, reason: 'Цього ходу десантники вже рухались' };
+    x = (x + MAP_WIDTH) % MAP_WIDTH;
+    const t = this.tiles[y]?.[x];
+    if (!t || this.distance(unit.x, unit.y, x, y) > cfg.paradrop) return { ok: false, reason: `Задалеко: стрибок — до ${cfg.paradrop} клітинок` };
+    if (!this.playerFogs.get(unit.playerId)?.explored[y][x]) return { ok: false, reason: 'Туди ще не ходили розвідники' };
+    if (t.terrain === TerrainType.Ocean) return { ok: false, reason: 'У море не стрибають' };
+    if (t.unitIds.some((id) => this.units.get(id)?.playerId !== unit.playerId)
+      || (t.cityId && this.cities.get(t.cityId)!.playerId !== unit.playerId)) return { ok: false, reason: 'Просто на ворога не стрибають' };
+    unit.isFortified = false;
+    unit.carriedBy = undefined;
+    this.relocateUnit(unit, x, y);
+    unit.movesLeft = 0;
+    this.revealFog(unit.playerId, x, y, 2);
+    return { ok: true };
+  }
+
   public captureCity(city: City, newOwner: number, incited = false): string {
     const oldOwner = this.players[city.playerId];
     if (incited) {
@@ -1301,6 +1353,8 @@ export class World {
     const orphans = this.supportedUnits(city).filter((u) => u.playerId === oldOwner.id);
     orphans.forEach((u) => this.removeUnit(u.id));
     if (orphans.length && oldOwner.id === 0) this.news.push(`🪖 Разом із містом ${city.name} ви втратили військо, яке воно утримувало: ${orphans.length}`);
+    const partisans = incited ? 0 : this.raisePartisans(city, oldOwner.id);
+    if (partisans && (oldOwner.id === 0 || newOwner === 0)) this.news.push(`🌲 Довкола міста ${city.name} піднялися партизани (${oldOwner.nameUa}): ${partisans}`);
     city.playerId = newOwner;
     if (!incited) city.size = Math.max(1, city.size - 1);
     city.foodNeeded = city.size * 10;
@@ -1478,6 +1532,7 @@ const UPGRADES: Partial<Record<UnitTypeKey, UnitTypeKey>> = {
   [UnitTypeKey.Dragoons]: UnitTypeKey.Armor,
   [UnitTypeKey.AlpineTroops]: UnitTypeKey.MechInf,
   [UnitTypeKey.Workers]: UnitTypeKey.Engineers,
+  [UnitTypeKey.Caravan]: UnitTypeKey.Freight,
   [UnitTypeKey.Diplomat]: UnitTypeKey.Spy,
   [UnitTypeKey.Sail]: UnitTypeKey.Caravel,
   [UnitTypeKey.Caravel]: UnitTypeKey.Frigate,

@@ -118,7 +118,7 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
     descriptionUa: 'Дешеві й швидкі у виробництві: прокладають дороги, зрошують поля, копають шахти. Міст не засновують.',
   },
   [UnitTypeKey.Caravan]: {
-    key: UnitTypeKey.Caravan, name: 'Caravan', nameUa: 'Караван', attack: 0, defense: 1, moves: 1, cost: 50, domain: 'land',
+    key: UnitTypeKey.Caravan, name: 'Caravan', nameUa: 'Караван', attack: 0, defense: 1, moves: 1, cost: 50, domain: 'land', wonderShields: 50,
     prereqTech: 'trade', descriptionUa: 'Везе товари. У своєму місті може віддати 50 щитів на будівництво чуда світу [H].',
   },
   [UnitTypeKey.Militia]: {
@@ -271,6 +271,32 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
   [UnitTypeKey.Spy]: {
     key: UnitTypeKey.Spy, name: 'Spy', nameUa: 'Шпигун', attack: 0, defense: 0, moves: 3, cost: 30, domain: 'land',
     prereqTech: 'espionage', descriptionUa: 'Як дипломат, але професіонал: після посольства лишається живим, після крадіжки чи саботажу — у половині випадків.',
+  },
+  // Етап 8: XX століття
+  [UnitTypeKey.Paratroopers]: {
+    key: UnitTypeKey.Paratroopers, name: 'Paratroopers', nameUa: 'Десантники', attack: 6, defense: 4, moves: 1, cost: 60, domain: 'land', paradrop: 10,
+    prereqTech: 'combined_arms', descriptionUa: 'З міста, поки не ходили, стрибають на будь-яку розвідану клітинку суші за 10 клітинок (клік по ній).',
+  },
+  [UnitTypeKey.Marines]: {
+    key: UnitTypeKey.Marines, name: 'Marines', nameUa: 'Морська піхота', attack: 8, defense: 5, moves: 1, cost: 60, domain: 'land', marine: true,
+    prereqTech: 'amphibious_warfare', descriptionUa: 'Атакує просто з корабля на повну силу (інші війська з корабля б\'ють удвічі слабше).',
+  },
+  [UnitTypeKey.Partisans]: {
+    key: UnitTypeKey.Partisans, name: 'Partisans', nameUa: 'Партизани', attack: 4, defense: 4, moves: 1, cost: 50, domain: 'land',
+    allTerrainAsRoad: true,
+    prereqTech: 'guerrilla_warfare', descriptionUa: 'Будь-який рельєф — як дорога. Коли ворог бере ваше місто, довкола нього самі з\'являються партизани.',
+  },
+  [UnitTypeKey.Destroyer]: {
+    key: UnitTypeKey.Destroyer, name: 'Destroyer', nameUa: 'Есмінець', attack: 4, defense: 4, moves: 8, cost: 60, domain: 'sea', vision: 3,
+    prereqTech: 'combustion', descriptionUa: 'Найшвидший корабель: 8 клітинок за хід, бачить на 3 клітинки.',
+  },
+  [UnitTypeKey.Freight]: {
+    key: UnitTypeKey.Freight, name: 'Freight', nameUa: 'Вантажівка', attack: 0, defense: 1, moves: 2, cost: 80, domain: 'land', wonderShields: 80,
+    prereqTech: 'the_corporation', descriptionUa: 'Сучасний караван: удвічі швидший і віддає на чудо світу 80 щитів [H].',
+  },
+  [UnitTypeKey.Helicopter]: {
+    key: UnitTypeKey.Helicopter, name: 'Helicopter', nameUa: 'Гелікоптер', attack: 10, defense: 3, moves: 6, cost: 100, domain: 'air', hover: true,
+    prereqTech: 'combined_arms', descriptionUa: 'Летить над будь-чим без пального, але висить низько: його б\'ють і наземні війська. Міст не захоплює.',
   },
 };
 
@@ -531,6 +557,23 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
     key: BuildingTypeKey.EiffelTower, nameUa: 'Ейфелева вежа', cost: 300, maintenance: 0, prereqTech: 'industrialization', isWonder: true,
     descriptionUa: 'Чудо світу. Усі ваші міста забруднюють довкілля на чверть рідше.',
   },
+  // Етап 8: XX століття
+  [BuildingTypeKey.SamBattery]: {
+    key: BuildingTypeKey.SamBattery, nameUa: 'Зенітні ракети (ЗРК)', cost: 100, maintenance: 2, prereqTech: 'rocketry',
+    descriptionUa: 'Подвоює захист міста від літаків і гелікоптерів.',
+  },
+  [BuildingTypeKey.Supermarket]: {
+    key: BuildingTypeKey.Supermarket, nameUa: 'Супермаркет', cost: 80, maintenance: 3, prereqTech: 'refrigeration',
+    descriptionUa: 'Холодильники й ферми: зрошені клітинки міста дають на 50% більше їжі.',
+  },
+  [BuildingTypeKey.Superhighways]: {
+    key: BuildingTypeKey.Superhighways, nameUa: 'Автостради', cost: 120, maintenance: 3, prereqTech: 'automobile',
+    descriptionUa: 'Клітинки міста з дорогою дають на 50% більше торгівлі.',
+  },
+  [BuildingTypeKey.OffshorePlatform]: {
+    key: BuildingTypeKey.OffshorePlatform, nameUa: 'Морська платформа', cost: 120, maintenance: 3, prereqTech: 'miniaturization', coastal: true,
+    descriptionUa: 'Кожна морська клітинка міста дає +1 щит. Лише в приморському місті.',
+  },
 };
 
 /** Найбільше частин одного виду на кораблі. */
@@ -595,6 +638,9 @@ export const TECH_TREE: Record<string, Tech> = {
   // Сучасність I: війни XX століття
   tactics: { id: 'tactics', nameUa: 'Тактика', era: 4, prereqs: ['conscription', 'leadership'], descriptionUa: 'Маневр і рельєф як зброя: гірська піхота.' },
   espionage: { id: 'espionage', nameUa: 'Шпигунство', era: 4, prereqs: ['democracy', 'tactics'], descriptionUa: 'Розвідка стає професією.' },
+  amphibious_warfare: { id: 'amphibious_warfare', nameUa: 'Десантні операції', era: 4, prereqs: ['navigation', 'tactics'], descriptionUa: 'Штурм узбережжя просто з кораблів.' },
+  guerrilla_warfare: { id: 'guerrilla_warfare', nameUa: 'Партизанська війна', era: 4, prereqs: ['communism', 'tactics'], descriptionUa: 'Окуповані землі не скоряються.' },
+  refrigeration: { id: 'refrigeration', nameUa: 'Холодильники', era: 4, prereqs: ['electricity', 'sanitation'], descriptionUa: 'Їжа не псується: супермаркети й ферми.' },
   communism: { id: 'communism', nameUa: 'Комунізм', era: 4, prereqs: ['philosophy', 'industrialization'], descriptionUa: 'Держава робітників: відкриває устрій Комунізм.' },
   the_corporation: { id: 'the_corporation', nameUa: 'Корпорація', era: 4, prereqs: ['economics', 'industrialization'], descriptionUa: 'Акціонерні компанії, більші за королівства.' },
   steel: { id: 'steel', nameUa: 'Сталь', era: 4, prereqs: ['electricity', 'industrialization'], descriptionUa: 'Мартенівські печі: сталеві корпуси й рейки.' },
@@ -619,6 +665,8 @@ export const TECH_TREE: Record<string, Tech> = {
   nuclear_power: { id: 'nuclear_power', nameUa: 'Ядерна енергетика', era: 5, prereqs: ['nuclear_fission', 'electronics'], descriptionUa: 'Атом на службі міст і флоту: кораблі +1 рух.' },
   rocketry: { id: 'rocketry', nameUa: 'Ракетобудування', era: 5, prereqs: ['advanced_flight', 'nuclear_fission'], descriptionUa: 'Ракети далекого радіуса — з будь-якою боєголовкою.' },
   // Космічна гонка
+  combined_arms: { id: 'combined_arms', nameUa: 'Взаємодія родів військ', era: 5, prereqs: ['mobile_warfare', 'advanced_flight'], descriptionUa: 'Десант із неба й гелікоптери над полем бою.' },
+  miniaturization: { id: 'miniaturization', nameUa: 'Мініатюризація', era: 5, prereqs: ['machine_tools', 'electronics'], descriptionUa: 'Малі й точні механізми: видобуток у морі.' },
   computers: { id: 'computers', nameUa: 'Комп\'ютери', era: 6, prereqs: ['radio', 'machine_tools'], descriptionUa: 'Машини, що рахують швидше за всіх математиків світу.' },
   space_flight: { id: 'space_flight', nameUa: 'Космічні польоти', era: 6, prereqs: ['computers', 'rocketry'], descriptionUa: 'Людина на орбіті — і далі, до зірок.' },
   plastics: { id: 'plastics', nameUa: 'Пластмаси', era: 6, prereqs: ['refining', 'space_flight'], descriptionUa: 'Легкі й міцні матеріали для ракетних двигунів.' },

@@ -55,6 +55,8 @@
 - `UnitConfig`: `capacity` (сухопутні пасажири), `airCapacity` (літаки на авіаносці), `fuel` (ходів у повітрі), `requiresWonder` (ядерна ракета — Мангеттен будь-де).
   Етап 8: `allTerrainAsRoad` (будь-який рельєф — 1/3 руху, Дослідник), `vision` (радіус огляду, типово 2). Ветеран новому юніту — лише через `World.trainsVeteran` (казарми, аеропорт, портові споруди, Сунь-цзи).
   Агенти в чужих містах — `AGENTS` (Дипломат, Шпигун), не порівнювати з `UnitTypeKey.Diplomat`.
+  Ще прапорці `UnitConfig`: `paradrop` (`World.paradrop`), `marine` (атака з корабля — `resolveCombat(…, mods.fromShip)`), `hover` (гелікоптер: без пального, у небі його б'ють усі; AI веде як наземний `attack`), `wonderShields` (караван 50, вантажівка 80 — `helpWonder`).
+  `UnitLogic.resolveCombat(a, d, tile, walls, mods)`: `mods` — `coastal` (Берегова оборона), `sam` (ЗРК), `fromShip`.
 - Перетворення рельєфу інженерами (`TRANSFORM` у `terraform.ts`, робота `transform`, клавіша O): `World.terrainChanges` → `MapRenderer.rebakeTerrain` перепікає шматки 16×16 (`TerrainBaker.rebake`). Без рендерера (симуляції) список лише росте — не страшно.
 - `TileData`: `hasRoad/hasRailroad/hasIrrigation/hasMine/hasRiver/hasHut/hasPollution`, `cityId`, `unitIds`.
 - Ідентифікатори спрайтів: `t_` рельєф, `o_` накладки, `u_<UnitTypeKey>`, `c_tier1..3`, `r_` ресурси, `i_` покращення, `b_<BuildingTypeKey>`, `w_<BuildingTypeKey>` (чудеса), `h_` житла, `bd_` фон панорами.

@@ -661,6 +661,71 @@
       "id": "b_supermarket",
       "kind": "building",
       "prompt": "a supermarket: a wide modern store with a flat roof, big glass front and shopping carts"
+    },
+    {
+      "id": "u_destroyer",
+      "kind": "unit",
+      "prompt": "a fast grey modern destroyer warship with one gun turret and a tall mast, side view"
+    },
+    {
+      "id": "u_freight",
+      "kind": "unit",
+      "prompt": "a freight truck: a big red lorry with a covered cargo trailer, side view"
+    },
+    {
+      "id": "u_helicopter",
+      "kind": "unit",
+      "prompt": "a green military attack helicopter with rotor blades and rocket pods, side view"
+    },
+    {
+      "id": "u_cruise_missile",
+      "kind": "unit",
+      "prompt": "a white cruise missile with small wings and a flame from its tail, flying diagonally"
+    },
+    {
+      "id": "u_stealth_fighter",
+      "kind": "unit",
+      "prompt": "a black angular stealth fighter jet seen from above at an angle"
+    },
+    {
+      "id": "u_stealth_bomber",
+      "kind": "unit",
+      "prompt": "a black flying-wing stealth bomber seen from above at an angle"
+    },
+    {
+      "id": "u_aegis_cruiser",
+      "kind": "unit",
+      "prompt": "a large grey modern AEGIS missile cruiser with flat radar panels on its tower, side view"
+    },
+    {
+      "id": "b_sam_battery",
+      "kind": "building",
+      "prompt": "a SAM battery: two white surface-to-air missiles on a launcher truck with a small radar dish"
+    },
+    {
+      "id": "b_superhighways",
+      "kind": "building",
+      "prompt": "a superhighway: a concrete highway overpass with cars on it"
+    },
+    {
+      "id": "b_offshore_platform",
+      "kind": "building",
+      "prompt": "an offshore oil platform on steel legs standing in blue sea water, with a small crane"
+    },
+    {
+      "id": "b_research_lab",
+      "kind": "building",
+      "prompt": "a modern research laboratory: a white building with a glass dome and antennas"
+    },
+    {
+      "id": "b_solar_plant",
+      "kind": "building",
+      "prompt": "a solar power plant: rows of blue solar panels in front of a small white control building"
+    },
+    {
+      "id": "w_internet",
+      "kind": "building",
+      "prompt": "the Internet wonder: a tall glowing blue server tower with cables and a globe hologram on top"
     }
   ]
 }
