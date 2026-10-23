@@ -3,6 +3,7 @@
  * Завантаження й вихід перезавантажують сторінку (світ і рендерер будуються наново).
  */
 import { World } from '../core/world';
+import { langSwitchHtml, bindLangSwitch } from '../i18n';
 import { SLOTS, SlotId, listSaves, saveGame, setPendingLoad, slotName } from './save-store';
 
 export class GameMenuDialog {
@@ -60,6 +61,7 @@ export class GameMenuDialog {
         <div class="gm-bottom">
           <button class="civ-btn" id="gm-help-btn" title="Клавіші, мета, правила [F1]">❓ Як грати</button>
           <button class="civ-btn" id="gm-menu-btn">🏠 Головне меню</button>
+          ${langSwitchHtml()}
         </div>
       </div>
     `;
@@ -75,6 +77,8 @@ export class GameMenuDialog {
       location.reload();
     }));
     document.getElementById('gm-menu-btn')?.addEventListener('click', () => location.reload());
+    // Перезавантаження після зміни мови — як «Головне меню»: партія вже в автозбереженні
+    bindLangSwitch(this.overlay);
     document.getElementById('gm-stats-btn')?.addEventListener('click', () => {
       this.close();
       this.onStats?.();

@@ -9,6 +9,7 @@ import { SLOTS, SlotId, listSaves, loadSave, slotName } from './save-store';
 import { hallOfFameHtml } from './game-over-dialog';
 import { helpHtml, aboutHtml } from './help-dialog';
 import { achievementsHtml } from './achievements';
+import { langSwitchHtml, bindLangSwitch } from '../i18n';
 
 /** `quick` — «швидкий старт»: AI грає за людину до 1000 н.е., далі — гравець. */
 export type MenuChoice = { options: GameOptions; quick?: boolean } | { save: SaveData };
@@ -49,6 +50,7 @@ export function showMainMenu(container: HTMLElement): Promise<MenuChoice> {
             <button class="civ-btn" id="mm-help">❓ Як грати</button>
             <button class="civ-btn" id="mm-about">ℹ️ Про гру</button>
           </div>
+          <div class="main-menu-row">${langSwitchHtml()}</div>
         </div>`, false);
       overlay.querySelector('#mm-continue')?.addEventListener('click', () => openSlot('auto'));
       overlay.querySelector('#mm-new')?.addEventListener('click', newGame);
@@ -59,6 +61,7 @@ export function showMainMenu(container: HTMLElement): Promise<MenuChoice> {
       overlay.querySelector('#mm-load')?.addEventListener('click', loadList);
       overlay.querySelector('#mm-hall')?.addEventListener('click', () => frame(`<h3 class="hall-title">🏛️ Зал слави</h3>${hallOfFameHtml()}`));
       overlay.querySelector('#mm-help')?.addEventListener('click', () => frame(helpHtml()));
+      bindLangSwitch(overlay);
       overlay.querySelector('#mm-achv')?.addEventListener('click', () => frame(`<h3 class="hall-title">🏅 Досягнення</h3>${achievementsHtml()}`));
       overlay.querySelector('#mm-about')?.addEventListener('click', () => frame(aboutHtml()));
     }

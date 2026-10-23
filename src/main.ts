@@ -15,6 +15,7 @@ import { Tutorial } from './ui/tutorial';
 import { StatsDialog } from './ui/stats-dialog';
 import { recordTurn, noteMessage, historyOf } from './ui/history';
 import { Achievements, AchievementsDialog } from './ui/achievements';
+import { applyEntityNames, syncPlayerNames } from './i18n/entities';
 import { DiplomacyDialog, MeetingDialog, DiplomatDialog } from './ui/diplomacy-dialog';
 import { showMainMenu, MenuChoice } from './ui/main-menu';
 import { saveGame, loadSave, takePendingLoad } from './ui/save-store';
@@ -69,6 +70,8 @@ async function quickStartWorld(options: GameOptions): Promise<World> {
 }
 
 async function bootstrap() {
+  // Мова: англійські назви юнітів, споруд, технологій і цивілізацій — до меню й світу
+  applyEntityNames();
   const container = document.getElementById('canvas-container')!;
   const appElement = document.getElementById('app')!;
 
@@ -99,6 +102,7 @@ async function bootstrap() {
 
   // 2. Створення світу та запікання рельєфу в шматки
   const world = 'save' in choice ? new World(undefined, choice.save) : choice.quick ? await quickStartWorld(choice.options) : new World(choice.options);
+  syncPlayerNames(world.players);
   const terrainChunks = TerrainBaker.bake(world);
   const renderer = new MapRenderer(app, world, terrainChunks);
   const hud = new Hud(appElement, world, renderer);
