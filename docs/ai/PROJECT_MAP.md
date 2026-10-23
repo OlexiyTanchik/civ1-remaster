@@ -32,6 +32,9 @@
 | `src/ui/city-dialog.ts` | Екран міста у 2 колонки; `productionOptions` (техи, `requires`, `coastal`, палац лише якщо втрачений) |
 | `src/ui/city-panorama.ts` | Панорама 384×216: `BUILDING_SLOTS` для кожної споруди/чуда, житла від центру назовні |
 | `src/ui/tutorial.ts` | `Tutorial`: 5 кроків навчання (місто → дослідження → виробництво → кінець ходу → дорога) у плашці радника; `mark('city-opened'/'end-turn')` з `main.ts`; пропуск пам'ятає `civ1-remaster-tutorial` |
+| `src/ui/history.ts` | Історія партії в `world.uiData.history` (ядро лише зберігає): `recordTurn` (щоходу рахунок/міста/техн./армія всіх; нова епоха — подія), `noteMessage` (хроніка з журналу: столиця, чудеса, війни, мир, захоплення) |
+| `src/ui/stats-dialog.ts` | «📊 Статистика» (клік на рахунок, «💾 Гра»): графіки, топ-5 міст, демографія (місце серед усіх), хроніка; `drawWorldMap` (мапа для кінця гри) |
+| `src/ui/achievements.ts` | 23 досягнення (`check(world)`), сповіщення, список (меню, «💾 Гра»), localStorage `civ1-remaster-achievements`; у швидкому старті — без зробленого AI (`uiData.achvBaseline`) |
 | `src/ui/help-dialog.ts` | `helpHtml` («Як грати»: мета, перші ходи, клавіші, правила), `aboutHtml` («Про гру»), `HelpDialog` (F1 / «?», «💾 Гра») |
 | `src/ui/main-menu.ts` | Головне меню перед грою (`showMainMenu` → опції нової гри або збереження) |
 | `src/ui/save-store.ts` | localStorage: слоти `auto`, `1..3`, метадані; `setPendingLoad` + перезавантаження сторінки для завантаження з гри |

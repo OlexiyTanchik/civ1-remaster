@@ -19,7 +19,8 @@
 - **Дипломатія:** зустрічі з лідерами, мир і війна, данина, обмін технологіями. Є посольства, дипломати й шпигуни (крадіжка, саботаж, підкуп міст), а напад під час миру лідери пам'ятають як зраду.
 - **6 державних устроїв**, від Деспотизму до Демократії й Фундаменталізму, з революцією та анархією.
 - **Космічна гонка й кінець гри:** перемога кораблем, завоюванням або рахунком у 2100 р. Є «Зал слави».
-- **Для новачків:** покрокове навчання на перших ходах, поради радника, довідка `F1`.
+- **Для новачків:** покрокове навчання на перших ходах, поради радника, довідка `F1`, а «⚡ Швидкий старт» одразу переносить у 1000 н.е. з кількома містами.
+- **Статистика й досягнення:** графіки рахунку, міст, технологій і армії за всю партію, топ-5 міст світу, демографія, хроніка. 23 досягнення (є приховані), а в кінці гри — «Історія цивілізації» з мапою світу.
 - **Звук і музика** синтезуються в браузері (Web Audio) у дусі DOS-chiptune.
 - **Збереження:** автоматичне після кожного ходу плюс 3 слоти в браузері. Три розміри мапи й п'ять рівнів складності.
 
@@ -79,7 +80,8 @@ A web remake of Sid Meier's Civilization (1991), the classic turn-based strategy
 - **Diplomacy:** leader meetings, war and peace, tribute and tech trading. Embassies, diplomats and spies can steal, sabotage and bribe, and leaders remember broken treaties.
 - **6 governments**, from Despotism to Democracy and Fundamentalism, with revolutions and anarchy.
 - **Space race and endgame:** win by spaceship, by conquest or by score in 2100. Past games go into a Hall of Fame.
-- **Newcomer-friendly:** a step-by-step tutorial for the first turns, advisor tips, and an `F1` help screen.
+- **Newcomer-friendly:** a step-by-step tutorial for the first turns, advisor tips, an `F1` help screen, and a «⚡ Quick start» that jumps straight to 1000 AD with a growing empire.
+- **Stats and achievements:** charts of score, cities, techs and army over the whole game, the world's top 5 cities, demographics and a chronicle. There are 23 achievements (some hidden), and the end screen shows your civilization's story with a world map.
 - **Sound and music** are synthesized live with Web Audio in a DOS-chiptune style.
 - **Saves:** an autosave every turn plus 3 manual slots in the browser. Three map sizes and five difficulty levels.
 
