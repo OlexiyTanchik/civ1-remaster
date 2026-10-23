@@ -5,8 +5,8 @@
  * Міста обирають виробництво за пріоритетами; дослідження — за чергою.
  */
 import type { World } from './world';
-import { City, Unit, UnitConfig, TileData, UnitTypeKey, BuildingTypeKey, TerrainType, Player, GovernmentKey } from './types';
-import { AGENTS, UNIT_CONFIGS, BUILDING_CONFIGS, TERRAIN_DATA, FAT_CROSS_OFFSETS, MAP_WIDTH, MAP_HEIGHT, GOVERNMENTS, WARMING_LIMIT, unitForCiv } from './constants';
+import { AiStrategy, City, Unit, UnitConfig, TileData, UnitTypeKey, BuildingTypeKey, TerrainType, Player, GovernmentKey } from './types';
+import { AGENTS, UNIT_CONFIGS, BUILDING_CONFIGS, TERRAIN_DATA, FAT_CROSS_OFFSETS, MAP_WIDTH, MAP_HEIGHT, GOVERNMENTS, WARMING_LIMIT, unitForCiv, CIVS } from './constants';
 import { tileYield, TerraformKind, checkTerraform } from './terraform';
 import { TurnManager } from './turn-manager';
 import { FleetAi } from './ai-fleet';
@@ -30,6 +30,11 @@ const RESEARCH_ORDER = [
   // Гірська піхота й шпигуни — після космічних технологій: кожна зайва технологія дорожчає наступні, і космос не встигав до 2100
   'tactics', 'espionage', 'refrigeration', 'miniaturization', 'combined_arms', 'amphibious_warfare', 'guerrilla_warfare', 'genetic_engineering', 'environmentalism', 'stealth', 'fundamentalism', 'polytheism', 'artificial_intelligence', 'fusion', 'nanotechnology', 'ocean_colonization',
 ];
+
+/** Улюблена стратегія лідера (у варварів — немає). */
+export function strategyOf(p: Player): AiStrategy | undefined {
+  return p.civ ? CIVS[p.civ].strategy : undefined;
+}
 
 /** Роль ударного юніта: облога (сильна атака, слабка оборона), рухливі (2+ ходи), лінійна піхота (решта). */
 type StrikeRole = 'siege' | 'mobile' | 'line';
@@ -99,8 +104,10 @@ export class AiController {
   /** Податки: не йти в мінус через утримання; з великим запасом — більше на науку. */
   private manageTaxes(player: Player): void {
     const net = this.world.netIncome(player.id);
+    // Науковець віддає науці все, що не потрібно на утримання
+    const sci = strategyOf(player) === 'scientist';
     if (net < 0) this.world.adjustRate(player.id, 'tax', 1);
-    else if (net > 6 && player.gold > 150) this.world.adjustRate(player.id, 'tax', -1);
+    else if (sci ? net > 4 && player.gold > 120 : net > 6 && player.gold > 150) this.world.adjustRate(player.id, 'tax', -1);
   }
 
   /**
@@ -177,7 +184,8 @@ export class AiController {
     const agent = player.knownTechs.includes('espionage') ? UnitTypeKey.Spy : UnitTypeKey.Diplomat;
     const military = myUnits.filter((u) => UNIT_CONFIGS[u.type].attack > 0).length;
     // Войовничі тримають більшу армію
-    const warlike = (player.hostileFromTurn ?? Infinity) <= 50;
+    const strategy = strategyOf(player);
+    const warlike = (player.hostileFromTurn ?? Infinity) <= 50 || strategy === 'conqueror';
     let armyFull = military >= cities * (warlike ? 3 : 2) + 2;
     // Армія повна застарілими: розпускаємо один ударний загін, удвічі слабший за новітній, — місце для сучасного
     if (armyFull && this.isHostilePhase(player)) {
@@ -289,6 +297,12 @@ export class AiController {
     // Фабрика з понад 20 щитами вже димить
     if (has(BuildingTypeKey.Factory) && yields.shieldsGross > 20 && canBuild(BuildingTypeKey.RecyclingCenter)) return set(true, BuildingTypeKey.RecyclingCenter);
     if (wonder && has(BuildingTypeKey.Palace) && !threat && garrison >= 2 && city.size >= 3 && cities >= 3) return set(true, wonder.key);
+    // Будівельник чудес: ще одне чудо — у продуктивному місті, якщо там його ніхто не будує
+    if (strategy === 'builder' && !threat && garrison >= 1 && city.size >= 5 && yields.shields >= 6) {
+      const busy = new Set(allCities.map((c) => c.currentProduction.key));
+      const other = Object.values(BUILDING_CONFIGS).find((b) => b.isWonder && canBuild(b.key) && (!busy.has(b.key) || city.currentProduction.key === b.key));
+      if (other) return set(true, other.key);
+    }
     // Войовничі не кидають війну заради космосу: ударна армія — хоча б по загону на місто
     if (warlike && hostile && !armyFull && yields.shields >= 3 && strikersTotal < cities && !threat) return set(false, attacker);
     // Космічна гонка: столиця й продуктивні міста (від 10 щитів) будують частини корабля
@@ -299,7 +313,7 @@ export class AiController {
     for (const b of [BuildingTypeKey.Granary, BuildingTypeKey.Library, BuildingTypeKey.Marketplace, BuildingTypeKey.University, BuildingTypeKey.Bank, BuildingTypeKey.StockExchange, BuildingTypeKey.ResearchLab]) {
       if (city.size >= 3 && canBuild(b)) return set(true, b);
     }
-    const useful = this.effectBuilding(yields, canBuild);
+    const useful = this.effectBuilding(yields, canBuild, strategy);
     if (useful) return set(true, useful);
     // Індустрія — лише великим містам (утримання й забруднення)
     // Електростанції — одна з трьох (бонус не додається); ГЕС і АЕС чистіші
@@ -384,7 +398,7 @@ export class AiController {
     if (wonder && (has(BuildingTypeKey.Palace) || cities < 3)) return set(true, wonder.key);
     // Каравани — лише коли якесь місто справді будує чудо, і не більше трьох
     const wonderSite = allCities.some((c) => c.currentProduction.isBuilding && BUILDING_CONFIGS[c.currentProduction.key as BuildingTypeKey]?.isWonder);
-    if (wonderSite && player.knownTechs.includes('trade') && count(UnitTypeKey.Caravan) < 3) return set(false, trader);
+    if (wonderSite && player.knownTechs.includes('trade') && count(UnitTypeKey.Caravan) < (strategy === 'builder' ? 5 : 3)) return set(false, trader);
     if (wonder && city.size >= 5) return set(true, wonder.key);
     if (!armyFull && canUpkeep) return set(false, hostile ? attacker : defender);
     // Армії досить: щити — у чудеса (як любить AI Civ 1), інакше корисне без утримання
@@ -398,7 +412,7 @@ export class AiController {
       .sort((a, b) => a.maintenance - b.maintenance || a.cost - b.cost)[0];
     if (leftover && affordable(leftover.maintenance)) return set(true, leftover.key);
     // Запас на чудеса, а між ними — торгові маршрути
-    if (player.knownTechs.includes('trade') && count(UnitTypeKey.Caravan) < Math.max(3, Math.ceil(cities / 3))) return set(false, trader);
+    if (player.knownTechs.includes('trade') && count(UnitTypeKey.Caravan) < Math.max(3, Math.ceil(cities / (strategy === 'trader' ? 1.5 : 3)))) return set(false, trader);
     // Без межі міста, яким нічого будувати, клепали робітників сотнями (107 на 18 міст)
     if (count(UnitTypeKey.Workers) < cities * 2) return set(false, worker);
     // Нічого корисного не лишилось — щити в золото, а не в юніти, що їдять утримання
@@ -411,15 +425,17 @@ export class AiController {
    * Споруда з загальними ефектами, що найбільше дає на вкладений щит: відсотки — від того, що місто вже має;
    * задоволені цінні, лише коли є невдоволені чи артисти. Утримання має окупатися.
    */
-  private effectBuilding(y: CityYields, canBuild: (b: BuildingTypeKey) => boolean): BuildingTypeKey | undefined {
+  private effectBuilding(y: CityYields, canBuild: (b: BuildingTypeKey) => boolean, strategy?: AiStrategy): BuildingTypeKey | undefined {
+    // Стратегія лідера: науковцю наука вдвічі цінніша, торговцю — золото й торгівля, будівельнику й завойовнику — щити
+    const k = { science: strategy === 'scientist' ? 2 : 1, gold: strategy === 'trader' ? 2 : 1, shields: strategy === 'builder' || strategy === 'conqueror' ? 1.3 : 1 };
     let best: BuildingTypeKey | undefined;
     let bestScore = 0;
     for (const b of Object.values(BUILDING_CONFIGS)) {
       const e = b.effects;
       if (!e || b.isWonder || !canBuild(b.key)) continue;
-      const value = ((e.food ?? 0) * y.food * 1.5 + (e.shields ?? 0) * y.shieldsGross * 1.5 + (e.gold ?? 0) * y.gold
-        + (e.science ?? 0) * y.science + (e.luxury ?? 0) * y.luxury * 0.5) / 100
-        + (e.content ?? 0) * (y.unhappy + y.entertainers > 0 ? 3 : 0.3) + (e.trade ?? 0);
+      const value = ((e.food ?? 0) * y.food * 1.5 + (e.shields ?? 0) * y.shieldsGross * 1.5 * k.shields + (e.gold ?? 0) * y.gold * k.gold
+        + (e.science ?? 0) * y.science * k.science + (e.luxury ?? 0) * y.luxury * 0.5) / 100
+        + (e.content ?? 0) * (y.unhappy + y.entertainers > 0 ? 3 : 0.3) + (e.trade ?? 0) * k.gold;
       if (value < b.maintenance + 0.5) continue;
       const score = value / (b.cost / 40 + b.maintenance * 2);
       if (score > bestScore) {
@@ -861,7 +877,8 @@ export class AiController {
       const empty = this.garrisonAt(city) === 0;
       const odds = empty ? 1 : this.odds(unit, city.x, city.y);
       // Войовничі штурмують міста й за гірших шансів — інакше укріплене місто не бере ніхто
-      if (odds < ((player.hostileFromTurn ?? Infinity) <= 50 ? 0.45 : 0.55)) continue;
+      // Завойовник іде на штурм найсміливіше
+      if (odds < (strategyOf(player) === 'conqueror' ? 0.4 : (player.hostileFromTurn ?? Infinity) <= 50 ? 0.45 : 0.55)) continue;
       // Місто цінніше за загін, а столиця — ще цінніша: її падіння розколює імперію
       const score = odds * 10 - d + (empty ? 8 : 3) + (city.buildings.includes(BuildingTypeKey.Palace) ? 4 : 0);
       if (!best || score > best.score) best = { x: city.x, y: city.y, score };

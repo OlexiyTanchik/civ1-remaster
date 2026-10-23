@@ -553,6 +553,8 @@ export type CivKey = 'rus' | 'romans' | 'egyptians' | 'greeks' | 'babylonians' |
   | 'japanese' | 'french' | 'indians' | 'zulus' | 'persians' | 'vikings';
 export type MapSizeKey = 'small' | 'normal' | 'large';
 export type GreatPersonKind = 'scientist' | 'engineer' | 'artist' | 'general';
+/** Улюблена стратегія AI-лідера */
+export type AiStrategy = 'scientist' | 'builder' | 'conqueror' | 'trader';
 /** Тип світу: континенти, один суходіл, багато островів, острів на кожну цивілізацію */
 export type MapTypeKey = 'continents' | 'pangaea' | 'archipelago' | 'islands';
 export type DifficultyKey = 'chieftain' | 'warlord' | 'prince' | 'king' | 'emperor';

@@ -1,6 +1,6 @@
 import {
   TerrainType, TerrainYield, UnitTypeKey, UnitConfig, BuildingTypeKey, BuildingConfig, Tech, GovernmentKey, GovernmentConfig, SpacePart,
-  MapSizeKey, MapTypeKey, DifficultyKey, CivKey, GameOptions,
+  MapSizeKey, MapTypeKey, AiStrategy, DifficultyKey, CivKey, GameOptions,
 } from './types';
 
 // Розмір мапи змінюється перед створенням світу (setMapSize); імпорти бачать нове значення (live binding)
@@ -38,76 +38,84 @@ export const DIFFICULTIES: Record<DifficultyKey, { nameUa: string; content: numb
   emperor: { nameUa: 'Імператор', content: 3, research: 1.25, aiCost: 0.7, barbariansFrom: 45, descriptionUa: 'Для майстрів: міста бунтують, суперники мчать уперед.' },
 };
 
+/** Улюблені стратегії лідерів: назва й що вони роблять (для дипломатії й підказок). */
+export const STRATEGIES: Record<AiStrategy, { nameUa: string; descriptionUa: string }> = {
+  scientist: { nameUa: 'Науковець', descriptionUa: 'менше податків, більше науки, бібліотеки й університети; війн уникає' },
+  builder: { nameUa: 'Будівельник чудес', descriptionUa: 'чудеса світу в кількох містах водночас, каравани на чудеса' },
+  conqueror: { nameUa: 'Завойовник', descriptionUa: 'більша армія, частіші війни, штурми міст' },
+  trader: { nameUa: 'Торговець', descriptionUa: 'каравани й торгові шляхи, ринки, охоче міняється технологіями' },
+};
+
 /** Характер лідера: з якого ходу починає нападати на сусідів. */
 const WARLIKE = 45;
 const NORMAL = 80;
 const PEACEFUL = 110;
 
-export const CIVS: Record<CivKey, { nameUa: string; leaderUa: string; color: string; colorHex: number; hostileFromTurn: number; cityNames: string[] }> = {
+export const CIVS: Record<CivKey, { nameUa: string; leaderUa: string; color: string; colorHex: number; hostileFromTurn: number; strategy: AiStrategy; cityNames: string[] }> = {
   rus: {
-    nameUa: 'Київська Русь', leaderUa: 'Ярослав Мудрий', color: '#2a75d3', colorHex: 0x2a75d3, hostileFromTurn: NORMAL,
+    nameUa: 'Київська Русь', leaderUa: 'Ярослав Мудрий', color: '#2a75d3', colorHex: 0x2a75d3, hostileFromTurn: NORMAL, strategy: 'builder',
     cityNames: ['Київ', 'Чернігів', 'Переяслав', 'Галич', 'Володимир', 'Новгород-Сіверський', 'Полоцьк', 'Смоленськ',
       'Турів', 'Луцьк', 'Белз', 'Звенигород', 'Вишгород', 'Любеч', 'Корсунь', 'Канів'],
   },
   romans: {
-    nameUa: 'Римляни', leaderUa: 'Юлій Цезар', color: '#d63031', colorHex: 0xd63031, hostileFromTurn: WARLIKE,
+    nameUa: 'Римляни', leaderUa: 'Юлій Цезар', color: '#d63031', colorHex: 0xd63031, hostileFromTurn: WARLIKE, strategy: 'conqueror',
     cityNames: ['Рим', 'Капуя', 'Неаполь', 'Равенна', 'Тарент', 'Помпеї', 'Мілан', 'Генуя', 'Верона', 'Аквілея'],
   },
   egyptians: {
-    nameUa: 'Єгиптяни', leaderUa: 'Рамзес II', color: '#f1c40f', colorHex: 0xf1c40f, hostileFromTurn: PEACEFUL,
+    nameUa: 'Єгиптяни', leaderUa: 'Рамзес II', color: '#f1c40f', colorHex: 0xf1c40f, hostileFromTurn: PEACEFUL, strategy: 'builder',
     cityNames: ['Фіви', 'Мемфіс', 'Олександрія', 'Гіза', 'Луксор', 'Асуан', 'Абідос', 'Саїс', 'Танис', 'Буто'],
   },
   greeks: {
-    nameUa: 'Греки', leaderUa: 'Олександр Македонський', color: '#7fd1ff', colorHex: 0x7fd1ff, hostileFromTurn: NORMAL,
+    nameUa: 'Греки', leaderUa: 'Олександр Македонський', color: '#7fd1ff', colorHex: 0x7fd1ff, hostileFromTurn: NORMAL, strategy: 'scientist',
     cityNames: ['Афіни', 'Спарта', 'Коринф', 'Дельфи', 'Фіви Беотійські', 'Аргос', 'Мілет', 'Ефес', 'Пелла', 'Олімпія'],
   },
   babylonians: {
-    nameUa: 'Вавилоняни', leaderUa: 'Хаммурапі', color: '#e0e0e0', colorHex: 0xe0e0e0, hostileFromTurn: PEACEFUL,
+    nameUa: 'Вавилоняни', leaderUa: 'Хаммурапі', color: '#e0e0e0', colorHex: 0xe0e0e0, hostileFromTurn: PEACEFUL, strategy: 'scientist',
     cityNames: ['Вавилон', 'Ур', 'Урук', 'Ніппур', 'Лагаш', 'Кіш', 'Еріду', 'Ларса', 'Сіппар', 'Борсіппа'],
   },
   germans: {
-    nameUa: 'Германці', leaderUa: 'Фрідріх Барбаросса', color: '#4a4a4a', colorHex: 0x4a4a4a, hostileFromTurn: WARLIKE,
+    nameUa: 'Германці', leaderUa: 'Фрідріх Барбаросса', color: '#4a4a4a', colorHex: 0x4a4a4a, hostileFromTurn: WARLIKE, strategy: 'conqueror',
     cityNames: ['Ахен', 'Кельн', 'Майнц', 'Трір', 'Аугсбург', 'Регенсбург', 'Вормс', 'Фульда', 'Бремен', 'Любек'],
   },
   chinese: {
-    nameUa: 'Китайці', leaderUa: 'Цінь Шихуанді', color: '#2ecc71', colorHex: 0x2ecc71, hostileFromTurn: NORMAL,
+    nameUa: 'Китайці', leaderUa: 'Цінь Шихуанді', color: '#2ecc71', colorHex: 0x2ecc71, hostileFromTurn: NORMAL, strategy: 'builder',
     cityNames: ['Сяньян', 'Чан\'ань', 'Лоян', 'Ханчжоу', 'Кайфен', 'Нанкін', 'Ченду', 'Гуанчжоу', 'Пекін', 'Сучжоу'],
   },
   mongols: {
-    nameUa: 'Монголи', leaderUa: 'Чингісхан', color: '#a0522d', colorHex: 0xa0522d, hostileFromTurn: WARLIKE,
+    nameUa: 'Монголи', leaderUa: 'Чингісхан', color: '#a0522d', colorHex: 0xa0522d, hostileFromTurn: WARLIKE, strategy: 'conqueror',
     cityNames: ['Каракорум', 'Хара-Хото', 'Бейбулак', 'Кондуй', 'Аврага', 'Олон-Сум', 'Хадан', 'Ергуне', 'Шанду', 'Ханбалик'],
   },
   aztecs: {
-    nameUa: 'Ацтеки', leaderUa: 'Монтесума', color: '#e67e22', colorHex: 0xe67e22, hostileFromTurn: WARLIKE,
+    nameUa: 'Ацтеки', leaderUa: 'Монтесума', color: '#e67e22', colorHex: 0xe67e22, hostileFromTurn: WARLIKE, strategy: 'conqueror',
     cityNames: ['Теночтітлан', 'Тескоко', 'Тлакопан', 'Чолула', 'Шочимілько', 'Тула', 'Койоакан', 'Кульуакан', 'Тлателолько', 'Чалько'],
   },
   english: {
-    nameUa: 'Англійці', leaderUa: 'Єлизавета I', color: '#9b59b6', colorHex: 0x9b59b6, hostileFromTurn: NORMAL,
+    nameUa: 'Англійці', leaderUa: 'Єлизавета I', color: '#9b59b6', colorHex: 0x9b59b6, hostileFromTurn: NORMAL, strategy: 'trader',
     cityNames: ['Лондон', 'Йорк', 'Ноттінгем', 'Гастінгс', 'Кентербері', 'Ковентрі', 'Вінчестер', 'Оксфорд', 'Бристоль', 'Плімут'],
   },
   // Етап 11: нові народи
   japanese: {
-    nameUa: 'Японці', leaderUa: 'Токуґава Ієясу', color: '#ff7eb6', colorHex: 0xff7eb6, hostileFromTurn: NORMAL,
+    nameUa: 'Японці', leaderUa: 'Токуґава Ієясу', color: '#ff7eb6', colorHex: 0xff7eb6, hostileFromTurn: NORMAL, strategy: 'scientist',
     cityNames: ['Кіото', 'Едо', 'Осака', 'Нара', 'Камакура', 'Наґоя', 'Хіросіма', 'Сендай', 'Наґасакі', 'Кагосіма', 'Канадзава', 'Фукуока'],
   },
   french: {
-    nameUa: 'Французи', leaderUa: 'Наполеон Бонапарт', color: '#3c40c6', colorHex: 0x3c40c6, hostileFromTurn: NORMAL,
+    nameUa: 'Французи', leaderUa: 'Наполеон Бонапарт', color: '#3c40c6', colorHex: 0x3c40c6, hostileFromTurn: NORMAL, strategy: 'builder',
     cityNames: ['Париж', 'Орлеан', 'Ліон', 'Марсель', 'Бордо', 'Руан', 'Тулуза', 'Реймс', 'Нант', 'Страсбург', 'Авіньйон', 'Дижон'],
   },
   indians: {
-    nameUa: 'Індійці', leaderUa: 'Махатма Ганді', color: '#1abc9c', colorHex: 0x1abc9c, hostileFromTurn: PEACEFUL,
+    nameUa: 'Індійці', leaderUa: 'Махатма Ганді', color: '#1abc9c', colorHex: 0x1abc9c, hostileFromTurn: PEACEFUL, strategy: 'trader',
     cityNames: ['Делі', 'Варанасі', 'Паталіпутра', 'Агра', 'Калькутта', 'Мадрас', 'Бомбей', 'Удджайн', 'Хайдарабад', 'Джайпур', 'Лакхнау', 'Матхура'],
   },
   zulus: {
-    nameUa: 'Зулуси', leaderUa: 'Шака', color: '#6b8e23', colorHex: 0x6b8e23, hostileFromTurn: WARLIKE,
+    nameUa: 'Зулуси', leaderUa: 'Шака', color: '#6b8e23', colorHex: 0x6b8e23, hostileFromTurn: WARLIKE, strategy: 'conqueror',
     cityNames: ['Улунді', 'Булавайо', 'Ондіні', 'Ісандлвана', 'Нонгома', 'Емпангені', 'Есгове', 'Мелмот', 'Махлабатіні', 'Дукуза'],
   },
   persians: {
-    nameUa: 'Перси', leaderUa: 'Кир Великий', color: '#c8a27a', colorHex: 0xc8a27a, hostileFromTurn: NORMAL,
+    nameUa: 'Перси', leaderUa: 'Кир Великий', color: '#c8a27a', colorHex: 0xc8a27a, hostileFromTurn: NORMAL, strategy: 'trader',
     cityNames: ['Персеполь', 'Пасаргади', 'Сузи', 'Екбатана', 'Ісфахан', 'Тебриз', 'Шираз', 'Мешхед', 'Рей', 'Ктесифон', 'Кашан', 'Казвін'],
   },
   vikings: {
-    nameUa: 'Вікінги', leaderUa: 'Гаральд Суворий', color: '#81ecec', colorHex: 0x81ecec, hostileFromTurn: WARLIKE,
+    nameUa: 'Вікінги', leaderUa: 'Гаральд Суворий', color: '#81ecec', colorHex: 0x81ecec, hostileFromTurn: WARLIKE, strategy: 'conqueror',
     cityNames: ['Тронгейм', 'Уппсала', 'Роскілле', 'Хедебю', 'Бірка', 'Каупанг', 'Йорвік', 'Дублін', 'Рейк\'явік', 'Берген', 'Ставангер', 'Олесунн'],
   },
 };

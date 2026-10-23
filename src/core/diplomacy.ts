@@ -5,8 +5,8 @@
  * Пропозиції AI людині не виконуються одразу, а стають «зустрічами», які людина приймає чи відхиляє.
  */
 import type { World } from './world';
-import { BuildingTypeKey, City, Player, Tech, UnitTypeKey } from './types';
-import { AGENTS, UNIT_CONFIGS, BUILDING_CONFIGS, MAP_WIDTH, MAP_HEIGHT } from './constants';
+import { AiStrategy, BuildingTypeKey, City, Player, Tech, UnitTypeKey } from './types';
+import { AGENTS, UNIT_CONFIGS, BUILDING_CONFIGS, MAP_WIDTH, MAP_HEIGHT, CIVS, STRATEGIES } from './constants';
 import { TurnManager } from './turn-manager';
 
 export interface Relation {
@@ -106,6 +106,12 @@ export class Diplomacy {
     return t <= 50 ? 'warlike' : t >= 100 ? 'peaceful' : 'normal';
   }
 
+  /** Улюблена стратегія лідера (у варварів — немає). */
+  public strategy(id: number): AiStrategy | undefined {
+    const p = this.civ(id);
+    return p.civ ? CIVS[p.civ].strategy : undefined;
+  }
+
   public attitude(from: number, to: number): number {
     const k = `${from}>${to}`;
     if (!this.attitudes.has(k)) {
@@ -160,7 +166,14 @@ export class Diplomacy {
       normal: `«Вітаю! Я — ${p.leaderUa}, ${p.nameUa} радо знатимуть ваш народ. Хай буде мир між нами.»`,
       peaceful: `«Мир вам, сусіди! Я — ${p.leaderUa}. ${p.nameUa} шанують торгівлю й дружбу.»`,
     }[this.character(p)];
-    this.meetings.push({ from: ai, to: human, kind: 'contact', text: greet });
+    const st = this.strategy(ai);
+    const motto = st ? {
+      scientist: ' Наші вчені прагнуть знань — поділімося відкриттями.',
+      builder: ' Ми будуємо на віки: наші чудеса переживуть усіх.',
+      conqueror: ' Світ належатиме сильним — пам\'ятайте це.',
+      trader: ' Наші купці завжди раді вашим ринкам.',
+    }[st] : '';
+    this.meetings.push({ from: ai, to: human, kind: 'contact', text: greet.replace(/»$/, `${motto}» (${STRATEGIES[st ?? 'builder'].nameUa.toLowerCase()})`) });
   }
 
   /** Будь-який напад: якщо був мир — це оголошення війни й порушена угода. */
@@ -196,7 +209,10 @@ export class Diplomacy {
     const pa = this.civ(a);
     const pb = this.civ(b);
     if (!pb.isAi && pa.isAi && !treachery) {
-      this.meetings.push({ from: a, to: b, kind: 'war', text: `«${pa.leaderUa}: ваш народ слабкий, а наші війська голодні до слави. Відтепер між нами — війна!»` });
+      const text = this.strategy(a) === 'conqueror'
+        ? `«${pa.leaderUa}: ваші землі стануть нашими, а ваші міста — нашими фортецями. Війна!»`
+        : `«${pa.leaderUa}: ваш народ слабкий, а наші війська голодні до слави. Відтепер між нами — війна!»`;
+      this.meetings.push({ from: a, to: b, kind: 'war', text });
     }
     if (a === 0 && pb.isAi) this.world.pushNews(`⚔️ Ви оголосили війну: ${pb.nameUa}${treachery ? ' (мирну угоду порушено — інші лідери це запам\'ятають)' : ''}`);
     this.news(`⚔️ Оголошено війну: ${pa.nameUa} → ${pb.nameUa}`, a, b);
@@ -258,10 +274,13 @@ export class Diplomacy {
     if (!give || !want) return { ok: false, text: 'Такий обмін неможливий.' };
     if (this.relation(0, ai).war) return { ok: false, text: `«${p.leaderUa}: з ворогами не торгуємо.»` };
     if (!p.isAi) return this.offerToHuman(ai, 'trade', `«${this.civ(0).leaderUa}: дамо вам «${give.nameUa}» за ваше «${want.nameUa}». Згода?»`, give.id, want.id);
-    const fair = give.era >= want.era;
+    // Торговець погоджується й на трохи невигідний обмін — торгівля важливіша
+    const trader = this.strategy(ai) === 'trader';
+    const fair = give.era >= want.era - (trader ? 1 : 0);
     if (this.attitude(ai, 0) < -1 || !fair) return { ok: false, text: `«${p.leaderUa}: ні, ця угода нам невигідна.»` };
     this.exchange(0, give, ai, want);
     this.mood(ai, 0, 1);
+    if (trader) return { ok: true, text: `«${p.leaderUa}: вигідна справа — по руках! Наші купці вже везуть «${want.nameUa}» додому.»` };
     return { ok: true, text: `«${p.leaderUa}: чудова угода! Наші вчені вже вивчають «${give.nameUa}».»` };
   }
 
@@ -383,7 +402,8 @@ export class Diplomacy {
 
       if (r.war) {
         const long = this.turn() - r.since >= 10;
-        const wantsPeace = long && (ratio < 0.8 || char === 'peaceful' || (char === 'normal' && this.turn() - r.since >= 25));
+        const wantsPeace = long && (ratio < 0.8 || char === 'peaceful' || (char === 'normal' && this.turn() - r.since >= 25)
+          || (this.strategy(ai.id) !== 'conqueror' && this.turn() - r.since >= 18));
         if (!wantsPeace || Math.random() > 0.15) continue;
         if (other.isAi) {
           // Другий AI погоджується, якщо теж не рветься до бою
@@ -403,7 +423,8 @@ export class Diplomacy {
       // Войовничому досить рівних сил, іншим — переваги
       if (hostilePhase && ratio >= (char === 'warlike' ? 0.9 : 1.1)) {
         if (w.ownerWonders(other.id).has(BuildingTypeKey.UnitedNations) && !w.attackedRecently(other.id, ai.id)) continue;
-        const base = char === 'warlike' ? 0.08 : char === 'normal' ? 0.03 : 0.008;
+        const st = this.strategy(ai.id);
+        const base = (char === 'warlike' ? 0.08 : char === 'normal' ? 0.03 : 0.008) * (st === 'conqueror' ? 1.6 : st === 'scientist' ? 0.5 : st === 'trader' ? 0.6 : st === 'builder' ? 0.8 : 1);
         const att = this.attitude(ai.id, other.id);
         const chance = base * (att < -2 ? 2.5 : att < 0 ? 1.5 : att > 3 ? 0.3 : 1) * (this.turn() - r.since < 10 ? 0.3 : 1);
         if (Math.random() < chance) {
@@ -424,7 +445,7 @@ export class Diplomacy {
       const want = this.tradeable(other.id, ai.id);
       if (!give.length || !want.length) continue;
       if (other.isAi) {
-        if (this.attitude(other.id, ai.id) > -2 && Math.random() < 0.08) {
+        if (this.attitude(other.id, ai.id) > -2 && Math.random() < (this.strategy(ai.id) === 'trader' ? 0.16 : 0.08)) {
           this.exchange(ai.id, give[0], other.id, want[0]);
           this.mood(ai.id, other.id, 0.5);
           this.mood(other.id, ai.id, 0.5);
