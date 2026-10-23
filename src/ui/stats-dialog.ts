@@ -27,7 +27,8 @@ export function drawWorldMap(w: World, canvas: HTMLCanvasElement, cell: number, 
   }
   for (const c of w.cities.values()) {
     if (!revealAll && fog && !fog.explored[c.y][c.x]) continue;
-    const r = Math.max(2, Math.round(cell * (1 + Math.min(c.size, 20) / 20)));
+    // Більше місто — трохи більший квадрат, але не ширший за півтори клітинки
+    const r = Math.max(1.5, cell * (0.45 + Math.min(c.size, 20) / 60));
     ctx.fillStyle = w.players[c.playerId].color;
     ctx.fillRect(c.x * cell + cell / 2 - r, c.y * cell + cell / 2 - r, r * 2, r * 2);
     ctx.strokeStyle = '#000';

@@ -847,3 +847,9 @@ kbd {
 .achv-toast.hidden { display: none; }
 .achv-toast b { color: #f1c40f; font-size: 13px; }
 @keyframes achv-in { from { transform: translateY(-20px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Історія цивілізації в кінці гри */
+.go-story { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; }
+.go-map { flex: 0 1 auto; max-width: 100%; image-rendering: pixelated; border: 1px solid #1a528e; }
+.go-chronicle { flex: 1 1 260px; max-height: 300px; overflow-y: auto; font-size: 12px; }
+.go-modal { width: 920px; }

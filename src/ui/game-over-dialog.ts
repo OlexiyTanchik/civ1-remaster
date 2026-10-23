@@ -2,6 +2,9 @@
  * Кінець гри: перемога чи поразка, рахунок цивілізацій і «Зал слави» (зберігається в браузері).
  */
 import { World } from '../core/world';
+import { MAP_WIDTH } from '../core/constants';
+import { historyOf, yearLabel } from './history';
+import { drawWorldMap } from './stats-dialog';
 
 interface HallEntry {
   date: string;
@@ -69,7 +72,7 @@ export class GameOverDialog {
         </tr>`).join('');
 
     this.overlay.innerHTML = `
-      <div class="tech-modal">
+      <div class="tech-modal go-modal">
         <div class="city-header"><h2>${headline.title}</h2></div>
         <p class="modal-subtitle">${headline.text} (${over.year})</p>
         <div class="hall-table-wrap">
@@ -78,6 +81,7 @@ export class GameOverDialog {
             ${rows}
           </table>
         </div>
+        ${this.storyHtml()}
         <h3 class="hall-title">🏛️ Зал слави</h3>
         ${hallOfFameHtml()}
         <div class="hall-buttons">
@@ -87,8 +91,25 @@ export class GameOverDialog {
       </div>
     `;
     this.overlay.classList.remove('hidden');
+    const map = this.overlay.querySelector<HTMLCanvasElement>('#go-map');
+    // Підсумкова мапа: увесь світ відкрито — кому що дісталося
+    if (map) drawWorldMap(w, map, Math.max(3, Math.floor(600 / MAP_WIDTH)), true);
     document.getElementById('go-new-btn')?.addEventListener('click', () => location.reload());
     document.getElementById('go-close-btn')?.addEventListener('click', () => this.overlay.classList.add('hidden'));
+  }
+
+  /** «Історія цивілізації»: хронологія ключових подій партії й мапа світу наприкінці. */
+  private storyHtml(): string {
+    const events = historyOf(this.world).events;
+    const list = events.length
+      ? events.map((e) => `<div class="journal-row"><span class="dim">${yearLabel(e.y)}</span> ${e.text}</div>`).join('')
+      : '<p class="modal-subtitle">Хроніка цієї партії не збереглась (гра почалась до її появи).</p>';
+    return `
+      <h3 class="hall-title">📜 Історія цивілізації</h3>
+      <div class="go-story">
+        <canvas id="go-map" class="go-map" title="Світ наприкінці партії: міста кольорами цивілізацій"></canvas>
+        <div class="journal-list go-chronicle">${list}</div>
+      </div>`;
   }
 
   private headline(reason: string, won: boolean, winnerName?: string): { title: string; text: string } {
