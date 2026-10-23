@@ -13,7 +13,7 @@ import { GameMenuDialog } from './ui/game-menu-dialog';
 import { HelpDialog } from './ui/help-dialog';
 import { Tutorial } from './ui/tutorial';
 import { StatsDialog } from './ui/stats-dialog';
-import { recordTurn, noteMessage } from './ui/history';
+import { recordTurn, noteMessage, historyOf } from './ui/history';
 import { Achievements, AchievementsDialog } from './ui/achievements';
 import { DiplomacyDialog, MeetingDialog, DiplomatDialog } from './ui/diplomacy-dialog';
 import { showMainMenu, MenuChoice } from './ui/main-menu';
@@ -23,7 +23,7 @@ import { Hud } from './ui/hud';
 import { CityDialog } from './ui/city-dialog';
 import { TechDialog } from './ui/tech-dialog';
 import { SoundEffects } from './ui/sound-fx';
-import { Unit } from './core/types';
+import { Unit, GameOptions } from './core/types';
 import { SpriteAtlas } from './render/sprite-atlas';
 import { TerrainBaker } from './render/terrain-baker';
 import { TerraformKind, TERRAFORM_INFO } from './core/terraform';
@@ -36,6 +36,36 @@ async function bootScreen(text?: string): Promise<void> {
   if (!text) return;
   document.getElementById('boot-text')!.textContent = text;
   await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+}
+
+/**
+ * «Швидкий старт»: AI веде цивілізацію людини до 1000 н.е. (історію й хроніку теж пише),
+ * потім керування переходить до гравця. Невдалий світ (людину знищено, мало міст) — генеруємо наново.
+ */
+async function quickStartWorld(options: GameOptions): Promise<World> {
+  let w = new World(options);
+  for (let attempt = 0; attempt < 4; attempt++) {
+    if (attempt) w = new World(options);
+    w.players[0].isAi = true;
+    recordTurn(w);
+    while (w.turnManager.year < 1000 && !w.gameOver && w.players[0].alive) {
+      // Шматками по 5 ходів — заставка встигає показати рік
+      for (let i = 0; i < 5; i++) {
+        const r = w.processTurnEnd();
+        recordTurn(w);
+        r.completedItems.forEach((m) => noteMessage(w, m));
+      }
+      await bootScreen(`⚡ Пишемо історію за вас: ${w.turnManager.getYearString()}…`);
+    }
+    const cities = [...w.cities.values()].filter((c) => c.playerId === 0).length;
+    if (!w.gameOver && w.players[0].alive && cities >= 3) break;
+  }
+  w.players[0].isAi = false;
+  // Зустрічі, що накопичились, поки за людину грав AI, — не показувати
+  w.diplomacy.takeMeetings();
+  w.uiData.quickStart = true;
+  historyOf(w).events.push({ y: w.turnManager.year, text: '⚡ Швидкий старт: до цього року вашою цивілізацією правив AI-регент' });
+  return w;
 }
 
 async function bootstrap() {
@@ -68,13 +98,17 @@ async function bootstrap() {
   await SpriteAtlas.load();
 
   // 2. Створення світу та запікання рельєфу в шматки
-  const world = 'save' in choice ? new World(undefined, choice.save) : new World(choice.options);
+  const world = 'save' in choice ? new World(undefined, choice.save) : choice.quick ? await quickStartWorld(choice.options) : new World(choice.options);
   const terrainChunks = TerrainBaker.bake(world);
   const renderer = new MapRenderer(app, world, terrainChunks);
   const hud = new Hud(appElement, world, renderer);
   const tutorial = new Tutorial(world);
   hud.tutorial = tutorial;
   // Вітання з HTML пасує лише новій партії
+  if (!('save' in choice) && choice.quick) {
+    const first = appElement.querySelector('.log-entry');
+    if (first) first.textContent = `⚡ ${world.turnManager.getYearString()}: ваша імперія вже росте. Огляньте міста (клік по місту), «📊» — статистика, F1 — довідка.`;
+  }
   if ('save' in choice) {
     const first = appElement.querySelector('.log-entry');
     if (first) first.textContent = `💾 Партію продовжено: ${world.turnManager.getYearString()}, хід ${world.turnManager.turnNumber}.`;

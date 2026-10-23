@@ -10,7 +10,8 @@ import { hallOfFameHtml } from './game-over-dialog';
 import { helpHtml, aboutHtml } from './help-dialog';
 import { achievementsHtml } from './achievements';
 
-export type MenuChoice = { options: GameOptions } | { save: SaveData };
+/** `quick` — «швидкий старт»: AI грає за людину до 1000 н.е., далі — гравець. */
+export type MenuChoice = { options: GameOptions; quick?: boolean } | { save: SaveData };
 
 export function showMainMenu(container: HTMLElement): Promise<MenuChoice> {
   return new Promise((resolve) => {
@@ -40,6 +41,7 @@ export function showMainMenu(container: HTMLElement): Promise<MenuChoice> {
         <div class="main-menu-buttons">
           ${auto ? `<button class="btn-primary" id="mm-continue">▶ Продовжити<small>${auto.civ}, ${auto.year}</small></button>` : ''}
           <button class="btn-primary" id="mm-new">🌍 Нова гра</button>
+          <button class="btn-primary" id="mm-quick" title="AI проведе вашу цивілізацію до 1000 н.е.: кілька міст, сусіди, перші чудеса">⚡ Швидкий старт<small>одразу в середину гри — 1000 н.е.</small></button>
           <button class="btn-primary" id="mm-load" ${Object.keys(saves).length ? '' : 'disabled'}>📂 Завантажити гру</button>
           <button class="btn-primary" id="mm-hall">🏛️ Зал слави</button>
           <button class="btn-primary" id="mm-achv">🏅 Досягнення</button>
@@ -50,6 +52,10 @@ export function showMainMenu(container: HTMLElement): Promise<MenuChoice> {
         </div>`, false);
       overlay.querySelector('#mm-continue')?.addEventListener('click', () => openSlot('auto'));
       overlay.querySelector('#mm-new')?.addEventListener('click', newGame);
+      overlay.querySelector('#mm-quick')?.addEventListener('click', () => done({
+        options: { civ: 'rus', rivals: 3, mapSize: 'normal', difficulty: 'prince' },
+        quick: true,
+      }));
       overlay.querySelector('#mm-load')?.addEventListener('click', loadList);
       overlay.querySelector('#mm-hall')?.addEventListener('click', () => frame(`<h3 class="hall-title">🏛️ Зал слави</h3>${hallOfFameHtml()}`));
       overlay.querySelector('#mm-help')?.addEventListener('click', () => frame(helpHtml()));
