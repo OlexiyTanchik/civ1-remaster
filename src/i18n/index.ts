@@ -43,6 +43,13 @@ export function tm(text: string): string {
   return lang === 'en' ? translateMessageEn(text) : text;
 }
 
+/** index.html — англійською (для посилань і пошуку); українській грі — свої lang і заголовок вкладки. */
+export function applyDocumentLang(): void {
+  if (lang !== 'uk') return;
+  document.documentElement.lang = 'uk';
+  document.title = 'Civilization — ремастер 1991 у браузері';
+}
+
 /** Кнопка-перемикач мови для меню. */
 export function langSwitchHtml(): string {
   return `<button class="civ-btn lang-switch" data-lang="${lang === 'en' ? 'uk' : 'en'}" title="${lang === 'en' ? 'Українська' : 'English'}">${lang === 'en' ? '🇺🇦 Українська' : '🇬🇧 English'}</button>`;

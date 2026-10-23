@@ -18,6 +18,7 @@ import { recordTurn, noteMessage, historyOf } from './ui/history';
 import { Achievements, AchievementsDialog } from './ui/achievements';
 import { applyEntityNames, syncPlayerNames } from './i18n/entities';
 import { startDomTranslation } from './i18n/dom';
+import { applyDocumentLang } from './i18n';
 import { DiplomacyDialog, MeetingDialog, DiplomatDialog } from './ui/diplomacy-dialog';
 import { showMainMenu, MenuChoice } from './ui/main-menu';
 import { saveGame, loadSave, takePendingLoad } from './ui/save-store';
@@ -75,6 +76,7 @@ async function bootstrap() {
   // Мова: англійські назви юнітів, споруд, технологій і цивілізацій — до меню й світу
   applyEntityNames();
   startDomTranslation();
+  applyDocumentLang();
   const container = document.getElementById('canvas-container')!;
   const appElement = document.getElementById('app')!;
 
