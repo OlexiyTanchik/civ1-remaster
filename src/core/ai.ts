@@ -209,7 +209,7 @@ export class AiController {
     const usual = (role && this.bestUnit(player, role, roleCount[role])) ?? this.bestUnit(player, 'attack');
     // Ворожі мури поруч — облога тим, хто їх не помічає (таран, гаубиця): мури втричі слабшать решту
     const walled = [...w.cities.values()].some((c) => c.playerId !== player.id && c.buildings.includes(BuildingTypeKey.CityWalls)
-      && w.distance(c.x, c.y, city.x, city.y) <= 10 && w.diplomacy.atWar(player.id, c.playerId));
+      && w.distance(c.x, c.y, city.x, city.y) <= 6 && w.diplomacy.atWar(player.id, c.playerId));
     const breaker = walled ? Object.values(UNIT_CONFIGS)
       .filter((u) => u.domain === 'land' && (u.ignoresWalls || u.key === UnitTypeKey.Howitzer) && unitForCiv(u, player.civ)
         && (!u.prereqTech || player.knownTechs.includes(u.prereqTech)))
@@ -833,7 +833,8 @@ export class AiController {
       if (d > 8) continue;
       const empty = this.garrisonAt(city) === 0;
       const odds = empty ? 1 : this.odds(unit, city.x, city.y);
-      if (odds < 0.55) continue;
+      // Войовничі штурмують міста й за гірших шансів — інакше укріплене місто не бере ніхто
+      if (odds < ((player.hostileFromTurn ?? Infinity) <= 50 ? 0.45 : 0.55)) continue;
       // Місто цінніше за загін, а столиця — ще цінніша: її падіння розколює імперію
       const score = odds * 10 - d + (empty ? 8 : 3) + (city.buildings.includes(BuildingTypeKey.Palace) ? 4 : 0);
       if (!best || score > best.score) best = { x: city.x, y: city.y, score };

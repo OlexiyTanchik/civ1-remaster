@@ -66,7 +66,7 @@ export class TurnManager {
 
   public static researchCost(player: Player): number {
     const n = player.knownTechs.length + (player.futureTechs ?? 0);
-    const late = 1 + Math.max(0, n - 35) * 0.035;
+    const late = 1 + Math.max(0, n - 33) * 0.035;
     return Math.round((n + 1) * 10 * late * (player.researchFactor ?? 1) * (this.techDiscount?.(player) ?? 1));
   }
 
