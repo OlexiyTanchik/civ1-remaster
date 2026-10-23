@@ -105,6 +105,9 @@ export function showMainMenu(container: HTMLElement): Promise<MenuChoice> {
               <span><b>${CIVS[k].nameUa}</b><br><small>${CIVS[k].leaderUa}</small></span>
             </label>`).join('')}
         </div>
+        <h3 class="hall-title">Людей за цим пристроєм</h3>
+        <div class="mm-grid">${radio('humans', [['1', '1'], ['2', '2', 'Гаряче місце: ходите по черзі'], ['3', '3', 'Гаряче місце: ходите по черзі'], ['4', '4', 'Гаряче місце: ходите по черзі']], '1')}</div>
+        <div class="mm-grid" id="mm-hotseat"></div>
         <h3 class="hall-title">Суперників</h3>
         <div class="mm-grid">${radio('rivals', [['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5', 'Краще на великій мапі'], ['6', '6', 'Краще на великій мапі']], String(pick.rivals))}</div>
         <h3 class="hall-title">Розмір мапи</h3>
@@ -121,11 +124,20 @@ export function showMainMenu(container: HTMLElement): Promise<MenuChoice> {
         input.addEventListener('change', () => {
           overlay.querySelectorAll<HTMLInputElement>(`input[name=${input.name}]`).forEach((i) =>
             i.closest('.mm-option')?.classList.toggle('selected', i.checked));
+          if (input.name === 'humans') hotseatPicks(Number(input.value));
           if (input.name === 'difficulty') {
             overlay.querySelector('#mm-diff-note')!.textContent = DIFFICULTIES[input.value as DifficultyKey].descriptionUa;
           }
         });
       });
+      // «Гаряче місце»: цивілізація для кожної наступної людини
+      function hotseatPicks(n: number): void {
+        const keys = Object.keys(CIVS) as CivKey[];
+        overlay.querySelector('#mm-hotseat')!.innerHTML = Array.from({ length: n - 1 }, (_, i) => `
+          <label class="mm-option">Гравець ${i + 2}:
+            <select id="mm-human-${i + 2}">${keys.map((k, j) => `<option value="${k}" ${j === i + 1 ? 'selected' : ''}>${CIVS[k].nameUa}</option>`).join('')}</select>
+          </label>`).join('');
+      }
       overlay.querySelector('#mm-start')?.addEventListener('click', () => {
         const val = (name: string) => overlay.querySelector<HTMLInputElement>(`input[name=${name}]:checked`)!.value;
         done({
@@ -134,6 +146,7 @@ export function showMainMenu(container: HTMLElement): Promise<MenuChoice> {
             rivals: Number(val('rivals')),
             mapSize: val('mapSize') as MapSizeKey,
             mapType: val('mapType') as MapTypeKey,
+            humanCivs: [...overlay.querySelectorAll<HTMLSelectElement>('#mm-hotseat select')].map((s) => s.value as CivKey),
             difficulty: val('difficulty') as DifficultyKey,
           },
         });

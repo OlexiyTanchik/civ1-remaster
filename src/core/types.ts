@@ -567,6 +567,8 @@ export interface GameOptions {
   difficulty: DifficultyKey;
   /** Тип світу (типово — континенти) */
   mapType?: MapTypeKey;
+  /** «Гаряче місце»: цивілізації інших людей за цим пристроєм (гравець 0 — `civ`) */
+  humanCivs?: CivKey[];
 }
 
 export interface Player {

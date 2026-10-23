@@ -62,8 +62,9 @@ export class World {
   private initPlayers(): void {
     const o = this.options;
     const diff = DIFFICULTIES[o.difficulty];
-    const others = (Object.keys(CIVS) as CivKey[]).filter((c) => c !== o.civ).sort(() => Math.random() - 0.5);
-    const rivals = (o.rivalCivs ?? others).filter((c) => c !== o.civ).slice(0, o.rivals);
+    const humans = [o.civ, ...(o.humanCivs ?? []).filter((c, i, a) => c !== o.civ && a.indexOf(c) === i)];
+    const others = (Object.keys(CIVS) as CivKey[]).filter((c) => !humans.includes(c)).sort(() => Math.random() - 0.5);
+    const rivals = (o.rivalCivs ?? others).filter((c) => !humans.includes(c)).slice(0, o.rivals);
     const makePlayer = (id: number, civ: CivKey, isAi: boolean): Player => ({
       id, civ, nameUa: CIVS[civ].nameUa, leaderUa: CIVS[civ].leaderUa, color: CIVS[civ].color, colorHex: CIVS[civ].colorHex, isAi,
       gold: 50, taxRate: 5, scienceRate: 5, luxuryRate: 0,
@@ -71,9 +72,10 @@ export class World {
     });
     // Характер лідерів: войовничі рано беруться за меч, мирні довго будують
     this.players = [
-      { ...makePlayer(0, o.civ, false), researchFactor: diff.research },
-      ...rivals.map((civ, i) => ({ ...makePlayer(i + 1, civ, true), hostileFromTurn: CIVS[civ].hostileFromTurn })),
+      ...humans.map((civ, i) => ({ ...makePlayer(i, civ, false), researchFactor: diff.research })),
+      ...rivals.map((civ, i) => ({ ...makePlayer(humans.length + i, civ, true), hostileFromTurn: CIVS[civ].hostileFromTurn })),
     ];
+    if (humans.length > 1) this.hotseat = { civs: humans, index: 0 };
     this.barbarianId = this.players.length;
     this.players.push({
       id: this.barbarianId, nameUa: 'Варвари', leaderUa: 'Вождь', color: '#5a1010', colorHex: 0x5a1010, isAi: true, isBarbarian: true,
@@ -237,6 +239,72 @@ export class World {
   /** Новина для людини наприкінці ходу (події чужих ходів). */
   public pushNews(text: string): void {
     this.news.push(text);
+  }
+
+  /** «Гаряче місце»: цивілізації людей у порядку ходу і хто з них зараз ходить (він — гравець 0). */
+  public hotseat?: { civs: CivKey[]; index: number };
+
+  /**
+   * «Гаряче місце»: передати хід наступній живій людині — вона стає гравцем 0 (уся гра й інтерфейс
+   * дивляться очима гравця 0). 'player' — хід переходить у межах кола; 'round' — коло скінчилось,
+   * гравцем 0 вже стала перша людина, і треба `processTurnEnd`.
+   */
+  public passHotseat(): 'player' | 'round' {
+    const hs = this.hotseat!;
+    const aliveAt = (i: number) => this.players.find((p) => p.civ === hs.civs[i] && p.alive);
+    let next = hs.index + 1;
+    while (next < hs.civs.length && !aliveAt(next)) next++;
+    const round = next >= hs.civs.length;
+    if (round) {
+      next = 0;
+      while (next < hs.civs.length - 1 && !aliveAt(next)) next++;
+    }
+    hs.index = next;
+    const who = aliveAt(next);
+    if (who) this.swapPlayers(0, who.id);
+    return round ? 'round' : 'player';
+  }
+
+  /** Скільки людей ще живі («гаряче місце»). */
+  public humansAlive(): number {
+    return this.hotseat ? this.players.filter((p) => this.hotseat!.civs.includes(p.civ!) && p.alive).length : 1;
+  }
+
+  /** Поміняти гравців a і b номерами в усьому стані гри (юніти, міста, туман, дипломатія, історія). */
+  public swapPlayers(a: number, b: number): void {
+    if (a === b) return;
+    const map = (id: number) => (id === a ? b : id === b ? a : id);
+    [this.players[a], this.players[b]] = [this.players[b], this.players[a]];
+    this.players[a].id = a;
+    this.players[b].id = b;
+    for (const p of this.players) if (p.embassies) p.embassies = p.embassies.map(map);
+    for (const u of this.units.values()) u.playerId = map(u.playerId);
+    for (const c of this.cities.values()) {
+      c.playerId = map(c.playerId);
+      if (c.stolenBy) c.stolenBy = c.stolenBy.map(map);
+    }
+    const fa = this.playerFogs.get(a)!;
+    this.playerFogs.set(a, this.playerFogs.get(b)!);
+    this.playerFogs.set(b, fa);
+    const ia = this.cityNameIndex.get(a);
+    const ib = this.cityNameIndex.get(b);
+    this.cityNameIndex.delete(a);
+    this.cityNameIndex.delete(b);
+    if (ib !== undefined) this.cityNameIndex.set(a, ib);
+    if (ia !== undefined) this.cityNameIndex.set(b, ia);
+    this.aggression = new Map([...this.aggression].map(([k, t]) => [k.split('>').map((x) => map(Number(x))).join('>'), t]));
+    this.diplomacy.remap(map);
+    if (this.gameOver?.winner !== undefined) this.gameOver.winner = map(this.gameOver.winner);
+    // Історія партії тримає показники за номером гравця
+    const history = this.uiData.history as { points?: { v: Record<number, unknown> }[] } | undefined;
+    for (const pt of history?.points ?? []) {
+      const va = pt.v[a];
+      const vb = pt.v[b];
+      delete pt.v[a];
+      delete pt.v[b];
+      if (vb !== undefined) pt.v[a] = vb;
+      if (va !== undefined) pt.v[b] = va;
+    }
   }
 
   /** Клітинки зі зміненим рельєфом (інженери, потепління) — рендерер перепікає їхні шматки. */
@@ -1565,7 +1633,9 @@ export class World {
   private checkGameEnd(): void {
     if (this.gameOver) return;
     const year = this.turnManager.getYearString();
-    if (!this.players[0].alive) {
+    // Поразка — коли загинули всі люди («гаряче місце»: поки живий хоч один, гра триває)
+    const humans = this.hotseat ? this.players.filter((p) => this.hotseat!.civs.includes(p.civ!)) : [this.players[0]];
+    if (!humans.some((p) => p.alive)) {
       this.gameOver = { reason: 'destroyed', year };
       return;
     }
@@ -1628,6 +1698,7 @@ export class World {
       gameOver: this.gameOver,
       warming: this.warming,
       uiData: this.uiData,
+      hotseat: this.hotseat,
     };
   }
 
@@ -1661,6 +1732,7 @@ export class World {
     this.gameOver = s.gameOver;
     this.uiData = s.uiData ?? {};
     this.warming = s.warming ?? 0;
+    this.hotseat = s.hotseat;
   }
 
   /**
@@ -1933,6 +2005,7 @@ export interface SaveData {
   diplomacy?: DiplomacyData;
   warming?: number;
   uiData?: Record<string, unknown>;
+  hotseat?: { civs: CivKey[]; index: number };
 }
 
 const GREAT_PEOPLE: Record<GreatPersonKind, UnitTypeKey> = {

@@ -347,9 +347,41 @@ async function bootstrap() {
     hud.update(selectedUnit);
   };
 
+  /** «Гаряче місце»: завіса між ходами людей — наступний гравець бачить лише свій світ. */
+  function hotseatCurtain(): void {
+    const p = world.players[0];
+    const curtain = document.createElement('div');
+    curtain.className = 'modal-overlay hotseat-curtain';
+    curtain.style.cssText = 'background:#0b1020;z-index:9999';
+    curtain.innerHTML = `
+      <div class="tech-modal" style="max-width:420px;text-align:center">
+        <h2>🪑 Хід гравця ${world.hotseat!.index + 1}</h2>
+        <p><span class="mm-swatch" style="background:${p.color}"></span> <b>${p.nameUa}</b> — ${p.leaderUa}</p>
+        <p class="modal-subtitle">Передайте пристрій. Решта — не підглядайте!</p>
+        <button class="btn-primary" id="hotseat-go">▶ Почати хід</button>
+      </div>`;
+    appElement.appendChild(curtain);
+    curtain.querySelector('#hotseat-go')!.addEventListener('click', () => curtain.remove());
+  }
+
+  /** Новий гравець 0 після передачі ходу: свій туман, свої юніти й зустрічі. */
+  function startHumanTurn(): void {
+    selectedUnit = undefined;
+    renderer.refreshAll();
+    selectNextAvailableUnit();
+    hud.update(selectedUnit);
+    showMeetings();
+    hotseatCurtain();
+  }
+
   hud.onEndTurn = () => {
     SoundEffects.playEndTurn();
     tutorial.mark('end-turn');
+    // «Гаряче місце»: спершу ходять усі люди по черзі, потім — світ
+    if (world.hotseat && world.humansAlive() > 1 && world.passHotseat() === 'player') {
+      startHumanTurn();
+      return;
+    }
     const result = world.processTurnEnd();
     recordTurn(world);
     achievements.check();
@@ -382,6 +414,7 @@ async function bootstrap() {
     // Автозбереження щоходу
     const saveError = saveGame(world, 'auto');
     if (saveError) hud.addLogMessage(`⚠️ ${saveError}`);
+    if (world.hotseat && world.humansAlive() > 1) hotseatCurtain();
     // Кінець гри показуємо один раз; далі можна дивитися на світ
     if (world.gameOver && !gameOverShown) {
       gameOverShown = true;

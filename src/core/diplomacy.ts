@@ -24,6 +24,8 @@ export type MeetingKind = 'contact' | 'peace' | 'tribute' | 'trade' | 'war';
 /** Зустріч AI-лідера з людиною: повідомлення й (для пропозицій) кнопки «так/ні». */
 export interface Meeting {
   from: number;
+  /** Кому (людині); типово — гравцю 0. У «гарячому місці» зустріч чекає свого адресата */
+  to?: number;
   kind: MeetingKind;
   text: string;
   /** Данина: скільки золота хоче */
@@ -148,15 +150,17 @@ export class Diplomacy {
     r.contact = true;
     r.war = false;
     r.since = this.turn();
-    const ai = a === 0 ? b : b === 0 ? a : undefined;
-    if (ai === undefined) return;
+    // Вітання — лише AI людині (у «гарячому місці» людиною може бути не лише гравець 0)
+    const human = !this.civ(a).isAi ? a : !this.civ(b).isAi ? b : undefined;
+    const ai = human === a ? b : a;
+    if (human === undefined || !this.civ(ai).isAi) return;
     const p = this.civ(ai);
     const greet = {
       warlike: `«Я — ${p.leaderUa}, володар народу ${p.nameUa}. Наші мечі гострі. Тримайтеся подалі від наших кордонів.»`,
       normal: `«Вітаю! Я — ${p.leaderUa}, ${p.nameUa} радо знатимуть ваш народ. Хай буде мир між нами.»`,
       peaceful: `«Мир вам, сусіди! Я — ${p.leaderUa}. ${p.nameUa} шанують торгівлю й дружбу.»`,
     }[this.character(p)];
-    this.meetings.push({ from: ai, kind: 'contact', text: greet });
+    this.meetings.push({ from: ai, to: human, kind: 'contact', text: greet });
   }
 
   /** Будь-який напад: якщо був мир — це оголошення війни й порушена угода. */
@@ -191,8 +195,8 @@ export class Diplomacy {
     r.since = this.turn();
     const pa = this.civ(a);
     const pb = this.civ(b);
-    if (b === 0 && !treachery) {
-      this.meetings.push({ from: a, kind: 'war', text: `«${pa.leaderUa}: ваш народ слабкий, а наші війська голодні до слави. Відтепер між нами — війна!»` });
+    if (!pb.isAi && pa.isAi && !treachery) {
+      this.meetings.push({ from: a, to: b, kind: 'war', text: `«${pa.leaderUa}: ваш народ слабкий, а наші війська голодні до слави. Відтепер між нами — війна!»` });
     }
     if (a === 0 && pb.isAi) this.world.pushNews(`⚔️ Ви оголосили війну: ${pb.nameUa}${treachery ? ' (мирну угоду порушено — інші лідери це запам\'ятають)' : ''}`);
     this.news(`⚔️ Оголошено війну: ${pa.nameUa} → ${pb.nameUa}`, a, b);
@@ -226,6 +230,7 @@ export class Diplomacy {
     const p = this.civ(ai);
     const r = this.relation(0, ai);
     if (!r.war) return { ok: false, text: 'Ми й так у мирі.' };
+    if (!p.isAi) return this.offerToHuman(ai, 'peace', `«${this.civ(0).leaderUa}: досить крові. Укладімо мир?»`);
     const weaker = this.strength(ai) < this.strength(0) * 0.9;
     const tired = this.turn() - r.since >= 8;
     const ok = (tired && (weaker || this.attitude(ai, 0) > -3)) || (weaker && this.attitude(ai, 0) > -6);
@@ -252,6 +257,7 @@ export class Diplomacy {
     const want = this.tradeable(ai, 0).find((t) => t.id === wantId);
     if (!give || !want) return { ok: false, text: 'Такий обмін неможливий.' };
     if (this.relation(0, ai).war) return { ok: false, text: `«${p.leaderUa}: з ворогами не торгуємо.»` };
+    if (!p.isAi) return this.offerToHuman(ai, 'trade', `«${this.civ(0).leaderUa}: дамо вам «${give.nameUa}» за ваше «${want.nameUa}». Згода?»`, give.id, want.id);
     const fair = give.era >= want.era;
     if (this.attitude(ai, 0) < -1 || !fair) return { ok: false, text: `«${p.leaderUa}: ні, ця угода нам невигідна.»` };
     this.exchange(0, give, ai, want);
@@ -261,8 +267,32 @@ export class Diplomacy {
 
   // ---------- Відповіді людини на зустрічі ----------
 
+  /** Зустрічі для гравця 0 (поточної людини); решта чекає на своїх адресатів. */
   public takeMeetings(): Meeting[] {
-    return this.meetings.splice(0);
+    const mine = this.meetings.filter((m) => (m.to ?? 0) === 0);
+    this.meetings = this.meetings.filter((m) => (m.to ?? 0) !== 0);
+    return mine;
+  }
+
+  /** «Гаряче місце»: людина пропонує іншій людині — та відповість на своєму ході. */
+  private offerToHuman(to: number, kind: MeetingKind, text: string, give?: string, want?: string): { ok: boolean; text: string } {
+    this.meetings.push({ from: 0, to, kind, text, give, want });
+    return { ok: true, text: `✉️ Пропозицію надіслано: ${this.civ(to).nameUa} відповідять на своєму ході.` };
+  }
+
+  /** Перенумерування гравців (для «гарячого місця»): усі ключі й посилання за відображенням `map`. */
+  public remap(map: (id: number) => number): void {
+    const pair = (k: string, sep: string) => k.split(sep).map((x) => map(Number(x)));
+    this.relations = new Map([...this.relations].map(([k, r]) => { const [a, b] = pair(k, '-'); return [this.key(a, b), r]; }));
+    this.attitudes = new Map([...this.attitudes].map(([k, v]) => [pair(k, '>').join('>'), v]));
+    this.lastOffer = new Map([...this.lastOffer].map(([k, v]) => {
+      const [ids, what] = k.split(':');
+      return [`${pair(ids, '>').join('>')}:${what}`, v];
+    }));
+    for (const m of this.meetings) {
+      m.from = map(m.from);
+      m.to = map(m.to ?? 0);
+    }
   }
 
   public answer(m: Meeting, accept: boolean): string {
@@ -363,8 +393,8 @@ export class Diplomacy {
           // Сенат Республіки й Демократії приймає мир сам — як у Civ 1
           this.makePeace(ai.id, 0);
           this.world.pushNews(`🏛️ Сенат прийняв мирну пропозицію: ${ai.nameUa} (${ai.leaderUa}) — війну закінчено.`);
-        } else if (this.offerDue(ai.id, 0, 'peace', 10)) {
-          this.meetings.push({ from: ai.id, kind: 'peace', text: `«${ai.leaderUa}: ця війна виснажує обидва наші народи. Укладімо мир?»` });
+        } else if (this.offerDue(ai.id, other.id, 'peace', 10)) {
+          this.meetings.push({ from: ai.id, to: other.id, kind: 'peace', text: `«${ai.leaderUa}: ця війна виснажує обидва наші народи. Укладімо мир?»` });
         }
         continue;
       }
@@ -378,9 +408,9 @@ export class Diplomacy {
         const chance = base * (att < -2 ? 2.5 : att < 0 ? 1.5 : att > 3 ? 0.3 : 1) * (this.turn() - r.since < 10 ? 0.3 : 1);
         if (Math.random() < chance) {
           // Людині войовничий спершу виставляє данину
-          if (!other.isAi && char !== 'peaceful' && other.gold >= 50 && this.offerDue(ai.id, 0, 'tribute', 20)) {
+          if (!other.isAi && char !== 'peaceful' && other.gold >= 50 && this.offerDue(ai.id, other.id, 'tribute', 20)) {
             const gold = Math.min(Math.floor(other.gold / 2), 50 + this.turn());
-            this.meetings.push({ from: ai.id, kind: 'tribute', gold, text: `«${ai.leaderUa}: ваші землі багаті, а наші воїни невдоволені. Сплатіть ${gold} зл. — і ми залишимо вас у спокої.»` });
+            this.meetings.push({ from: ai.id, to: other.id, kind: 'tribute', gold, text: `«${ai.leaderUa}: ваші землі багаті, а наші воїни невдоволені. Сплатіть ${gold} зл. — і ми залишимо вас у спокої.»` });
           } else {
             this.startWar(ai.id, other.id);
           }
@@ -399,10 +429,10 @@ export class Diplomacy {
           this.mood(ai.id, other.id, 0.5);
           this.mood(other.id, ai.id, 0.5);
         }
-      } else if (Math.random() < 0.04 && this.offerDue(ai.id, 0, 'trade', 15)) {
+      } else if (Math.random() < 0.04 && this.offerDue(ai.id, other.id, 'trade', 15)) {
         const g = give[Math.floor(Math.random() * give.length)];
         const t = want[Math.floor(Math.random() * want.length)];
-        this.meetings.push({ from: ai.id, kind: 'trade', give: g.id, want: t.id, text: `«${ai.leaderUa}: наші вчені знають «${g.nameUa}». Поміняємось на ваше «${t.nameUa}»?»` });
+        this.meetings.push({ from: ai.id, to: other.id, kind: 'trade', give: g.id, want: t.id, text: `«${ai.leaderUa}: наші вчені знають «${g.nameUa}». Поміняємось на ваше «${t.nameUa}»?»` });
       }
     }
   }
