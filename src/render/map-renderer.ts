@@ -129,22 +129,54 @@ export class MapRenderer {
   private setupInteractions(): void {
     const canvas = this.app.canvas;
 
-    // Pointer-події: однаково для миші й пальця (тап — клік, протяг — прокрутка мапи)
+    // Pointer-події: однаково для миші й пальця (тап — клік, протяг — прокрутка, два пальці — зум)
     canvas.style.touchAction = 'none';
     let downX = 0;
     let downY = 0;
+    const pointers = new Map<number, { x: number; y: number }>();
+    let pinchDist = 0;
+    let pinchZoom = 1;
+    const spread = () => {
+      const [a, b] = [...pointers.values()];
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    };
+    const beginDrag = (x: number, y: number) => {
+      this.isDragging = true;
+      downX = x;
+      downY = y;
+      this.dragStartX = x - this.cameraX;
+      this.dragStartY = y - this.cameraY;
+    };
+
     canvas.addEventListener('pointerdown', (e) => {
-      if (e.button === 0 || e.button === 1) {
-        this.isDragging = true;
-        this.dragMoved = false;
-        downX = e.clientX;
-        downY = e.clientY;
-        this.dragStartX = e.clientX - this.cameraX;
-        this.dragStartY = e.clientY - this.cameraY;
+      if (e.button !== 0 && e.button !== 1) return;
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.size === 2) {
+        // Другий палець — щипок: протяг зупиняється, а відпускання вже не буде тапом
+        this.isDragging = false;
+        this.dragMoved = true;
+        pinchDist = Math.max(1, spread());
+        pinchZoom = this.zoom;
+        return;
       }
+      if (pointers.size > 2) return;
+      this.dragMoved = false;
+      beginDrag(e.clientX, e.clientY);
     });
 
     window.addEventListener('pointermove', (e) => {
+      if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.size >= 2) {
+        // Найближчий крок масштабу до розведення пальців, відносно точки між ними
+        const want = pinchZoom * spread() / pinchDist;
+        const next = ZOOM_STEPS.reduce((best, z) => (Math.abs(Math.log(z / want)) < Math.abs(Math.log(best / want)) ? z : best));
+        if (next !== this.zoom) {
+          const [a, b] = [...pointers.values()];
+          const rect = canvas.getBoundingClientRect();
+          this.zoomAt(next, (a.x + b.x) / 2 - rect.left, (a.y + b.y) / 2 - rect.top);
+        }
+        return;
+      }
       if (!this.isDragging) return;
       // Дрібне тремтіння пальця — ще не протяг
       if (Math.abs(e.clientX - downX) + Math.abs(e.clientY - downY) > 8) this.dragMoved = true;
@@ -154,8 +186,16 @@ export class MapRenderer {
       this.clampCamera();
     });
 
-    const stop = () => {
-      this.isDragging = false;
+    const stop = (e: PointerEvent) => {
+      const wasPinch = pointers.size >= 2;
+      pointers.delete(e.pointerId);
+      if (wasPinch && pointers.size === 1) {
+        // Лишився один палець — тягнемо від нього, без стрибка камери
+        const [p] = [...pointers.values()];
+        beginDrag(p.x, p.y);
+        return;
+      }
+      if (!pointers.size) this.isDragging = false;
     };
     window.addEventListener('pointerup', stop);
     window.addEventListener('pointercancel', stop);
@@ -164,15 +204,9 @@ export class MapRenderer {
       e.preventDefault();
       const i = ZOOM_STEPS.indexOf(this.zoom);
       const next = ZOOM_STEPS[Math.max(0, Math.min(ZOOM_STEPS.length - 1, i + (e.deltaY < 0 ? 1 : -1)))];
-      if (next === this.zoom) return;
       // Зум відносно курсора
       const rect = canvas.getBoundingClientRect();
-      const mx = e.clientX - rect.left;
-      const my = e.clientY - rect.top;
-      this.cameraX = mx - ((mx - this.cameraX) * next) / this.zoom;
-      this.cameraY = my - ((my - this.cameraY) * next) / this.zoom;
-      this.zoom = next;
-      this.clampCamera();
+      this.zoomAt(next, e.clientX - rect.left, e.clientY - rect.top);
     });
 
     canvas.addEventListener('click', (e) => {
@@ -192,6 +226,15 @@ export class MapRenderer {
         this.onTileClick(tileX, tileY);
       }
     });
+  }
+
+  /** Масштаб із нерухомою точкою (mx, my) на полотні: під курсором чи пальцями лишається та сама клітинка. */
+  private zoomAt(next: number, mx: number, my: number): void {
+    if (next === this.zoom) return;
+    this.cameraX = mx - ((mx - this.cameraX) * next) / this.zoom;
+    this.cameraY = my - ((my - this.cameraY) * next) / this.zoom;
+    this.zoom = next;
+    this.clampCamera();
   }
 
   private centerOnInitialUnit(): void {
