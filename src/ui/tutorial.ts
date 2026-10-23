@@ -81,7 +81,10 @@ export class Tutorial {
       while (this.step < STEPS.length && STEPS[this.step].done(this.world, this.seen)) this.step++;
       if (this.step < STEPS.length) {
         const s = STEPS[this.step];
-        return `<b>Навчання ${this.step + 1}/${STEPS.length}: ${s.title}</b><br>${s.text(this.world)}`;
+        // На телефоні нема клавіш, а панель схована в шухляді
+        const phone = typeof matchMedia === 'function' && matchMedia('(max-width: 799px)').matches;
+        const hint = phone ? '<br><small>📱 Накази й дослідження — у панелі «☰» унизу; кінець ходу — «Хід ⌛».</small>' : '';
+        return `<b>Навчання ${this.step + 1}/${STEPS.length}: ${s.title}</b><br>${s.text(this.world)}${hint}`;
       }
       this.finish();
       this.doneTurn = turn;

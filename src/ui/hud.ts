@@ -138,11 +138,41 @@ export class Hud {
     this.tipEl = document.createElement('div');
     this.tipEl.className = 'advisor-tip hidden';
     (document.getElementById('game-main') ?? this.container).appendChild(this.tipEl);
+    this.buildMobileBar();
 
     const miniMapBox = document.getElementById('minimap-box')!;
     this.minimap = new MiniMap(miniMapBox, this.world, renderer);
 
     this.bindEvents();
+  }
+
+  /**
+   * Телефон (< 800 px, див. style.css): мапа на весь екран, панель — висувна шухляда,
+   * знизу — смуга з найчастішими діями. На широкому екрані смуга й тло шухляди сховані.
+   */
+  private buildMobileBar(): void {
+    const main = document.getElementById('game-main') ?? this.container;
+    const bar = document.createElement('div');
+    bar.className = 'mobile-bar';
+    bar.innerHTML = `
+      <button class="civ-btn" id="mb-panel" title="Панель: імперія, юніт, накази">☰</button>
+      <div class="mobile-unit" id="mb-unit"></div>
+      <button class="civ-btn" id="mb-wait" title="Наступний юніт">⏳</button>
+      <button class="civ-btn civ-btn-end-turn" id="mb-end" title="Кінець ходу">Хід ⌛</button>`;
+    main.appendChild(bar);
+    const backdrop = document.createElement('div');
+    backdrop.className = 'drawer-backdrop';
+    document.body.appendChild(backdrop);
+    const close = () => document.body.classList.remove('drawer-open');
+    bar.querySelector('#mb-panel')?.addEventListener('click', () => document.body.classList.toggle('drawer-open'));
+    bar.querySelector('#mb-wait')?.addEventListener('click', () => this.onWait?.());
+    bar.querySelector('#mb-end')?.addEventListener('click', () => this.onEndTurn?.());
+    backdrop.addEventListener('click', close);
+    // Наказ віддано чи відкрито вікно — шухляда більше не потрібна, мапа знову видна
+    this.sidebarEl.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement;
+      if (t.closest('.action-buttons-list .civ-btn, .tech-link')) close();
+    });
   }
 
   private bindEvents(): void {
@@ -353,6 +383,11 @@ export class Hud {
   public update(selectedUnit?: Unit): void {
     const human = this.world.players[0];
     this.updateAdvice();
+    const mobileUnit = document.getElementById('mb-unit');
+    if (mobileUnit) {
+      const u = selectedUnit && UNIT_CONFIGS[selectedUnit.type];
+      mobileUnit.textContent = `${this.world.turnManager.getYearString()} · ${u ? `${u.nameUa} ${selectedUnit!.movesLeft.toFixed(1)}/${u.moves}` : 'юніт не обрано'}`;
+    }
 
     const civNameEl = document.getElementById('hud-civ-name');
     if (civNameEl) civNameEl.textContent = `👑 ${human.nameUa}`;

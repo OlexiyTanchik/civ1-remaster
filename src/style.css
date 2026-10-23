@@ -750,3 +750,62 @@ kbd {
 @media (max-width: 900px), (max-height: 640px) {
   .advisor-tip { font-size: 11px; padding: 4px 24px 4px 6px; max-width: min(380px, calc(100% - 20px)); left: 6px; bottom: 6px; }
 }
+
+/* ---------- Телефон (< 800 px): мапа на весь екран, панель — шухляда, знизу — смуга дій ---------- */
+.mobile-bar, .drawer-backdrop { display: none; }
+@media (max-width: 799px) {
+  #app { height: 100dvh; }
+  #sidebar-container {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: min(320px, 88vw);
+    height: 100dvh;
+    z-index: 60;
+    transform: translateX(-105%);
+    transition: transform 0.2s ease-out;
+  }
+  body.drawer-open #sidebar-container { transform: none; }
+  body.drawer-open .drawer-backdrop { display: block; position: fixed; inset: 0; z-index: 55; background: rgba(0, 0, 0, 0.55); }
+  #game-main { width: 100vw; height: 100dvh; margin: 0; }
+  #canvas-container { height: calc(100dvh - 26px - 54px); }
+  .civ-ticker { font-size: 10px; padding: 0 8px; overflow: hidden; white-space: nowrap; }
+
+  .mobile-bar {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    height: 54px;
+    padding: 6px;
+    background: #09152e;
+    border-top: 2px solid #23467c;
+  }
+  .mobile-bar .civ-btn { min-width: 48px; font-size: 18px; text-align: center; padding: 4px 8px; }
+  .mobile-bar .civ-btn-end-turn { margin-top: 0; font-size: 14px; min-width: 88px; }
+  .mobile-unit { flex: 1; min-width: 0; display: flex; align-items: center; font-size: 11px; color: #cbd5e1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+  /* Кнопки під палець */
+  .action-buttons-list .civ-btn { min-height: 42px; font-size: 12px; }
+  .rate-btn { min-width: 30px; min-height: 30px; }
+  .status-row.tech-link { padding: 6px 0; }
+  /* «Кінець ходу» є в нижній смузі */
+  .civ-sidebar .civ-btn-end-turn { display: none; }
+
+  /* Вікна — на весь екран, з прокруткою */
+  .modal-overlay { align-items: stretch; }
+  .city-modal, .tech-modal, .city-modal--wide {
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 100dvh;
+    border-width: 0;
+    padding: 8px;
+    overflow-y: auto;
+  }
+  .main-menu-overlay { padding: 0; }
+  .main-menu { width: 100%; }
+  .main-menu-title { font-size: 26px; letter-spacing: 5px; }
+  .btn-close { min-width: 40px; min-height: 36px; }
+
+  .advisor-tip { bottom: 62px; }
+}

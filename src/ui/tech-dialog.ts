@@ -32,6 +32,10 @@ export class TechDialog {
     this.overlay = document.createElement('div');
     this.overlay.className = 'modal-overlay hidden';
     this.container.appendChild(this.overlay);
+    // Закрити без вибору безпечно: дослідження лишається поточним (на телефоні вікно — на весь екран, тож потрібна кнопка)
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !this.overlay.classList.contains('hidden')) this.overlay.classList.add('hidden');
+    });
   }
 
   public show(player: Player, onSelect: (tech: Tech) => void): void {
@@ -44,6 +48,7 @@ export class TechDialog {
       <div class="tech-modal">
         <div class="city-header">
           <h2>📜 Науковий Радник: Оберіть дослідження</h2>
+          <button class="btn-close" id="tech-close-btn" title="Закрити [Esc]">✖</button>
         </div>
         <p class="modal-subtitle">Яку галузь знань мають розвивати вчені вашої цивілізації?</p>
 
@@ -63,6 +68,7 @@ export class TechDialog {
       </div>
     `;
 
+    this.overlay.querySelector('#tech-close-btn')?.addEventListener('click', () => this.overlay.classList.add('hidden'));
     const buttons = this.overlay.querySelectorAll('.tech-card button');
     buttons.forEach((btn) => {
       btn.addEventListener('click', () => {
