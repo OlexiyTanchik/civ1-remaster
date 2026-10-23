@@ -49,6 +49,9 @@ export class Hud {
   public onDisband?: () => void;
   public onOpenDiplomacy?: () => void;
   public onToggleMusic?: () => void;
+  public onOpenStats?: () => void;
+  /** Кожне повідомлення журналу — для хроніки й досягнень */
+  public onMessage?: (text: string) => void;
   private tipsOn = true;
   /** Навчання перших ходів: поки йде, плашка показує його кроки замість порад */
   public tutorial?: Tutorial;
@@ -90,7 +93,7 @@ export class Hud {
           <div class="status-row" id="hud-pop" title="Населення всіх ваших міст">Населення: 10,000</div>
           <div class="status-row tech-link" id="hud-gov" title="Змінити державний устрій">🏛️ Лад: Деспотизм</div>
           <div class="status-row hidden" id="hud-warming" title="Глобальне потепління: росте від забрудненої землі понад норму; на 100% — зміна клімату"></div>
-          <div class="status-row" id="hud-score" title="Рахунок: задоволений житель +1, щасливий +2, чудо +20, технологія майбутнього +5, смог −5">🏆 Рахунок: 0</div>
+          <div class="status-row tech-link" id="hud-score" title="Рахунок: задоволений житель +1, щасливий +2, чудо +20, технологія майбутнього +5, смог −5. Клік — статистика">🏆 Рахунок: 0</div>
           <div class="status-row tech-link hidden" id="hud-space" title="Космічний корабель до Альфи Центавра">🚀 Космічна гонка</div>
         </div>
       </div>
@@ -204,6 +207,7 @@ export class Hud {
     });
     document.getElementById('btn-diplomacy')?.addEventListener('click', () => this.onOpenDiplomacy?.());
     document.getElementById('btn-music')?.addEventListener('click', () => this.onToggleMusic?.());
+    document.getElementById('hud-score')?.addEventListener('click', () => this.onOpenStats?.());
     document.getElementById('btn-tips')?.addEventListener('click', () => this.setTips(!this.tipsOn));
     // Ставки: податки й розкіш ±10%, наука — решта (межа залежить від устрою)
     this.sidebarEl.querySelectorAll<HTMLButtonElement>('.rate-btn').forEach((btn) => {
@@ -584,6 +588,7 @@ export class Hud {
 
   public addLogMessage(msg: string): void {
     this.journal.unshift({ year: this.world.turnManager.getYearString(), text: msg });
+    this.onMessage?.(msg);
     if (this.journal.length > 300) this.journal.length = 300;
     const logBox = document.getElementById('message-log');
     if (!logBox) return;

@@ -26,6 +26,8 @@ export class World {
   public activePlayerId: number = 0;
   public turnManager: TurnManager = new TurnManager();
   public playerFogs: Map<number, PlayerFog> = new Map();
+  /** Дані інтерфейсу (історія для статистики, хроніка): ядро їх не читає, лише зберігає з партією */
+  public uiData: Record<string, unknown> = {};
   private nextId: number = 1;
   private cityNameIndex: Map<number, number> = new Map();
   private ai = new AiController(this);
@@ -1517,6 +1519,7 @@ export class World {
       barbarianId: this.barbarianId,
       gameOver: this.gameOver,
       warming: this.warming,
+      uiData: this.uiData,
     };
   }
 
@@ -1548,6 +1551,7 @@ export class World {
     this.aggression = new Map(s.aggression);
     this.diplomacy.restore(s.diplomacy);
     this.gameOver = s.gameOver;
+    this.uiData = s.uiData ?? {};
     this.warming = s.warming ?? 0;
   }
 
@@ -1820,6 +1824,7 @@ export interface SaveData {
   gameOver?: GameOver;
   diplomacy?: DiplomacyData;
   warming?: number;
+  uiData?: Record<string, unknown>;
 }
 
 const WARMING_COAST = new Set([TerrainType.Grassland, TerrainType.Plains, TerrainType.Tundra, TerrainType.Forest, TerrainType.Jungle]);

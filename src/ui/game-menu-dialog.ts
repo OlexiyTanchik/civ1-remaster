@@ -9,6 +9,8 @@ export class GameMenuDialog {
   private overlay: HTMLElement;
   private note = '';
   public onHelp?: () => void;
+  public onStats?: () => void;
+  public onAchievements?: () => void;
 
   constructor(private container: HTMLElement, private world: World) {
     this.overlay = document.createElement('div');
@@ -52,6 +54,10 @@ export class GameMenuDialog {
         </div>
         <p class="modal-subtitle">Завантаження чи вихід у меню відкидають усе, що сталося після останнього збереження.</p>
         <div class="gm-bottom">
+          <button class="civ-btn" id="gm-stats-btn" title="Графіки, топ-5 міст, демографія, хроніка">📊 Статистика</button>
+          <button class="civ-btn" id="gm-achv-btn" title="Досягнення в усіх партіях">🏅 Досягнення</button>
+        </div>
+        <div class="gm-bottom">
           <button class="civ-btn" id="gm-help-btn" title="Клавіші, мета, правила [F1]">❓ Як грати</button>
           <button class="civ-btn" id="gm-menu-btn">🏠 Головне меню</button>
         </div>
@@ -69,6 +75,14 @@ export class GameMenuDialog {
       location.reload();
     }));
     document.getElementById('gm-menu-btn')?.addEventListener('click', () => location.reload());
+    document.getElementById('gm-stats-btn')?.addEventListener('click', () => {
+      this.close();
+      this.onStats?.();
+    });
+    document.getElementById('gm-achv-btn')?.addEventListener('click', () => {
+      this.close();
+      this.onAchievements?.();
+    });
     document.getElementById('gm-help-btn')?.addEventListener('click', () => {
       this.close();
       this.onHelp?.();

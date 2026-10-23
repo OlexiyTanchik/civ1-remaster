@@ -12,6 +12,8 @@ import { GameOverDialog } from './ui/game-over-dialog';
 import { GameMenuDialog } from './ui/game-menu-dialog';
 import { HelpDialog } from './ui/help-dialog';
 import { Tutorial } from './ui/tutorial';
+import { StatsDialog } from './ui/stats-dialog';
+import { recordTurn, noteMessage } from './ui/history';
 import { DiplomacyDialog, MeetingDialog, DiplomatDialog } from './ui/diplomacy-dialog';
 import { showMainMenu, MenuChoice } from './ui/main-menu';
 import { saveGame, loadSave, takePendingLoad } from './ui/save-store';
@@ -87,6 +89,12 @@ async function bootstrap() {
   const gameMenu = new GameMenuDialog(appElement, world);
   const helpDialog = new HelpDialog(appElement);
   gameMenu.onHelp = () => helpDialog.show();
+  // Історія партії: знімок показників щоходу й хроніка з журналу (у збереженні, через world.uiData)
+  const statsDialog = new StatsDialog(appElement, world);
+  gameMenu.onStats = () => statsDialog.show();
+  hud.onOpenStats = () => statsDialog.show();
+  hud.onMessage = (text) => noteMessage(world, text);
+  recordTurn(world);
   const diplomacyDialog = new DiplomacyDialog(appElement, world, () => hud.update(selectedUnit));
   const meetingDialog = new MeetingDialog(appElement, world);
   const diplomatDialog = new DiplomatDialog(appElement, world);
@@ -288,6 +296,7 @@ async function bootstrap() {
     SoundEffects.playEndTurn();
     tutorial.mark('end-turn');
     const result = world.processTurnEnd();
+    recordTurn(world);
 
     for (const item of result.completedItems) {
       hud.addLogMessage(`⚙️ ${item}`);
