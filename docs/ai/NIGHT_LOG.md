@@ -275,3 +275,11 @@ Gemini: 2 запити × $0.034 = $0.068 (спрайти й для наступ
 - Нових записів у `sprites.json` нема: 241 запис = 241 кадр атласу. Генерацію пропущено.
 - `git pull` — нових комітів нема. `tsc` і `vite build` — гаразд.
 - У браузері не перевірено: нового вмісту нема, preview не запускав.
+
+### 2026-10-23 11:41–11:55 — художник/тестувальник
+Ліміти: 5 год — 16%, тиждень — 82%. Депозит $27.89 (без змін). Gemini: 6 запитів Flash-Lite ≈ $0.20. Підсумок: **$0.88** з $4.
+
+- Після `git pull` прийшов Етап 11 (чудеса, цивілізації, великі люди): 26 нових записів у `sprites.json` без кадрів. Згенеровано сітками 3×3 (4 запити): `u_samurai`, `u_royal_musketeers`, `u_raja_elephants`, `u_impi`, `u_immortals`, `u_berserkers`, `u_great_scientist/engineer/artist/general`, `b_dojo`, `b_salon`, `b_stupa`, `b_ikhanda`, `b_pairidaeza`, `b_longhouse`, `w_stonehenge`, `w_petra`, `w_forbidden_city`, `w_angkor_wat`, `w_notre_dame`, `w_machu_picchu`, `w_brandenburg_gate`, `w_christ_redeemer`, `w_pentagon`, `w_sydney_opera`. Атлас — 267 кадрів.
+- Перевірка нарізки: Стоунхендж, Петра, Заборонене місто, Бранденбурзькі ворота й Христос вийшли з фоном-сценою або з обрізками ліній. Причина — сцени в підказках («at sunrise», «canyon cliff», «above a bay»). Підказки цих 5 переписано на відокремлені об'єкти; після 2 перегенерацій усі чисті.
+- Місця в панорамі (`BUILDING_SLOTS`) для нових споруд і чудес уже є. `tsc` і `vite build` — гаразд.
+- У браузері не перевірено: preview `civ-dev` знову відхилено.

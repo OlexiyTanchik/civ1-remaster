@@ -1295,17 +1295,17 @@
     {
       "id": "w_stonehenge",
       "kind": "building",
-      "prompt": "Stonehenge: a ring of huge grey standing stones with lintels on a green hill at sunrise"
+      "prompt": "Stonehenge: a ring of huge grey standing stones with lintels on a small round patch of grass, isolated, no sky"
     },
     {
       "id": "w_petra",
       "kind": "building",
-      "prompt": "Petra: the rose-red rock-cut Treasury facade with columns and a pediment carved into a canyon cliff"
+      "prompt": "Petra: a free-standing chunk of rose-red rock with the Treasury facade, columns and a pediment carved into its front, isolated, no canyon walls around it"
     },
     {
       "id": "w_forbidden_city",
       "kind": "building",
-      "prompt": "the Forbidden City in Beijing: red palace halls with golden yellow tiled roofs behind a red wall and a white marble bridge"
+      "prompt": "the Forbidden City in Beijing: one compact red palace hall with a golden yellow two-tier tiled roof on a white marble terrace, isolated"
     },
     {
       "id": "w_angkor_wat",
@@ -1325,12 +1325,12 @@
     {
       "id": "w_brandenburg_gate",
       "kind": "building",
-      "prompt": "the Brandenburg Gate: a neoclassical sandstone gate with twelve Doric columns topped by a bronze quadriga chariot"
+      "prompt": "the Brandenburg Gate: a free-standing neoclassical sandstone gate with Doric columns topped by a green bronze quadriga chariot, isolated, no pavement around it"
     },
     {
       "id": "w_christ_redeemer",
       "kind": "building",
-      "prompt": "the Christ the Redeemer statue with outstretched arms on top of a green mountain peak above a bay"
+      "prompt": "the Christ the Redeemer statue with outstretched arms standing on a small green rocky peak, isolated, no sky, no sea, no city"
     },
     {
       "id": "w_pentagon",
