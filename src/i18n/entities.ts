@@ -4,6 +4,7 @@
  */
 import { UNIT_CONFIGS, BUILDING_CONFIGS, TECH_TREE, FUTURE_TECH, GOVERNMENTS, CIVS, TERRAIN_NAMES_UA, DIFFICULTIES, MAP_SIZES, MAP_TYPES } from '../core/constants';
 import type { Player } from '../core/types';
+import { TERRAFORM_INFO } from '../core/terraform';
 import { lang } from './index';
 import { EN_ENTITIES } from './en-entities';
 
@@ -28,6 +29,9 @@ export function applyEntityNames(): void {
   apply(GOVERNMENTS as unknown as Record<string, Named>, e.governments);
   apply(DIFFICULTIES as unknown as Record<string, Named>, e.difficulties);
   apply(MAP_TYPES as unknown as Record<string, Named>, e.mapTypes);
+  for (const [k, n] of Object.entries({ road: 'Road', irrigation: 'Irrigation', mine: 'Mine', clean: 'Clean pollution', transform: 'Transform' })) {
+    if (k in TERRAFORM_INFO) TERRAFORM_INFO[k as keyof typeof TERRAFORM_INFO].nameUa = n;
+  }
   for (const [k, n] of Object.entries(e.mapSizes)) if (k in MAP_SIZES) MAP_SIZES[k as keyof typeof MAP_SIZES].nameUa = n;
   for (const [k, n] of Object.entries(e.terrain)) if (k in TERRAIN_NAMES_UA) TERRAIN_NAMES_UA[k as keyof typeof TERRAIN_NAMES_UA] = n;
   for (const [k, [name, leader, cities]] of Object.entries(e.civs)) {

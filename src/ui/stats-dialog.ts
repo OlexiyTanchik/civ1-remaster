@@ -6,6 +6,7 @@ import { World } from '../core/world';
 import { TERRAIN_DATA, MAP_WIDTH, MAP_HEIGHT } from '../core/constants';
 import { CityLogic } from '../core/city';
 import { historyOf, statOf, STAT_NAMES, yearLabel } from './history';
+import { tm } from '../i18n';
 
 type Tab = 'charts' | 'cities' | 'demo' | 'chronicle';
 
@@ -140,7 +141,7 @@ export class StatsDialog {
     }
     // Підписи років: початок, середина, кінець
     for (const i of [0, Math.floor((pts.length - 1) / 2), pts.length - 1]) {
-      const label = yearLabel(pts[i].y);
+      const label = tm(yearLabel(pts[i].y)); // полотно — поза перекладом DOM
       ctx.fillText(label, Math.min(W - pad.r - label.length * 6, Math.max(pad.l, x(i) - label.length * 3)), H - 6);
     }
     for (const id of ids) {

@@ -17,6 +17,7 @@ import { StatsDialog } from './ui/stats-dialog';
 import { recordTurn, noteMessage, historyOf } from './ui/history';
 import { Achievements, AchievementsDialog } from './ui/achievements';
 import { applyEntityNames, syncPlayerNames } from './i18n/entities';
+import { startDomTranslation } from './i18n/dom';
 import { DiplomacyDialog, MeetingDialog, DiplomatDialog } from './ui/diplomacy-dialog';
 import { showMainMenu, MenuChoice } from './ui/main-menu';
 import { saveGame, loadSave, takePendingLoad } from './ui/save-store';
@@ -73,6 +74,7 @@ async function quickStartWorld(options: GameOptions): Promise<World> {
 async function bootstrap() {
   // Мова: англійські назви юнітів, споруд, технологій і цивілізацій — до меню й світу
   applyEntityNames();
+  startDomTranslation();
   const container = document.getElementById('canvas-container')!;
   const appElement = document.getElementById('app')!;
 
