@@ -113,6 +113,7 @@ export class CityLogic {
     };
     for (const b of city.buildings) addFx(BUILDING_CONFIGS[b]?.effects);
     for (const b of env.ownerWonders) addFx(BUILDING_CONFIGS[b]?.globalEffects);
+    if (city.goldenAge) addFx({ content: 2, gold: 25, science: 25, luxury: 25 });
     food = Math.round(food * (1 + fx.food / 100));
     trade += fx.trade;
 
@@ -142,6 +143,7 @@ export class CityLogic {
       corruptionShare = GOVERNMENTS[env.government].flatCorruption ?? Math.min(0.5, dist * GOVERNMENTS[env.government].corruptionPerTile);
     }
     if (has(BuildingTypeKey.Courthouse)) corruptionShare /= 2;
+    if (env.ownerWonders.has(BuildingTypeKey.ForbiddenCity)) corruptionShare /= 2;
     if (has(BuildingTypeKey.Palace)) corruptionShare = 0;
     const corruption = Math.floor(trade * corruptionShare);
     const netTrade = trade - corruption;
@@ -184,7 +186,8 @@ export class CityLogic {
     let calm = 0;
     if (has(BuildingTypeKey.SumySchool)) calm += 2; // випускники
     calm += fx.content;
-    if (has(BuildingTypeKey.Temple)) calm += (env.ownerWonders.has(BuildingTypeKey.Oracle) ? 4 : 2) + (env.ownerWonders.has(BuildingTypeKey.TempleOfArtemis) ? 2 : 0);
+    if (has(BuildingTypeKey.Temple)) calm += (env.ownerWonders.has(BuildingTypeKey.Oracle) ? 4 : 2) + (env.ownerWonders.has(BuildingTypeKey.TempleOfArtemis) ? 2 : 0)
+      + (env.ownerWonders.has(BuildingTypeKey.Stonehenge) ? 1 : 0);
     if (has(BuildingTypeKey.Colosseum)) calm += 3;
     if (has(BuildingTypeKey.Cathedral) || env.ownerWonders.has(BuildingTypeKey.Michelangelo)) calm += 3;
     if (env.ownerWonders.has(BuildingTypeKey.HangingGardens)) calm += 1;
@@ -205,7 +208,9 @@ export class CityLogic {
     unhappy -= calmed;
     content += calmed;
     // Армія за кордоном (Республіка 1, Демократія 2 за юніт); Жіноче виборче право — поліція, −1 за юніт
-    const perUnit = Math.max(0, (gov.abroadUnhappy ?? 0) - (env.ownerWonders.has(BuildingTypeKey.WomensSuffrage) || has(BuildingTypeKey.PoliceStation) ? 1 : 0));
+    // Бранденбурзькі ворота: армія за кордоном не злить зовсім
+    const perUnit = env.ownerWonders.has(BuildingTypeKey.BrandenburgGate) ? 0
+      : Math.max(0, (gov.abroadUnhappy ?? 0) - (env.ownerWonders.has(BuildingTypeKey.WomensSuffrage) || has(BuildingTypeKey.PoliceStation) ? 1 : 0));
     const abroad = Math.max(0, (support.abroad ?? 0) - (env.ownerWonders.has(BuildingTypeKey.StatueOfZeus) ? 1 : 0));
     const abroadUnhappy = Math.min(content, abroad * perUnit);
     content -= abroadUnhappy;

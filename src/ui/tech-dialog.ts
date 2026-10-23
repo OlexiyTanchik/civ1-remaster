@@ -9,7 +9,7 @@ import { UNIT_CONFIGS, BUILDING_CONFIGS, TECH_TREE, GOVERNMENTS, unitForCiv } fr
 /** Що саме відкриває технологія: юніти, споруди, чудеса, наступні технології. */
 function unlocksOf(techId: string, civ?: CivKey): string {
   const parts: string[] = [];
-  for (const u of Object.values(UNIT_CONFIGS)) if (u.prereqTech === techId && unitForCiv(u, civ)) parts.push(`${u.civ ? '⭐' : '⚔️'} ${u.nameUa}`);
+  for (const u of Object.values(UNIT_CONFIGS)) if (u.prereqTech === techId && unitForCiv(u, civ) && !u.greatPerson) parts.push(`${u.civ ? '⭐' : '⚔️'} ${u.nameUa}`);
   for (const b of Object.values(BUILDING_CONFIGS)) {
     if (b.prereqTech === techId && (!b.civ || b.civ === civ)) parts.push(`${b.isWonder ? '🌟' : '🏛️'} ${b.nameUa}`);
   }

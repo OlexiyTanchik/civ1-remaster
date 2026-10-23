@@ -6,7 +6,7 @@ import {
   CIVS, MAP_SIZES, DIFFICULTIES, DEFAULT_OPTIONS, AGENTS, WARMING_LIMIT, civUnit, setMapSize,
 } from './constants';
 import {
-  TileData, Unit, City, Player, PlayerFog, UnitTypeKey, TerrainType, BuildingTypeKey, GovernmentKey, Spaceship, GameOver,
+  TileData, Unit, City, Player, GreatPersonKind, BuildingConfig, PlayerFog, UnitTypeKey, TerrainType, BuildingTypeKey, GovernmentKey, Spaceship, GameOver,
   GameOptions, CivKey, ResourceType,
 } from './types';
 import { MapGenerator } from './map-generator';
@@ -51,8 +51,8 @@ export class World {
       this.restore(save);
       return;
     }
-    this.tiles = MapGenerator.generateWorld();
     this.initPlayers();
+    this.tiles = MapGenerator.generateWorld(Date.now(), this.options.mapType ?? 'continents', this.players.length - 1);
     this.initFogOfWar();
     this.spawnInitialSettlers();
     this.placeHuts();
@@ -89,8 +89,32 @@ export class World {
     }
   }
 
+  /** Номер суходолу для кожної клітинки (8-сусідство, мапа зациклена по X); море — −1. */
+  public landmasses(): number[][] {
+    const id = this.tiles.map((row) => row.map(() => -1));
+    let next = 0;
+    for (const row of this.tiles) for (const t of row) {
+      if (t.terrain === TerrainType.Ocean || id[t.y][t.x] >= 0) continue;
+      const stack = [t];
+      id[t.y][t.x] = next;
+      while (stack.length) {
+        const c = stack.pop()!;
+        for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+          const n = this.tiles[c.y + dy]?.[(c.x + dx + MAP_WIDTH) % MAP_WIDTH];
+          if (n && n.terrain !== TerrainType.Ocean && id[n.y][n.x] < 0) { id[n.y][n.x] = next; stack.push(n); }
+        }
+      }
+      next++;
+    }
+    return id;
+  }
+
   private spawnInitialSettlers(): void {
     const starts: { x: number; y: number }[] = [];
+    // Острови-фортеці: кожна цивілізація — на своєму суходолі
+    const islands = this.options.mapType === 'islands';
+    const mass = islands ? this.landmasses() : undefined;
+    const usedMass = new Set<number>();
     for (const player of this.players) {
       if (player.isBarbarian) continue;
       let spawned = false;
@@ -103,7 +127,10 @@ export class World {
         const ry = Math.floor(MAP_HEIGHT * 0.25 + Math.random() * (MAP_HEIGHT * 0.5));
         const tile = this.tiles[ry][rx];
 
-        if (tile.terrain === TerrainType.Grassland || tile.terrain === TerrainType.Plains) {
+        // На своєму острові згодиться й гірша земля, якщо луків чи рівнин там нема
+        const loose = !!mass && tries > 500 && !usedMass.has(mass[ry][rx]);
+        if (tile.terrain === TerrainType.Grassland || tile.terrain === TerrainType.Plains
+          || (loose && tile.terrain !== TerrainType.Ocean && tile.terrain !== TerrainType.Glacier && tile.terrain !== TerrainType.Mountains)) {
           // Перевіряємо, що навколо є щонайменше 7 сухопутних клітинок (глибина континенту)
           let landCount = 0;
           for (let dy = -1; dy <= 1; dy++) {
@@ -115,9 +142,11 @@ export class World {
               }
             }
           }
-          if (landCount < 7) continue;
+          if (landCount < (loose ? 5 : 7)) continue;
           if (starts.some((p) => this.distance(p.x, p.y, rx, ry) < minDist)) continue;
+          if (mass && tries < 900 && usedMass.has(mass[ry][rx])) continue;
           starts.push({ x: rx, y: ry });
+          if (mass) usedMass.add(mass[ry][rx]);
 
           this.createUnit(player.id, UnitTypeKey.Settlers, rx, ry);
           this.revealFog(player.id, rx, ry, 3);
@@ -126,6 +155,22 @@ export class World {
           const mX = (rx + 1) % MAP_WIDTH;
           this.createUnit(player.id, UnitTypeKey.Militia, mX, ry);
           this.revealFog(player.id, mX, ry, 3);
+        }
+      }
+      // Пошук не вдався (тісний чи дрібний світ) — будь-яка суходільна клітинка, найдальша від інших стартів
+      if (!spawned) {
+        let best: TileData | undefined;
+        let bestD = -1;
+        for (const row of this.tiles) for (const t of row) {
+          if (t.terrain === TerrainType.Ocean || t.terrain === TerrainType.Glacier || t.unitIds.length) continue;
+          const d = starts.length ? Math.min(...starts.map((p) => this.distance(p.x, p.y, t.x, t.y))) : 99;
+          if (d > bestD) { bestD = d; best = t; }
+        }
+        if (best) {
+          starts.push({ x: best.x, y: best.y });
+          this.createUnit(player.id, UnitTypeKey.Settlers, best.x, best.y);
+          this.createUnit(player.id, UnitTypeKey.Militia, best.x, best.y);
+          this.revealFog(player.id, best.x, best.y, 3);
         }
       }
     }
@@ -719,6 +764,73 @@ export class World {
     }
   }
 
+  /** Велика людина з'являється в місті (без утримання) — новина-підказка, що з нею робити. */
+  public spawnGreatPerson(playerId: number, kind: GreatPersonKind, city: City): string {
+    const type = GREAT_PEOPLE[kind];
+    this.createUnit(playerId, type, city.x, city.y);
+    const hint = { scientist: 'відкриє досліджувану технологію', engineer: 'додасть 150 щитів чуду, що будується в місті', artist: 'почне в місті золотий вік', general: 'зробить ветеранами загони поруч' }[kind];
+    return `⭐ У місті ${city.name} з'явився ${UNIT_CONFIGS[type].nameUa.toLowerCase()}: дія [J] ${hint}.`;
+  }
+
+  /** Чому велика людина не може діяти тут (undefined — може). */
+  public greatPersonProblem(unit: Unit): string | undefined {
+    const kind = UNIT_CONFIGS[unit.type].greatPerson;
+    if (!kind) return 'Це не велика людина';
+    const p = this.players[unit.playerId];
+    const cityId = this.tiles[unit.y][unit.x].cityId;
+    const city = cityId ? this.cities.get(cityId) : undefined;
+    const own = city && city.playerId === unit.playerId ? city : undefined;
+    if (kind === 'scientist') return p.currentTechId || TurnManager.getAvailableTechs(p).length ? undefined : 'Нема чого досліджувати';
+    if (kind === 'engineer') {
+      if (!own) return 'Потрібно бути у своєму місті';
+      return own.currentProduction.isBuilding && BUILDING_CONFIGS[own.currentProduction.key as BuildingTypeKey]?.isWonder ? undefined : 'Місто має будувати чудо світу';
+    }
+    if (kind === 'artist') return !own ? 'Потрібно бути у своєму місті' : own.goldenAge ? 'Золотий вік уже триває' : undefined;
+    return this.generalTroops(unit).length ? undefined : 'Поруч нема бойових загонів, яким бракує досвіду';
+  }
+
+  /** Бойові загони полководця: на його клітинці й поруч, ще не ветерани. */
+  private generalTroops(unit: Unit): Unit[] {
+    return [...this.units.values()].filter((u) => u.playerId === unit.playerId && !u.veteran && UNIT_CONFIGS[u.type].attack > 0
+      && !UNIT_CONFIGS[u.type].greatPerson && this.distance(u.x, u.y, unit.x, unit.y) <= 1);
+  }
+
+  /** Дія великої людини; людина зникає. */
+  public useGreatPerson(unitId: string): { ok: boolean; text: string } {
+    const unit = this.units.get(unitId);
+    if (!unit) return { ok: false, text: 'Юніта нема' };
+    const problem = this.greatPersonProblem(unit);
+    if (problem) return { ok: false, text: problem };
+    const p = this.players[unit.playerId];
+    const city = this.cities.get(this.tiles[unit.y][unit.x].cityId ?? '');
+    let text = '';
+    switch (UNIT_CONFIGS[unit.type].greatPerson!) {
+      case 'scientist': {
+        const tech = (p.currentTechId && TurnManager.techById(p.currentTechId)) || TurnManager.getAvailableTechs(p)[0];
+        TurnManager.learnTech(p, tech);
+        if (p.currentTechId === tech.id) p.currentTechId = undefined;
+        text = `🧪 Великий учений відкрив: «${tech.nameUa}»!`;
+        break;
+      }
+      case 'engineer':
+        city!.shieldsStored += 150;
+        text = `🏗️ Великий інженер додав 150 щитів чуду в місті ${city!.name}.`;
+        break;
+      case 'artist':
+        city!.goldenAge = 10;
+        text = `🎨 Золотий вік у місті ${city!.name}: 10 ходів +2 задоволених, +25% золота, науки й розкоші.`;
+        break;
+      case 'general': {
+        const troops = this.generalTroops(unit);
+        troops.forEach((u) => { u.veteran = true; });
+        text = `🎖️ Великий полководець вишколив загони: ветеранів +${troops.length}.`;
+        break;
+      }
+    }
+    this.removeUnit(unit.id);
+    return { ok: true, text };
+  }
+
   /** Одна подія в місті; undefined — обставини не ті (подія не відбулась). */
   private randomEvent(p: Player, city: City): string | undefined {
     const around = (test: (t: TileData) => boolean) => {
@@ -730,8 +842,9 @@ export class World {
       return false;
     };
     const has = (b: BuildingTypeKey) => city.buildings.includes(b);
-    const kinds = ['plague', 'famine', 'fire', 'quake', 'flood', 'gold', 'harvest', 'scientist', 'artist'] as const;
-    switch (kinds[Math.floor(Math.random() * kinds.length)]) {
+    const kinds = ['plague', 'famine', 'fire', 'quake', 'flood', 'gold', 'harvest', 'scientist', 'artist', 'engineer', 'general'] as const;
+    const kind = kinds[Math.floor(Math.random() * kinds.length)];
+    switch (kind) {
       case 'plague': {
         if (city.size < 5) return undefined;
         // Акведук (чиста вода) чи лікарня стримують пошесть
@@ -770,23 +883,11 @@ export class World {
       case 'harvest':
         city.foodStored = Math.max(city.foodStored, city.foodNeeded - 1);
         return `🌻 Багатий урожай біля міста ${city.name}: комори повні, місто от-от виросте.`;
-      case 'scientist': {
-        if (!p.currentTechId) return undefined;
-        const add = Math.round(TurnManager.researchCost(p) / 2);
-        p.researchProgress += add;
-        return `🧪 У місті ${city.name} народився великий учений: +${add} колб до дослідження.`;
-      }
-      case 'artist': {
-        // Подарунок — найдешевша ще не збудована споруда, що заспокоює людей
-        const gift = Object.values(BUILDING_CONFIGS)
-          .filter((b) => !b.isWonder && !b.coastal && !b.highland && !has(b.key) && (!b.requires || has(b.requires)) && (!b.civ || b.civ === p.civ)
-            && (!b.prereqTech || p.knownTechs.includes(b.prereqTech))
-            && ((b.effects?.content ?? 0) > 0 || b.key === BuildingTypeKey.Temple || b.key === BuildingTypeKey.Colosseum || b.key === BuildingTypeKey.Cathedral))
-          .sort((a, b) => a.cost - b.cost)[0];
-        if (!gift) return undefined;
-        city.buildings.push(gift.key);
-        return `🎨 Великий митець прикрасив місто ${city.name}: «${gift.nameUa}» у подарунок.`;
-      }
+      case 'scientist':
+      case 'artist':
+      case 'engineer':
+      case 'general':
+        return this.spawnGreatPerson(p.id, kind, city);
     }
   }
 
@@ -896,10 +997,12 @@ export class World {
     return unit;
   }
 
-  /** Чи новий юніт міста — ветеран: казарми (наземні й кораблі), аеропорт (літаки), Сунь-цзи (наземні всюди), портові споруди (кораблі). */
+  /** Чи новий юніт міста — ветеран: Пентагон (усі), казарми (наземні й кораблі), аеропорт (літаки), Сунь-цзи (наземні всюди), портові споруди (кораблі). */
   public trainsVeteran(city: City, type: UnitTypeKey): boolean {
     const cfg = UNIT_CONFIGS[type];
     if (cfg.attack === 0 || type === UnitTypeKey.Nuclear) return false;
+    // Пентагон: ветерани всіх родів військ
+    if (this.ownerWonders(city.playerId).has(BuildingTypeKey.Pentagon)) return true;
     if (cfg.domain === 'air') return city.buildings.includes(BuildingTypeKey.Airport);
     if (cfg.domain === 'land' && this.ownerWonders(city.playerId).has(BuildingTypeKey.SunTzu)) return true;
     if (cfg.domain === 'sea' && city.buildings.includes(BuildingTypeKey.PortFacility)) return true;
@@ -1143,6 +1246,10 @@ export class World {
           if (cfg.key === BuildingTypeKey.MarcoPolo) this.diplomacy.meetEveryone(city.playerId);
           // Чудо — новина для всього світу
           completedItems.push(`🌟 ${this.players[city.playerId].nameUa} завершили чудо світу «${cfg.nameUa}» у місті ${city.name}!`);
+          if (Math.random() < 1 / 3) {
+            const born = this.spawnGreatPerson(city.playerId, wonderPerson(cfg), city);
+            if (mine) completedItems.push(born);
+          }
           if (cfg.key === BuildingTypeKey.Darwin) {
             const got = this.grantTechs(this.players[city.playerId], 2);
             if (mine && got.length) completedItems.push(`🧬 Подорож Дарвіна відкрила: ${got.join(', ')}`);
@@ -1232,6 +1339,7 @@ export class World {
       if (msg && city.playerId === human.id) completedItems.push(msg);
     }
     this.globalWarming();
+    for (const c of this.cities.values()) if (c.goldenAge) c.goldenAge--;
     this.randomEvents(completedItems);
 
     // 4. Хід AI і навала варварів
@@ -1827,6 +1935,20 @@ export interface SaveData {
   uiData?: Record<string, unknown>;
 }
 
+const GREAT_PEOPLE: Record<GreatPersonKind, UnitTypeKey> = {
+  scientist: UnitTypeKey.GreatScientist, engineer: UnitTypeKey.GreatEngineer, artist: UnitTypeKey.GreatArtist, general: UnitTypeKey.GreatGeneral,
+};
+/** Військові чудеса народжують полководців */
+const MILITARY_WONDERS = new Set([BuildingTypeKey.GreatWall, BuildingTypeKey.SunTzu, BuildingTypeKey.StatueOfZeus, BuildingTypeKey.TerracottaArmy, BuildingTypeKey.BrandenburgGate, BuildingTypeKey.Pentagon, BuildingTypeKey.KingRichards]);
+/** Яка велика людина народжується з чуда: військове — полководець, наукове — учений, виробниче — інженер, розважальне — митець, інше — навмання. */
+function wonderPerson(cfg: BuildingConfig): GreatPersonKind {
+  if (MILITARY_WONDERS.has(cfg.key)) return 'general';
+  const fx = { ...(cfg.effects ?? {}), ...(cfg.globalEffects ?? {}) };
+  if ((fx.science ?? 0) > 0) return 'scientist';
+  if ((fx.shields ?? 0) > 0) return 'engineer';
+  if ((fx.content ?? 0) > 0 || (fx.luxury ?? 0) > 0) return 'artist';
+  return (['scientist', 'engineer', 'artist'] as const)[Math.floor(Math.random() * 3)];
+}
 const WARMING_COAST = new Set([TerrainType.Grassland, TerrainType.Plains, TerrainType.Tundra, TerrainType.Forest, TerrainType.Jungle]);
 const WARMING_INLAND: Partial<Record<TerrainType, TerrainType>> = {
   [TerrainType.Grassland]: TerrainType.Plains, [TerrainType.Plains]: TerrainType.Desert, [TerrainType.Forest]: TerrainType.Jungle,

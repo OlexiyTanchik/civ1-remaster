@@ -4,15 +4,16 @@
  * а не хаотичну шахівницю 1х1.
  */
 import { MAP_WIDTH, MAP_HEIGHT } from './constants';
-import { TerrainType, ResourceType, TileData } from './types';
+import { TerrainType, ResourceType, TileData, MapTypeKey } from './types';
 
 /** Ширина протоки між континентами (різниця відстаней до двох найближчих ядер, клітинок). */
 const STRAIT_WIDTH = 3;
 
 export class MapGenerator {
-  public static generateWorld(seed: number = Date.now()): TileData[][] {
+  /** `civs` — скільки цивілізацій (для «Островів-фортець»: острів на кожну). */
+  public static generateWorld(seed: number = Date.now(), type: MapTypeKey = 'continents', civs = 4): TileData[][] {
     const tiles: TileData[][] = [];
-    const landMask = this.generateContinents(seed);
+    const landMask = this.generateContinents(seed, type, civs);
 
     for (let y = 0; y < MAP_HEIGHT; y++) {
       tiles[y] = [];
@@ -43,9 +44,11 @@ export class MapGenerator {
   }
 
   /**
-   * Створює 4-5 суцільних континентів з океанічними проливами.
+   * Суходіл за типом світу: ядра (центр, розмір), між сусідніми ядрами — протока, якщо світ не Пангея.
+   * Континенти — 5 материків, Пангея — ті ж ядра, зсунуті до центру, Архіпелаг — ~16 малих островів,
+   * Острови-фортеці — по острову на цивілізацію, рівномірно у два ряди.
    */
-  private static generateContinents(seed: number): boolean[][] {
+  private static generateContinents(seed: number, type: MapTypeKey = 'continents', civs = 4): boolean[][] {
     let grid: boolean[][] = Array.from({ length: MAP_HEIGHT }, () => Array(MAP_WIDTH).fill(false));
 
     // 5 великих континентальних ядер (розставлені для 80×50, масштабуються під розмір мапи);
@@ -57,7 +60,7 @@ export class MapGenerator {
       const v = Math.sin(seed * 0.0001 + i * 12.9898) * 43758.5453;
       return v - Math.floor(v);
     };
-    const centers = [
+    let centers = [
       { x: 16, y: 18, size: 16 },
       { x: 38, y: 32, size: 18 },
       { x: 62, y: 20, size: 17 },
@@ -68,6 +71,30 @@ export class MapGenerator {
       y: Math.round((c.y + (rand(i + 10) * 2 - 1) * 3) * sy),
       size: c.size * ss,
     }));
+    let straitWidth = STRAIT_WIDTH * ss;
+    if (type === 'pangaea') {
+      // Ті самі ядра, стягнуті до центру й без проток — зливаються в один материк
+      centers = centers.map((c) => ({ x: Math.round(MAP_WIDTH / 2 + (c.x - MAP_WIDTH / 2) * 0.45), y: Math.round(MAP_HEIGHT / 2 + (c.y - MAP_HEIGHT / 2) * 0.55), size: c.size * 1.05 }));
+      straitWidth = 0;
+    } else if (type === 'archipelago') {
+      // Малі острови по всій помірній смузі
+      const n = Math.round((MAP_WIDTH * MAP_HEIGHT) / 250);
+      centers = Array.from({ length: n }, (_, i) => ({
+        x: Math.floor(rand(i + 30) * MAP_WIDTH),
+        y: Math.round(MAP_HEIGHT * (0.2 + rand(i + 60) * 0.6)),
+        size: (5 + rand(i + 90) * 3) * ss,
+      }));
+      straitWidth = 2 * ss;
+    } else if (type === 'islands') {
+      // Острів на цивілізацію: два ряди, широкі протоки між ними
+      const cols = Math.ceil(civs / 2);
+      centers = Array.from({ length: civs }, (_, i) => ({
+        x: Math.round(((i % cols) + 0.5 + (Math.floor(i / cols) ? 0.5 : 0)) * (MAP_WIDTH / cols) + (rand(i) * 2 - 1) * 2) % MAP_WIDTH,
+        y: Math.round(MAP_HEIGHT * (Math.floor(i / cols) ? 0.66 : 0.34) + (rand(i + 10) * 2 - 1) * 2),
+        size: Math.min(MAP_WIDTH / cols, MAP_HEIGHT / 2) * 0.36,
+      }));
+      straitWidth = 4 * ss;
+    }
 
     for (let y = 3; y < MAP_HEIGHT - 3; y++) {
       for (let x = 0; x < MAP_WIDTH; x++) {
@@ -80,7 +107,7 @@ export class MapGenerator {
             return { c, d: Math.sqrt(dx * dx + dy * dy) };
           })
           .sort((a, b) => a.d - b.d);
-        const strait = dists[1].d - dists[0].d < STRAIT_WIDTH * ss;
+        const strait = dists.length > 1 && dists[1].d - dists[0].d < straitWidth;
         if (!strait && dists[0].d + noise < dists[0].c.size) grid[y][x] = true;
       }
     }

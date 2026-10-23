@@ -511,6 +511,7 @@ export class AiController {
     if (unit.type === UnitTypeKey.Settlers) return this.settle(unit);
     if (unit.type === UnitTypeKey.Workers || unit.type === UnitTypeKey.Engineers) return this.work(unit);
     if (cfg.wonderShields) return this.caravan(unit);
+    if (cfg.greatPerson) return this.greatPerson(unit);
     if (cfg.hover) return this.attack(unit); // гелікоптер воює, як наземний ударний загін
     if (AGENTS.has(unit.type)) return this.diplomat(unit);
     if (unit.type === UnitTypeKey.Explorer) return this.scoutLand(unit);
@@ -518,6 +519,32 @@ export class AiController {
     if (cfg.domain === 'sea') return this.fleet.moveShip(unit);
     if (cfg.attack > cfg.defense) return this.attack(unit);
     return this.defend(unit);
+  }
+
+  /**
+   * Велика людина: учений — одразу; інженер — до свого міста, що будує чудо; митець — до найбільшого міста;
+   * полководець — до міста з найбільшим гарнізоном бойових загонів. Там — дія.
+   */
+  private greatPerson(unit: Unit): void {
+    const w = this.world;
+    const kind = UNIT_CONFIGS[unit.type].greatPerson!;
+    if (kind === 'scientist' && !w.greatPersonProblem(unit)) {
+      w.useGreatPerson(unit.id);
+      return;
+    }
+    const mine = this.citiesOf(unit.playerId);
+    const near = (c: City) => w.distance(c.x, c.y, unit.x, unit.y);
+    const fighters = (c: City) => w.tiles[c.y][c.x].unitIds.filter((id) => UNIT_CONFIGS[w.units.get(id)!.type].attack > 0).length;
+    const target = kind === 'engineer'
+      ? mine.filter((c) => c.currentProduction.isBuilding && BUILDING_CONFIGS[c.currentProduction.key as BuildingTypeKey]?.isWonder).sort((x, y) => near(x) - near(y))[0]
+      : kind === 'artist' ? mine.filter((c) => !c.goldenAge).sort((x, y) => y.size - x.size)[0]
+        : mine.sort((x, y) => fighters(y) - fighters(x))[0];
+    if (!target) return;
+    if (target.x === unit.x && target.y === unit.y) {
+      if (!w.greatPersonProblem(unit)) w.useGreatPerson(unit.id);
+      return;
+    }
+    this.walkTo(unit, target);
   }
 
   /** Поселенці: обрати місце, дійти, заснувати. Перше місто — одразу на місці (як AI у Civ 1). */

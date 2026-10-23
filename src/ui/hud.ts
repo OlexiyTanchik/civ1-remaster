@@ -41,6 +41,7 @@ export class Hud {
   public onTerraform?: (kind: TerraformKind) => void;
   public onHelpWonder?: () => void;
   public onTradeRoute?: () => void;
+  public onGreatPerson?: () => void;
   public onRatesChanged?: () => void;
   public onOpenGovernment?: () => void;
   public onOpenSpace?: () => void;
@@ -118,6 +119,7 @@ export class Hud {
           ${TERRAFORM_KINDS.map((k) => `<button class="civ-btn" id="btn-tf-${k}"></button>`).join('')}
           <button class="civ-btn" id="btn-help-wonder" title="Віддати 50 щитів на чудо світу [H]">🌟 На чудо [H]</button>
           <button class="civ-btn" id="btn-trade-route" title="Заснувати торговий маршрут [T]">🐪 Маршрут [T]</button>
+          <button class="civ-btn" id="btn-great-person" title="Дія великої людини [J]">⭐ Дія [J]</button>
           <button class="civ-btn" id="btn-rehome" title="Переписати юніт на це місто: воно його утримуватиме">🏠 Дім</button>
           <button class="civ-btn" id="btn-disband" title="Розпустити юніт, щоб місто не витрачало на нього щити [Shift+D]">🗑️ Розпустити</button>
           <button class="civ-btn" id="btn-fortify" title="Укріпитися: +50% захисту [F]">🛡️ Укріпити [F]</button>
@@ -185,6 +187,7 @@ export class Hud {
     }
     document.getElementById('btn-help-wonder')?.addEventListener('click', () => this.onHelpWonder?.());
     document.getElementById('btn-trade-route')?.addEventListener('click', () => this.onTradeRoute?.());
+    document.getElementById('btn-great-person')?.addEventListener('click', () => this.onGreatPerson?.());
     document.getElementById('hud-gov')?.addEventListener('click', () => this.onOpenGovernment?.());
     document.getElementById('hud-space')?.addEventListener('click', () => this.onOpenSpace?.());
     document.getElementById('btn-game-menu')?.addEventListener('click', () => this.onOpenGameMenu?.());
@@ -545,6 +548,17 @@ export class Hud {
         const ok = !!city && city.currentProduction.isBuilding && !!BUILDING_CONFIGS[city.currentProduction.key as BuildingTypeKey]?.isWonder;
         helpBtn.disabled = !ok;
         helpBtn.title = ok ? 'Віддати 50 щитів на чудо світу [H]' : 'Заведіть караван у місто, яке будує чудо світу';
+      }
+    }
+    // Велика людина: кнопка дії з підказкою, чому зараз не можна
+    const greatBtn = document.getElementById('btn-great-person') as HTMLButtonElement | null;
+    if (greatBtn) {
+      const great = !!unit && !!UNIT_CONFIGS[unit.type].greatPerson;
+      greatBtn.style.display = great ? 'block' : 'none';
+      if (great) {
+        const problem = this.world.greatPersonProblem(unit);
+        greatBtn.disabled = !!problem;
+        greatBtn.title = problem ?? `${UNIT_CONFIGS[unit.type].descriptionUa}`;
       }
     }
     // Маршрут у своєму далекому місті; у чуже місто караван просто заходить

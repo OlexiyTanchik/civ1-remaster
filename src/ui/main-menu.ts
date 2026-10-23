@@ -2,8 +2,8 @@
  * Головне меню перед грою (як заставка Civ 1): продовжити, нова гра, завантажити, Зал слави.
  * Нова гра: цивілізація, кількість суперників, розмір мапи, складність.
  */
-import { CIVS, MAP_SIZES, DIFFICULTIES } from '../core/constants';
-import { CivKey, DifficultyKey, GameOptions, MapSizeKey } from '../core/types';
+import { CIVS, MAP_SIZES, MAP_TYPES, DIFFICULTIES } from '../core/constants';
+import { CivKey, DifficultyKey, GameOptions, MapSizeKey, MapTypeKey } from '../core/types';
 import { SaveData } from '../core/world';
 import { SLOTS, SlotId, listSaves, loadSave, slotName } from './save-store';
 import { hallOfFameHtml } from './game-over-dialog';
@@ -106,6 +106,8 @@ export function showMainMenu(container: HTMLElement): Promise<MenuChoice> {
         <div class="mm-grid">${radio('rivals', [['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5', 'Краще на великій мапі'], ['6', '6', 'Краще на великій мапі']], String(pick.rivals))}</div>
         <h3 class="hall-title">Розмір мапи</h3>
         <div class="mm-grid">${radio('mapSize', (Object.keys(MAP_SIZES) as MapSizeKey[]).map((k) => [k, `${MAP_SIZES[k].nameUa} ${MAP_SIZES[k].w}×${MAP_SIZES[k].h}`]), pick.mapSize)}</div>
+        <h3 class="hall-title">Тип світу</h3>
+        <div class="mm-grid">${radio('mapType', (Object.keys(MAP_TYPES) as MapTypeKey[]).map((k) => [k, MAP_TYPES[k].nameUa, MAP_TYPES[k].descriptionUa]), 'continents')}</div>
         <h3 class="hall-title">Складність</h3>
         <div class="mm-grid">${radio('difficulty', (Object.keys(DIFFICULTIES) as DifficultyKey[]).map((k) => [k, DIFFICULTIES[k].nameUa, DIFFICULTIES[k].descriptionUa]), pick.difficulty)}</div>
         <p class="tech-unlocks" id="mm-diff-note">${DIFFICULTIES[pick.difficulty].descriptionUa}</p>
@@ -128,6 +130,7 @@ export function showMainMenu(container: HTMLElement): Promise<MenuChoice> {
             civ: val('civ') as CivKey,
             rivals: Number(val('rivals')),
             mapSize: val('mapSize') as MapSizeKey,
+            mapType: val('mapType') as MapTypeKey,
             difficulty: val('difficulty') as DifficultyKey,
           },
         });

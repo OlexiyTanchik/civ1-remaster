@@ -311,6 +311,15 @@ async function bootstrap() {
     selectNextAvailableUnit();
   };
 
+  hud.onGreatPerson = () => {
+    if (!selectedUnit) return;
+    const res = world.useGreatPerson(selectedUnit.id);
+    hud.addLogMessage(res.ok ? res.text : `⚠️ ${res.text}`);
+    if (!res.ok) return;
+    renderer.refreshAll();
+    selectNextAvailableUnit();
+  };
+
   hud.onFortify = () => {
     if (!selectedUnit) return;
     selectedUnit.isFortified = true;
@@ -478,6 +487,10 @@ async function bootstrap() {
     }
     if (e.code === 'KeyT') {
       hud.onTradeRoute?.();
+      return;
+    }
+    if (e.code === 'KeyJ') {
+      hud.onGreatPerson?.();
       return;
     }
     if (e.code === 'KeyD' && e.shiftKey) {

@@ -62,7 +62,7 @@ export class CityDialog {
       .filter((u) => hasTech(u.prereqTech) && (u.domain !== 'sea' || coastal))
       .filter((u) => !u.requiresWonder || this.world.isWonderBuilt(u.requiresWonder))
       .filter((u) => !u.requiresGovernment || u.requiresGovernment === this.world.players[city.playerId].government)
-      .filter((u) => unitForCiv(u, this.world.players[city.playerId].civ))
+      .filter((u) => unitForCiv(u, this.world.players[city.playerId].civ) && !u.greatPerson)
       // Застарілі ховаємо, але поточне виробництво лишаємо видимим
       .filter((u) => !isObsoleteUnit(u.key, known) || city.currentProduction.key === u.key)
       .map((u) => ({ isBuilding: false, key: u.key as string, name: u.nameUa, cost: u.cost, description: u.descriptionUa }));

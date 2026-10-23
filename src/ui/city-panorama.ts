@@ -155,6 +155,17 @@ const BUILDING_SLOTS: Partial<Record<BuildingTypeKey, { x: number; y: number; sc
   [BuildingTypeKey.Ikhanda]: { x: 88, y: 130, scale: 0.42 },
   [BuildingTypeKey.Pairidaeza]: { x: 88, y: 130, scale: 0.42 },
   [BuildingTypeKey.Longhouse]: { x: 88, y: 130, scale: 0.42 },
+  // Етап 11: чудеса
+  [BuildingTypeKey.Stonehenge]: { x: 46, y: 98, scale: 0.45 },
+  [BuildingTypeKey.Petra]: { x: 360, y: 120, scale: 0.45 },
+  [BuildingTypeKey.ForbiddenCity]: { x: 128, y: 106, scale: 0.45 },
+  [BuildingTypeKey.AngkorWat]: { x: 280, y: 98, scale: 0.45 },
+  [BuildingTypeKey.NotreDame]: { x: 222, y: 102, scale: 0.5 },
+  [BuildingTypeKey.MachuPicchu]: { x: 20, y: 86, scale: 0.45 },
+  [BuildingTypeKey.BrandenburgGate]: { x: 160, y: 170, scale: 0.45 },
+  [BuildingTypeKey.ChristRedeemer]: { x: 312, y: 70, scale: 0.45 },
+  [BuildingTypeKey.Pentagon]: { x: 254, y: 182, scale: 0.45 },
+  [BuildingTypeKey.SydneyOpera]: { x: 370, y: 182, scale: 0.45 },
 };
 
 const hash = (a: number, b: number) => {

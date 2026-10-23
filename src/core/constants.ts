@@ -1,6 +1,6 @@
 import {
   TerrainType, TerrainYield, UnitTypeKey, UnitConfig, BuildingTypeKey, BuildingConfig, Tech, GovernmentKey, GovernmentConfig, SpacePart,
-  MapSizeKey, DifficultyKey, CivKey, GameOptions,
+  MapSizeKey, MapTypeKey, DifficultyKey, CivKey, GameOptions,
 } from './types';
 
 // Розмір мапи змінюється перед створенням світу (setMapSize); імпорти бачать нове значення (live binding)
@@ -12,6 +12,13 @@ export function setMapSize(w: number, h: number): void {
   MAP_WIDTH = w;
   MAP_HEIGHT = h;
 }
+
+export const MAP_TYPES: Record<MapTypeKey, { nameUa: string; descriptionUa: string }> = {
+  continents: { nameUa: 'Континенти', descriptionUa: '5 материків із протоками — класика Civ 1.' },
+  pangaea: { nameUa: 'Пангея', descriptionUa: 'Один великий суходіл: сусіди поруч, війни суходолом.' },
+  archipelago: { nameUa: 'Архіпелаг', descriptionUa: 'Багато островів: вирішує флот.' },
+  islands: { nameUa: 'Острови-фортеці', descriptionUa: 'Кожна цивілізація — на своєму острові.' },
+};
 
 export const MAP_SIZES: Record<MapSizeKey, { nameUa: string; w: number; h: number }> = {
   small: { nameUa: 'Мала', w: 64, h: 40 },
@@ -533,6 +540,23 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
   [UnitTypeKey.Berserkers]: {
     key: UnitTypeKey.Berserkers, name: 'Berserkers', nameUa: 'Берсерки', attack: 6, defense: 2, moves: 1, cost: 40, domain: 'land', marine: true,
     civ: 'vikings', replaces: UnitTypeKey.Landsknechts, prereqTech: 'guilds', descriptionUa: 'Унікальний юніт вікінгів замість Ландскнехтів: б\'ють з корабля на берег на повну силу.',
+  },
+  // Етап 11: великі люди
+  [UnitTypeKey.GreatScientist]: {
+    key: UnitTypeKey.GreatScientist, name: 'Great Scientist', nameUa: 'Великий учений', attack: 0, defense: 1, moves: 1, cost: 100, domain: 'land', greatPerson: 'scientist',
+    prereqTech: 'alphabet', descriptionUa: 'Одразу відкриває технологію, яку зараз досліджують (дія [J]).',
+  },
+  [UnitTypeKey.GreatEngineer]: {
+    key: UnitTypeKey.GreatEngineer, name: 'Great Engineer', nameUa: 'Великий інженер', attack: 0, defense: 1, moves: 1, cost: 100, domain: 'land', greatPerson: 'engineer',
+    prereqTech: 'alphabet', descriptionUa: 'У своєму місті, що будує чудо, додає 150 щитів (дія [J]).',
+  },
+  [UnitTypeKey.GreatArtist]: {
+    key: UnitTypeKey.GreatArtist, name: 'Great Artist', nameUa: 'Великий митець', attack: 0, defense: 1, moves: 1, cost: 100, domain: 'land', greatPerson: 'artist',
+    prereqTech: 'alphabet', descriptionUa: 'Починає в місті золотий вік на 10 ходів: +2 задоволених, +25% золота, науки й розкоші (дія [J]).',
+  },
+  [UnitTypeKey.GreatGeneral]: {
+    key: UnitTypeKey.GreatGeneral, name: 'Great General', nameUa: 'Великий полководець', attack: 0, defense: 1, moves: 2, cost: 100, domain: 'land', greatPerson: 'general',
+    prereqTech: 'alphabet', descriptionUa: 'Робить ветеранами всі свої бойові загони на клітинці й поруч (дія [J]).',
   },
 };
 
@@ -1113,6 +1137,47 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
   [BuildingTypeKey.Longhouse]: {
     key: BuildingTypeKey.Longhouse, nameUa: 'Довгий дім', cost: 60, maintenance: 1, prereqTech: 'bronze_working', civ: 'vikings', effects: { shields: 15, content: 1 },
     descriptionUa: 'Унікальна споруда вікінгів. Дім ярла з різьбленими драконами: +15% щитів, +1 задоволений.',
+  },
+  // Етап 11: чудеса з пізніших Civ
+  [BuildingTypeKey.Stonehenge]: {
+    key: BuildingTypeKey.Stonehenge, nameUa: 'Стоунхендж', cost: 160, maintenance: 0, prereqTech: 'ceremonial_burial', isWonder: true,
+    descriptionUa: 'Чудо світу. Кам\'яне коло, що вираховує сонцестояння: у кожному вашому місті храм заспокоює на 1 більше.',
+  },
+  [BuildingTypeKey.Petra]: {
+    key: BuildingTypeKey.Petra, nameUa: 'Петра', cost: 250, maintenance: 0, prereqTech: 'construction', isWonder: true, effects: { food: 25, shields: 25 }, globalEffects: { trade: 1 },
+    descriptionUa: 'Чудо світу. Місто, висічене в рожевій скелі, на перехресті караванних шляхів: тут +25% їжі й щитів, усюди +1 торгівлі.',
+  },
+  [BuildingTypeKey.ForbiddenCity]: {
+    key: BuildingTypeKey.ForbiddenCity, nameUa: 'Заборонене місто', cost: 350, maintenance: 0, prereqTech: 'feudalism', isWonder: true,
+    descriptionUa: 'Чудо світу. Палац імператора, звідки видно кожну провінцію: корупція в усіх ваших містах удвічі менша.',
+  },
+  [BuildingTypeKey.AngkorWat]: {
+    key: BuildingTypeKey.AngkorWat, nameUa: 'Ангкор-Ват', cost: 380, maintenance: 0, prereqTech: 'monotheism', isWonder: true, effects: { content: 2 }, globalEffects: { food: 10 },
+    descriptionUa: 'Чудо світу. Храмове місто серед каналів і рисових полів: +10% їжі в кожному вашому місті, тут — +2 задоволених.',
+  },
+  [BuildingTypeKey.NotreDame]: {
+    key: BuildingTypeKey.NotreDame, nameUa: 'Собор Паризької Богоматері', cost: 350, maintenance: 0, prereqTech: 'architecture', isWonder: true, effects: { content: 3 }, globalEffects: { content: 1 },
+    descriptionUa: 'Чудо світу. Готичні вежі, вітражі й химери над Сеною: +1 задоволений у кожному вашому місті, тут — ще +3.',
+  },
+  [BuildingTypeKey.MachuPicchu]: {
+    key: BuildingTypeKey.MachuPicchu, nameUa: 'Мачу-Пікчу', cost: 300, maintenance: 0, prereqTech: 'astronomy', isWonder: true, effects: { food: 25 }, globalEffects: { gold: 10, shields: 5 },
+    descriptionUa: 'Чудо світу. Місто інків на гірському хребті з терасами полів: +10% золота й +5% щитів у кожному вашому місті, тут — +25% їжі.',
+  },
+  [BuildingTypeKey.BrandenburgGate]: {
+    key: BuildingTypeKey.BrandenburgGate, nameUa: 'Бранденбурзькі ворота', cost: 450, maintenance: 0, prereqTech: 'conscription', isWonder: true, globalEffects: { shields: 5 },
+    descriptionUa: 'Чудо світу. Тріумфальна брама з квадригою: армія за кордоном не злить ваших громадян за жодного устрою, +5% щитів усюди.',
+  },
+  [BuildingTypeKey.ChristRedeemer]: {
+    key: BuildingTypeKey.ChristRedeemer, nameUa: 'Статуя Христа-Спасителя', cost: 550, maintenance: 0, prereqTech: 'theology', isWonder: true, globalEffects: { content: 2 },
+    descriptionUa: 'Чудо світу. Розкинуті руки над затокою: +2 задоволених у кожному вашому місті.',
+  },
+  [BuildingTypeKey.Pentagon]: {
+    key: BuildingTypeKey.Pentagon, nameUa: 'Пентагон', cost: 600, maintenance: 0, prereqTech: 'mobile_warfare', isWonder: true,
+    descriptionUa: 'Чудо світу. П\'ятикутний штаб усіх родів військ: кожен новий юніт — ветеран (+50% атаки й захисту).',
+  },
+  [BuildingTypeKey.SydneyOpera]: {
+    key: BuildingTypeKey.SydneyOpera, nameUa: 'Сіднейська опера', cost: 600, maintenance: 0, prereqTech: 'television', isWonder: true, effects: { content: 4, luxury: 100 }, globalEffects: { gold: 10 },
+    descriptionUa: 'Чудо світу. Білі вітрила над гаванню: тут +4 задоволених і розкіш ×2, усюди +10% золота.',
   },
 };
 

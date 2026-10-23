@@ -159,6 +159,11 @@ export enum UnitTypeKey {
   Impi = 'impi',
   Immortals = 'immortals',
   Berserkers = 'berserkers',
+  // Етап 11: великі люди (не будуються — з’являються з подій і чудес)
+  GreatScientist = 'great_scientist',
+  GreatEngineer = 'great_engineer',
+  GreatArtist = 'great_artist',
+  GreatGeneral = 'great_general',
 }
 
 export interface UnitConfig {
@@ -182,6 +187,8 @@ export interface UnitConfig {
   requiresGovernment?: GovernmentKey;
   /** Не помічає мурів (таран, гаубиця) */
   ignoresWalls?: boolean;
+  /** Велика людина: не будується, одноразова дія (`World.useGreatPerson`) */
+  greatPerson?: GreatPersonKind;
   /** Унікальний юніт: будує лише ця цивілізація, замість `replaces` */
   civ?: CivKey;
   replaces?: UnitTypeKey;
@@ -390,6 +397,17 @@ export enum BuildingTypeKey {
   Ikhanda = 'ikhanda',
   Pairidaeza = 'pairidaeza',
   Longhouse = 'longhouse',
+  // Етап 11: чудеса з пізніших Civ
+  Stonehenge = 'stonehenge',
+  Petra = 'petra',
+  ForbiddenCity = 'forbidden_city',
+  AngkorWat = 'angkor_wat',
+  NotreDame = 'notre_dame',
+  MachuPicchu = 'machu_picchu',
+  BrandenburgGate = 'brandenburg_gate',
+  ChristRedeemer = 'christ_redeemer',
+  Pentagon = 'pentagon',
+  SydneyOpera = 'sydney_opera',
 }
 
 /** Частина космічного корабля: каркас тримає двигуни й модулі. */
@@ -518,6 +536,8 @@ export interface City {
   soldTurn?: number;
   /** Торгові маршрути (Civ 1): до 3, кожен дає постійну торгівлю, порахувану при заснуванні */
   tradeRoutes?: { cityId: string; trade: number }[];
+  /** Золотий вік (великий митець): скільки ходів лишилось */
+  goldenAge?: number;
 }
 
 export interface Tech {
@@ -532,6 +552,9 @@ export interface Tech {
 export type CivKey = 'rus' | 'romans' | 'egyptians' | 'greeks' | 'babylonians' | 'germans' | 'chinese' | 'mongols' | 'aztecs' | 'english'
   | 'japanese' | 'french' | 'indians' | 'zulus' | 'persians' | 'vikings';
 export type MapSizeKey = 'small' | 'normal' | 'large';
+export type GreatPersonKind = 'scientist' | 'engineer' | 'artist' | 'general';
+/** Тип світу: континенти, один суходіл, багато островів, острів на кожну цивілізацію */
+export type MapTypeKey = 'continents' | 'pangaea' | 'archipelago' | 'islands';
 export type DifficultyKey = 'chieftain' | 'warlord' | 'prince' | 'king' | 'emperor';
 
 /** Налаштування нової гри (головне меню). */
@@ -542,6 +565,8 @@ export interface GameOptions {
   rivals: number;
   mapSize: MapSizeKey;
   difficulty: DifficultyKey;
+  /** Тип світу (типово — континенти) */
+  mapType?: MapTypeKey;
 }
 
 export interface Player {
