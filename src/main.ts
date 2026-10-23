@@ -14,6 +14,7 @@ import { HelpDialog } from './ui/help-dialog';
 import { Tutorial } from './ui/tutorial';
 import { StatsDialog } from './ui/stats-dialog';
 import { recordTurn, noteMessage } from './ui/history';
+import { Achievements, AchievementsDialog } from './ui/achievements';
 import { DiplomacyDialog, MeetingDialog, DiplomatDialog } from './ui/diplomacy-dialog';
 import { showMainMenu, MenuChoice } from './ui/main-menu';
 import { saveGame, loadSave, takePendingLoad } from './ui/save-store';
@@ -93,8 +94,15 @@ async function bootstrap() {
   const statsDialog = new StatsDialog(appElement, world);
   gameMenu.onStats = () => statsDialog.show();
   hud.onOpenStats = () => statsDialog.show();
-  hud.onMessage = (text) => noteMessage(world, text);
   recordTurn(world);
+  // Досягнення: перевіряються з кожним повідомленням журналу (дія гравця) і після ходу
+  const achievements = new Achievements(world);
+  const achievementsDialog = new AchievementsDialog(appElement);
+  gameMenu.onAchievements = () => achievementsDialog.show();
+  hud.onMessage = (text) => {
+    noteMessage(world, text);
+    achievements.check();
+  };
   const diplomacyDialog = new DiplomacyDialog(appElement, world, () => hud.update(selectedUnit));
   const meetingDialog = new MeetingDialog(appElement, world);
   const diplomatDialog = new DiplomatDialog(appElement, world);
@@ -297,6 +305,7 @@ async function bootstrap() {
     tutorial.mark('end-turn');
     const result = world.processTurnEnd();
     recordTurn(world);
+    achievements.check();
 
     for (const item of result.completedItems) {
       hud.addLogMessage(`⚙️ ${item}`);

@@ -8,6 +8,7 @@ import { SaveData } from '../core/world';
 import { SLOTS, SlotId, listSaves, loadSave, slotName } from './save-store';
 import { hallOfFameHtml } from './game-over-dialog';
 import { helpHtml, aboutHtml } from './help-dialog';
+import { achievementsHtml } from './achievements';
 
 export type MenuChoice = { options: GameOptions } | { save: SaveData };
 
@@ -41,6 +42,7 @@ export function showMainMenu(container: HTMLElement): Promise<MenuChoice> {
           <button class="btn-primary" id="mm-new">🌍 Нова гра</button>
           <button class="btn-primary" id="mm-load" ${Object.keys(saves).length ? '' : 'disabled'}>📂 Завантажити гру</button>
           <button class="btn-primary" id="mm-hall">🏛️ Зал слави</button>
+          <button class="btn-primary" id="mm-achv">🏅 Досягнення</button>
           <div class="main-menu-row">
             <button class="civ-btn" id="mm-help">❓ Як грати</button>
             <button class="civ-btn" id="mm-about">ℹ️ Про гру</button>
@@ -51,6 +53,7 @@ export function showMainMenu(container: HTMLElement): Promise<MenuChoice> {
       overlay.querySelector('#mm-load')?.addEventListener('click', loadList);
       overlay.querySelector('#mm-hall')?.addEventListener('click', () => frame(`<h3 class="hall-title">🏛️ Зал слави</h3>${hallOfFameHtml()}`));
       overlay.querySelector('#mm-help')?.addEventListener('click', () => frame(helpHtml()));
+      overlay.querySelector('#mm-achv')?.addEventListener('click', () => frame(`<h3 class="hall-title">🏅 Досягнення</h3>${achievementsHtml()}`));
       overlay.querySelector('#mm-about')?.addEventListener('click', () => frame(aboutHtml()));
     }
 
