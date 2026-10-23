@@ -567,6 +567,8 @@ export interface GameOptions {
   difficulty: DifficultyKey;
   /** Тип світу (типово — континенти) */
   mapType?: MapTypeKey;
+  /** Сценарій (`src/core/scenarios.ts`) — готовий старт з історією */
+  scenario?: 'mediterranean' | 'discovery' | 'world1900';
   /** «Гаряче місце»: цивілізації інших людей за цим пристроєм (гравець 0 — `civ`) */
   humanCivs?: CivKey[];
 }

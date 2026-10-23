@@ -10,6 +10,7 @@ import { hallOfFameHtml } from './game-over-dialog';
 import { helpHtml, aboutHtml } from './help-dialog';
 import { achievementsHtml } from './achievements';
 import { langSwitchHtml, bindLangSwitch } from '../i18n';
+import { SCENARIOS, ScenarioKey } from '../core/scenarios';
 
 /** `quick` — «швидкий старт»: AI грає за людину до 1000 н.е., далі — гравець. */
 export type MenuChoice = { options: GameOptions; quick?: boolean } | { save: SaveData };
@@ -43,6 +44,7 @@ export function showMainMenu(container: HTMLElement): Promise<MenuChoice> {
           ${auto ? `<button class="btn-primary" id="mm-continue">▶ Продовжити<small>${auto.civ}, ${auto.year}</small></button>` : ''}
           <button class="btn-primary" id="mm-new">🌍 Нова гра</button>
           <button class="btn-primary" id="mm-quick" title="AI проведе вашу цивілізацію до 1000 н.е.: кілька міст, сусіди, перші чудеса">⚡ Швидкий старт<small>одразу в середину гри — 1000 н.е.</small></button>
+          <button class="btn-primary" id="mm-scenarios" title="Готові старти з історією: Античне Середземномор'я, Епоха відкриттів, Світ 1900">📜 Сценарії<small>готові старти з метою</small></button>
           <button class="btn-primary" id="mm-load" ${Object.keys(saves).length ? '' : 'disabled'}>📂 Завантажити гру</button>
           <button class="btn-primary" id="mm-hall">🏛️ Зал слави</button>
           <button class="btn-primary" id="mm-achv">🏅 Досягнення</button>
@@ -54,6 +56,7 @@ export function showMainMenu(container: HTMLElement): Promise<MenuChoice> {
         </div>`, false);
       overlay.querySelector('#mm-continue')?.addEventListener('click', () => openSlot('auto'));
       overlay.querySelector('#mm-new')?.addEventListener('click', newGame);
+      overlay.querySelector('#mm-scenarios')?.addEventListener('click', scenarios);
       overlay.querySelector('#mm-quick')?.addEventListener('click', () => done({
         options: { civ: 'rus', rivals: 3, mapSize: 'normal', difficulty: 'prince' },
         quick: true,
@@ -87,6 +90,28 @@ export function showMainMenu(container: HTMLElement): Promise<MenuChoice> {
         </div>`);
       overlay.querySelectorAll<HTMLButtonElement>('button[data-slot]').forEach((b) =>
         b.addEventListener('click', () => openSlot(b.dataset.slot as SlotId)));
+    }
+
+    /** Сценарії: опис, мета й народ на вибір. */
+    function scenarios(): void {
+      const keys = Object.keys(SCENARIOS) as ScenarioKey[];
+      frame(keys.map((k) => {
+        const s = SCENARIOS[k];
+        return `
+        <div class="tech-card">
+          <div class="tech-card-header"><h3>📜 ${s.nameUa}</h3></div>
+          <p>${s.descriptionUa}</p>
+          <p class="tech-unlocks">🎯 ${s.goalUa}</p>
+          <label>Ваш народ: <select id="sc-civ-${k}">${s.civs.map((c) => `<option value="${c}">${CIVS[c].nameUa} — ${CIVS[c].leaderUa}</option>`).join('')}</select></label>
+          <button class="btn-primary" data-scenario="${k}">▶ Почати</button>
+        </div>`;
+      }).join(''));
+      overlay.querySelectorAll<HTMLButtonElement>('button[data-scenario]').forEach((b) => b.addEventListener('click', () => {
+        const k = b.dataset.scenario as ScenarioKey;
+        const s = SCENARIOS[k];
+        const civ = overlay.querySelector<HTMLSelectElement>(`#sc-civ-${k}`)!.value as CivKey;
+        done({ options: { civ, rivals: s.civs.length - 1, rivalCivs: s.civs.filter((c) => c !== civ), mapSize: s.mapSize, mapType: s.mapType, difficulty: 'prince', scenario: k } });
+      }));
     }
 
     function newGame(): void {

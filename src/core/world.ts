@@ -10,6 +10,7 @@ import {
   GameOptions, CivKey, ResourceType,
 } from './types';
 import { MapGenerator } from './map-generator';
+import { applyScenario, scenarioRegion, ScenarioKey } from './scenarios';
 import { CityLogic } from './city';
 import { UnitLogic } from './unit';
 import { TurnManager } from './turn-manager';
@@ -56,6 +57,7 @@ export class World {
     this.initFogOfWar();
     this.spawnInitialSettlers();
     this.placeHuts();
+    if (this.options.scenario) applyScenario(this, this.options.scenario);
   }
 
   /** Людина — гравець 0; далі суперники (задані або випадкові з решти); варвари — останні. */
@@ -125,7 +127,9 @@ export class World {
         tries++;
         // Сусіди не стартують на виду одне в одного (інакше знайомство в 3950 до н.е.); вимогу послаблюємо, якщо мапа тісна
         const minDist = tries < 400 ? Math.floor(MAP_WIDTH / 5) : tries < 800 ? 8 : 0;
-        const rx = Math.floor(Math.random() * MAP_WIDTH);
+        // Сценарій може садити народ на захід чи схід мапи (Старий і Новий Світ)
+        const region = scenarioRegion(this.options.scenario, player.civ);
+        const rx = Math.floor((region === 'east' ? 0.55 : 0) * MAP_WIDTH + Math.random() * (region ? 0.45 : 1) * MAP_WIDTH);
         const ry = Math.floor(MAP_HEIGHT * 0.25 + Math.random() * (MAP_HEIGHT * 0.5));
         const tile = this.tiles[ry][rx];
 
@@ -243,6 +247,8 @@ export class World {
 
   /** «Гаряче місце»: цивілізації людей у порядку ходу і хто з них зараз ходить (він — гравець 0). */
   public hotseat?: { civs: CivKey[]; index: number };
+  /** Сценарій: який і в якому році закінчується */
+  public scenario?: { key: ScenarioKey; endYear: number };
 
   /**
    * «Гаряче місце»: передати хід наступній живій людині — вона стає гравцем 0 (уся гра й інтерфейс
@@ -1644,7 +1650,7 @@ export class World {
       this.gameOver = { reason: 'conquest', winner: alive[0].id, year };
       return;
     }
-    if (this.turnManager.year >= 2100) {
+    if (this.turnManager.year >= (this.scenario?.endYear ?? 2100)) {
       const best = alive.reduce((a, b) => (this.score(b.id).total > this.score(a.id).total ? b : a));
       this.gameOver = { reason: 'time', winner: best.id, year };
     }
@@ -1699,6 +1705,7 @@ export class World {
       warming: this.warming,
       uiData: this.uiData,
       hotseat: this.hotseat,
+      scenario: this.scenario,
     };
   }
 
@@ -1733,6 +1740,7 @@ export class World {
     this.uiData = s.uiData ?? {};
     this.warming = s.warming ?? 0;
     this.hotseat = s.hotseat;
+    this.scenario = s.scenario;
   }
 
   /**
@@ -2006,6 +2014,7 @@ export interface SaveData {
   warming?: number;
   uiData?: Record<string, unknown>;
   hotseat?: { civs: CivKey[]; index: number };
+  scenario?: { key: ScenarioKey; endYear: number };
 }
 
 const GREAT_PEOPLE: Record<GreatPersonKind, UnitTypeKey> = {

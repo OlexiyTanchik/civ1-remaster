@@ -3,6 +3,7 @@
  * Ініціалізація PixiJS, ігрового світу, рендерера та обробників подій.
  */
 import { Application } from 'pixi.js';
+import { SCENARIOS } from './core/scenarios';
 import { World } from './core/world';
 import { UNIT_CONFIGS, GOVERNMENTS, BUILDING_CONFIGS } from './core/constants';
 import { GovernmentDialog } from './ui/government-dialog';
@@ -106,6 +107,8 @@ async function bootstrap() {
   const terrainChunks = TerrainBaker.bake(world);
   const renderer = new MapRenderer(app, world, terrainChunks);
   const hud = new Hud(appElement, world, renderer);
+  // Сценарій: мета — одразу в журнал
+  if (world.scenario && !('save' in choice)) hud.addLogMessage(`📜 ${SCENARIOS[world.scenario.key].nameUa}: ${SCENARIOS[world.scenario.key].goalUa}`);
   const tutorial = new Tutorial(world);
   hud.tutorial = tutorial;
   // Вітання з HTML пасує лише новій партії
