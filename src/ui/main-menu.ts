@@ -97,7 +97,7 @@ export function showMainMenu(container: HTMLElement): Promise<MenuChoice> {
             </label>`).join('')}
         </div>
         <h3 class="hall-title">Суперників</h3>
-        <div class="mm-grid">${radio('rivals', [['1', '1'], ['2', '2'], ['3', '3'], ['4', '4']], String(pick.rivals))}</div>
+        <div class="mm-grid">${radio('rivals', [['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5', 'Краще на великій мапі'], ['6', '6', 'Краще на великій мапі']], String(pick.rivals))}</div>
         <h3 class="hall-title">Розмір мапи</h3>
         <div class="mm-grid">${radio('mapSize', (Object.keys(MAP_SIZES) as MapSizeKey[]).map((k) => [k, `${MAP_SIZES[k].nameUa} ${MAP_SIZES[k].w}×${MAP_SIZES[k].h}`]), pick.mapSize)}</div>
         <h3 class="hall-title">Складність</h3>

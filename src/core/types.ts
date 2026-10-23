@@ -152,6 +152,13 @@ export enum UnitTypeKey {
   Zeppelin = 'zeppelin',
   Snipers = 'snipers',
   FlakGun = 'flak_gun',
+  // Етап 11: унікальні юніти нових народів
+  Samurai = 'samurai',
+  RoyalMusketeers = 'royal_musketeers',
+  RajaElephants = 'raja_elephants',
+  Impi = 'impi',
+  Immortals = 'immortals',
+  Berserkers = 'berserkers',
 }
 
 export interface UnitConfig {
@@ -376,6 +383,13 @@ export enum BuildingTypeKey {
   TerracottaArmy = 'terracotta_army',
   KyivLavra = 'kyiv_lavra',
   SpaceStation = 'space_station',
+  // Етап 11: унікальні споруди нових народів
+  Dojo = 'dojo',
+  Salon = 'salon',
+  Stupa = 'stupa',
+  Ikhanda = 'ikhanda',
+  Pairidaeza = 'pairidaeza',
+  Longhouse = 'longhouse',
 }
 
 /** Частина космічного корабля: каркас тримає двигуни й модулі. */
@@ -515,7 +529,8 @@ export interface Tech {
 }
 
 /** Цивілізації, з яких обирають гравця й суперників. */
-export type CivKey = 'rus' | 'romans' | 'egyptians' | 'greeks' | 'babylonians' | 'germans' | 'chinese' | 'mongols' | 'aztecs' | 'english';
+export type CivKey = 'rus' | 'romans' | 'egyptians' | 'greeks' | 'babylonians' | 'germans' | 'chinese' | 'mongols' | 'aztecs' | 'english'
+  | 'japanese' | 'french' | 'indians' | 'zulus' | 'persians' | 'vikings';
 export type MapSizeKey = 'small' | 'normal' | 'large';
 export type DifficultyKey = 'chieftain' | 'warlord' | 'prince' | 'king' | 'emperor';
 

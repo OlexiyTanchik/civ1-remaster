@@ -6,7 +6,7 @@ import { Unit, TileData, UnitTypeKey } from './types';
 
 /** Кіннота, проти якої стоять піки. */
 const MOUNTED = new Set([UnitTypeKey.Cavalry, UnitTypeKey.Chariot, UnitTypeKey.Elephants, UnitTypeKey.Knights, UnitTypeKey.Crusaders,
-  UnitTypeKey.WarChariot, UnitTypeKey.Keshik, UnitTypeKey.Cossacks, UnitTypeKey.HorseArchers, UnitTypeKey.Cuirassiers]);
+  UnitTypeKey.WarChariot, UnitTypeKey.Keshik, UnitTypeKey.Cossacks, UnitTypeKey.HorseArchers, UnitTypeKey.Cuirassiers, UnitTypeKey.RajaElephants]);
 /** Бронетехніка: протитанкова гармата тримає її вдвічі краще */
 const ARMORED = new Set([UnitTypeKey.ArmoredCar, UnitTypeKey.Armor, UnitTypeKey.Panzer, UnitTypeKey.ModernArmor, UnitTypeKey.HoverTank, UnitTypeKey.BattleMech]);
 

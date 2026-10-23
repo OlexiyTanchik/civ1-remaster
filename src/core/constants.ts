@@ -78,6 +78,31 @@ export const CIVS: Record<CivKey, { nameUa: string; leaderUa: string; color: str
     nameUa: 'Англійці', leaderUa: 'Єлизавета I', color: '#9b59b6', colorHex: 0x9b59b6, hostileFromTurn: NORMAL,
     cityNames: ['Лондон', 'Йорк', 'Ноттінгем', 'Гастінгс', 'Кентербері', 'Ковентрі', 'Вінчестер', 'Оксфорд', 'Бристоль', 'Плімут'],
   },
+  // Етап 11: нові народи
+  japanese: {
+    nameUa: 'Японці', leaderUa: 'Токуґава Ієясу', color: '#ff7eb6', colorHex: 0xff7eb6, hostileFromTurn: NORMAL,
+    cityNames: ['Кіото', 'Едо', 'Осака', 'Нара', 'Камакура', 'Наґоя', 'Хіросіма', 'Сендай', 'Наґасакі', 'Кагосіма', 'Канадзава', 'Фукуока'],
+  },
+  french: {
+    nameUa: 'Французи', leaderUa: 'Наполеон Бонапарт', color: '#3c40c6', colorHex: 0x3c40c6, hostileFromTurn: NORMAL,
+    cityNames: ['Париж', 'Орлеан', 'Ліон', 'Марсель', 'Бордо', 'Руан', 'Тулуза', 'Реймс', 'Нант', 'Страсбург', 'Авіньйон', 'Дижон'],
+  },
+  indians: {
+    nameUa: 'Індійці', leaderUa: 'Махатма Ганді', color: '#1abc9c', colorHex: 0x1abc9c, hostileFromTurn: PEACEFUL,
+    cityNames: ['Делі', 'Варанасі', 'Паталіпутра', 'Агра', 'Калькутта', 'Мадрас', 'Бомбей', 'Удджайн', 'Хайдарабад', 'Джайпур', 'Лакхнау', 'Матхура'],
+  },
+  zulus: {
+    nameUa: 'Зулуси', leaderUa: 'Шака', color: '#6b8e23', colorHex: 0x6b8e23, hostileFromTurn: WARLIKE,
+    cityNames: ['Улунді', 'Булавайо', 'Ондіні', 'Ісандлвана', 'Нонгома', 'Емпангені', 'Есгове', 'Мелмот', 'Махлабатіні', 'Дукуза'],
+  },
+  persians: {
+    nameUa: 'Перси', leaderUa: 'Кир Великий', color: '#c8a27a', colorHex: 0xc8a27a, hostileFromTurn: NORMAL,
+    cityNames: ['Персеполь', 'Пасаргади', 'Сузи', 'Екбатана', 'Ісфахан', 'Тебриз', 'Шираз', 'Мешхед', 'Рей', 'Ктесифон', 'Кашан', 'Казвін'],
+  },
+  vikings: {
+    nameUa: 'Вікінги', leaderUa: 'Гаральд Суворий', color: '#81ecec', colorHex: 0x81ecec, hostileFromTurn: WARLIKE,
+    cityNames: ['Тронгейм', 'Уппсала', 'Роскілле', 'Хедебю', 'Бірка', 'Каупанг', 'Йорвік', 'Дублін', 'Рейк\'явік', 'Берген', 'Ставангер', 'Олесунн'],
+  },
 };
 
 /** Налаштування за замовчуванням: класична партія Русь проти Риму та Єгипту. */
@@ -483,6 +508,31 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
   [UnitTypeKey.FlakGun]: {
     key: UnitTypeKey.FlakGun, name: 'Flak Gun', nameUa: 'Зенітна гармата', attack: 1, defense: 4, moves: 1, cost: 50, domain: 'land', antiAir: true,
     prereqTech: 'flight', descriptionUa: 'Зенітка: проти літаків і гелікоптерів захист ×5.',
+  },
+  // Етап 11: унікальні юніти нових народів
+  [UnitTypeKey.Samurai]: {
+    key: UnitTypeKey.Samurai, name: 'Samurai', nameUa: 'Самураї', attack: 5, defense: 3, moves: 1, cost: 40, domain: 'land',
+    civ: 'japanese', replaces: UnitTypeKey.Knights, prereqTech: 'chivalry', descriptionUa: 'Унікальний юніт Японії замість Лицарів: майстри меча, що тримаються й у обороні.',
+  },
+  [UnitTypeKey.RoyalMusketeers]: {
+    key: UnitTypeKey.RoyalMusketeers, name: 'Royal Musketeers', nameUa: 'Мушкетери короля', attack: 4, defense: 3, moves: 1, cost: 30, domain: 'land',
+    civ: 'french', replaces: UnitTypeKey.Musketeers, prereqTech: 'gunpowder', descriptionUa: 'Унікальний юніт Франції замість Мушкетерів: гвардійці в блакитних плащах — б\'ють сильніше.',
+  },
+  [UnitTypeKey.RajaElephants]: {
+    key: UnitTypeKey.RajaElephants, name: 'Raja Elephants', nameUa: 'Слони раджі', attack: 6, defense: 2, moves: 1, cost: 40, domain: 'land',
+    civ: 'indians', replaces: UnitTypeKey.Elephants, prereqTech: 'polytheism', descriptionUa: 'Унікальний юніт Індії замість Бойових слонів: броньовані слони з лучниками в башті.',
+  },
+  [UnitTypeKey.Impi]: {
+    key: UnitTypeKey.Impi, name: 'Impi', nameUa: 'Імпі', attack: 3, defense: 2, moves: 2, cost: 20, domain: 'land',
+    civ: 'zulus', replaces: UnitTypeKey.Legion, prereqTech: 'iron_working', descriptionUa: 'Унікальний юніт зулусів замість Легіону: бігуни зі щитами з бичачої шкіри — 2 ходи.',
+  },
+  [UnitTypeKey.Immortals]: {
+    key: UnitTypeKey.Immortals, name: 'Immortals', nameUa: 'Безсмертні', attack: 4, defense: 3, moves: 1, cost: 30, domain: 'land',
+    civ: 'persians', replaces: UnitTypeKey.Archers, prereqTech: 'warrior_code', descriptionUa: 'Унікальний юніт Персії замість Лучників: гвардія царя зі списами й луками.',
+  },
+  [UnitTypeKey.Berserkers]: {
+    key: UnitTypeKey.Berserkers, name: 'Berserkers', nameUa: 'Берсерки', attack: 6, defense: 2, moves: 1, cost: 40, domain: 'land', marine: true,
+    civ: 'vikings', replaces: UnitTypeKey.Landsknechts, prereqTech: 'guilds', descriptionUa: 'Унікальний юніт вікінгів замість Ландскнехтів: б\'ють з корабля на берег на повну силу.',
   },
 };
 
@@ -1038,6 +1088,31 @@ export const BUILDING_CONFIGS: Record<BuildingTypeKey, BuildingConfig> = {
   [BuildingTypeKey.SpaceStation]: {
     key: BuildingTypeKey.SpaceStation, nameUa: 'Міжнародна космічна станція', cost: 700, maintenance: 0, prereqTech: 'space_flight', isWonder: true, globalEffects: { science: 15 },
     descriptionUa: 'Чудо світу. Лабораторія на орбіті, спільна для всіх народів: +15% науки в кожному вашому місті.',
+  },
+  // Етап 11: унікальні споруди нових народів
+  [BuildingTypeKey.Dojo]: {
+    key: BuildingTypeKey.Dojo, nameUa: 'Додзьо', cost: 70, maintenance: 1, prereqTech: 'feudalism', civ: 'japanese', effects: { content: 1, shields: 10 },
+    descriptionUa: 'Унікальна споруда Японії. Зала бойових мистецтв: +1 задоволений, +10% щитів.',
+  },
+  [BuildingTypeKey.Salon]: {
+    key: BuildingTypeKey.Salon, nameUa: 'Салон', cost: 80, maintenance: 1, prereqTech: 'humanism', civ: 'french', effects: { science: 15, luxury: 25 },
+    descriptionUa: 'Унікальна споруда Франції. Тут сперечаються філософи й поети: +15% науки, +25% розкоші.',
+  },
+  [BuildingTypeKey.Stupa]: {
+    key: BuildingTypeKey.Stupa, nameUa: 'Ступа', cost: 60, maintenance: 1, prereqTech: 'mysticism', civ: 'indians', effects: { content: 1, science: 10 },
+    descriptionUa: 'Унікальна споруда Індії. Купол над мощами й прапорці молитов: +1 задоволений, +10% науки.',
+  },
+  [BuildingTypeKey.Ikhanda]: {
+    key: BuildingTypeKey.Ikhanda, nameUa: 'Іканда', cost: 50, maintenance: 1, prereqTech: 'bronze_working', civ: 'zulus', effects: { food: 10, shields: 10 },
+    descriptionUa: 'Унікальна споруда зулусів. Військовий краль із загоном для худоби: +10% їжі, +10% щитів.',
+  },
+  [BuildingTypeKey.Pairidaeza]: {
+    key: BuildingTypeKey.Pairidaeza, nameUa: 'Сад Пайрідаеза', cost: 70, maintenance: 1, prereqTech: 'construction', civ: 'persians', effects: { content: 1, food: 10 },
+    descriptionUa: 'Унікальна споруда Персії. Сад-рай із каналами й фонтанами: +1 задоволений, +10% їжі.',
+  },
+  [BuildingTypeKey.Longhouse]: {
+    key: BuildingTypeKey.Longhouse, nameUa: 'Довгий дім', cost: 60, maintenance: 1, prereqTech: 'bronze_working', civ: 'vikings', effects: { shields: 15, content: 1 },
+    descriptionUa: 'Унікальна споруда вікінгів. Дім ярла з різьбленими драконами: +15% щитів, +1 задоволений.',
   },
 };
 

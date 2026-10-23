@@ -148,6 +148,13 @@ const BUILDING_SLOTS: Partial<Record<BuildingTypeKey, { x: number; y: number; sc
   [BuildingTypeKey.TerracottaArmy]: { x: 350, y: 172, scale: 0.45 },
   [BuildingTypeKey.KyivLavra]: { x: 86, y: 190, scale: 0.5 },
   [BuildingTypeKey.SpaceStation]: { x: 330, y: 60, scale: 0.4 },
+  // Етап 11: унікальні споруди нових народів (місце спільне з Етапом 10 — у місті одна)
+  [BuildingTypeKey.Dojo]: { x: 88, y: 130, scale: 0.42 },
+  [BuildingTypeKey.Salon]: { x: 88, y: 130, scale: 0.42 },
+  [BuildingTypeKey.Stupa]: { x: 88, y: 130, scale: 0.42 },
+  [BuildingTypeKey.Ikhanda]: { x: 88, y: 130, scale: 0.42 },
+  [BuildingTypeKey.Pairidaeza]: { x: 88, y: 130, scale: 0.42 },
+  [BuildingTypeKey.Longhouse]: { x: 88, y: 130, scale: 0.42 },
 };
 
 const hash = (a: number, b: number) => {

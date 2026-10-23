@@ -1231,6 +1231,66 @@
       "id": "w_space_station",
       "kind": "building",
       "prompt": "a space station: a modular space station with long solar panel wings and a docked capsule, floating, no planet and no stars behind it, compact isolated object on a small patch of ground, no square background tile"
+    },
+    {
+      "id": "u_samurai",
+      "kind": "unit",
+      "prompt": "a Japanese samurai in lacquered red o-yoroi armour and a horned kabuto helmet holding a katana with both hands"
+    },
+    {
+      "id": "u_royal_musketeers",
+      "kind": "unit",
+      "prompt": "a French royal musketeer in a blue tabard with a white cross, a wide feathered hat, a musket and a rapier"
+    },
+    {
+      "id": "u_raja_elephants",
+      "kind": "unit",
+      "prompt": "an Indian war elephant covered in ornate red and gold armour with a howdah carrying two archers"
+    },
+    {
+      "id": "u_impi",
+      "kind": "unit",
+      "prompt": "a Zulu impi warrior with a tall oval cowhide shield, a short iqlwa stabbing spear and feather and fur adornments, running"
+    },
+    {
+      "id": "u_immortals",
+      "kind": "unit",
+      "prompt": "a Persian Immortal guard in a long embroidered robe with a wicker shield, a spear and a bow with a quiver"
+    },
+    {
+      "id": "u_berserkers",
+      "kind": "unit",
+      "prompt": "a Viking berserker in a bearskin cloak with a round painted shield and a raised bearded axe, roaring"
+    },
+    {
+      "id": "b_dojo",
+      "kind": "building",
+      "prompt": "a Japanese dojo: a wooden hall with a curved tiled roof, sliding paper doors, a training yard with straw targets"
+    },
+    {
+      "id": "b_salon",
+      "kind": "building",
+      "prompt": "a French 18th century salon: an elegant townhouse with tall windows, chandeliers visible inside and a small garden with a fountain"
+    },
+    {
+      "id": "b_stupa",
+      "kind": "building",
+      "prompt": "a white Indian Buddhist stupa: a large hemispherical dome with a golden spire, a stone railing with carved gateways"
+    },
+    {
+      "id": "b_ikhanda",
+      "kind": "building",
+      "prompt": "a Zulu ikhanda military kraal: a ring of beehive grass huts around a cattle enclosure inside a wooden palisade"
+    },
+    {
+      "id": "b_pairidaeza",
+      "kind": "building",
+      "prompt": "a Persian paradise garden: four quarters of green trees and flowers divided by water channels with a pavilion in the centre"
+    },
+    {
+      "id": "b_longhouse",
+      "kind": "building",
+      "prompt": "a Viking longhouse: a long timber hall with a turf roof, carved dragon heads on the gables and shields hung by the door"
     }
   ]
 }
