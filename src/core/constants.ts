@@ -385,7 +385,7 @@ export const UNIT_CONFIGS: Record<UnitTypeKey, UnitConfig> = {
     prereqTech: 'seafaring', descriptionUa: 'Бойова галера з двома рядами весел: везе 2 загони й таранить ворожі кораблі.',
   },
   [UnitTypeKey.Crossbowmen]: {
-    key: UnitTypeKey.Crossbowmen, name: 'Crossbowmen', nameUa: 'Арбалетники', attack: 4, defense: 2, moves: 1, cost: 30, domain: 'land',
+    key: UnitTypeKey.Crossbowmen, name: 'Crossbowmen', nameUa: 'Арбалетники', attack: 5, defense: 2, moves: 1, cost: 35, domain: 'land',
     prereqTech: 'invention', descriptionUa: 'Арбалет пробиває лицарські обладунки. Наступники Лучників.',
   },
   [UnitTypeKey.Trebuchet]: {

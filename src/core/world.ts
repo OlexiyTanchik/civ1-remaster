@@ -1653,7 +1653,8 @@ export class World {
     const old = this.players[oldId];
     if (!old.isAi || old.isBarbarian) return;
     const cities = [...this.cities.values()].filter((c) => c.playerId === oldId);
-    if (cities.length < 8) return;
+    // Після падіння столиці лишилось 5+ міст (тобто імперія мала 6+)
+    if (cities.length < 5) return;
     const used = new Set(this.players.map((p) => p.civ));
     const free = (Object.keys(CIVS) as CivKey[]).filter((c) => !used.has(c));
     if (!free.length) return;

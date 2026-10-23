@@ -5,7 +5,7 @@
  * Міста обирають виробництво за пріоритетами; дослідження — за чергою.
  */
 import type { World } from './world';
-import { City, Unit, TileData, UnitTypeKey, BuildingTypeKey, TerrainType, Player, GovernmentKey } from './types';
+import { City, Unit, UnitConfig, TileData, UnitTypeKey, BuildingTypeKey, TerrainType, Player, GovernmentKey } from './types';
 import { AGENTS, UNIT_CONFIGS, BUILDING_CONFIGS, TERRAIN_DATA, FAT_CROSS_OFFSETS, MAP_WIDTH, MAP_HEIGHT, GOVERNMENTS, WARMING_LIMIT, unitForCiv } from './constants';
 import { tileYield, TerraformKind, checkTerraform } from './terraform';
 import { TurnManager } from './turn-manager';
@@ -30,6 +30,13 @@ const RESEARCH_ORDER = [
   // Гірська піхота й шпигуни — після космічних технологій: кожна зайва технологія дорожчає наступні, і космос не встигав до 2100
   'tactics', 'espionage', 'refrigeration', 'miniaturization', 'combined_arms', 'amphibious_warfare', 'guerrilla_warfare', 'genetic_engineering', 'environmentalism', 'stealth', 'fundamentalism', 'polytheism', 'artificial_intelligence', 'fusion', 'nanotechnology', 'ocean_colonization',
 ];
+
+/** Роль ударного юніта: облога (сильна атака, слабка оборона), рухливі (2+ ходи), лінійна піхота (решта). */
+type StrikeRole = 'siege' | 'mobile' | 'line';
+function strikeRole(u: UnitConfig): StrikeRole {
+  if (u.attack >= 6 && u.attack >= u.defense * 3 && u.moves <= 2) return 'siege';
+  return u.moves >= 2 ? 'mobile' : 'line';
+}
 
 /** Корабель, який AI вважає готовим до старту: 3 двигуни, 3 модулі, 6 каркасів (політ 14 р., успіх 100%). */
 const SHIP_GOAL = { structural: 6, component: 3, module: 3 };
@@ -169,17 +176,37 @@ export class AiController {
     const trader = player.knownTechs.includes('the_corporation') ? UnitTypeKey.Freight : UnitTypeKey.Caravan;
     const agent = player.knownTechs.includes('espionage') ? UnitTypeKey.Spy : UnitTypeKey.Diplomat;
     const military = myUnits.filter((u) => UNIT_CONFIGS[u.type].attack > 0).length;
-    const armyFull = military >= cities * 2 + 2;
+    // Войовничі тримають більшу армію
+    const warlike = (player.hostileFromTurn ?? Infinity) <= 50;
+    let armyFull = military >= cities * (warlike ? 3 : 2) + 2;
+    // Армія повна застарілими: розпускаємо один ударний загін, удвічі слабший за новітній, — місце для сучасного
+    if (armyFull && this.isHostilePhase(player)) {
+      const top = UNIT_CONFIGS[this.bestUnit(player, 'attack')].attack;
+      const old = myUnits.find((u) => {
+        const cfg = UNIT_CONFIGS[u.type];
+        return cfg.domain === 'land' && cfg.attack > cfg.defense && cfg.attack * 2 <= top && !u.carriedBy && !u.aiMission && w.tiles[u.y][u.x].cityId;
+      });
+      if (old) {
+        w.removeUnit(old.id);
+        armyFull = false;
+      }
+    }
     // «Аполлон» — першим: без нього космічна гонка не встигає до 2100
     const wonder = canBuild(BuildingTypeKey.Apollo) ? BUILDING_CONFIGS[BuildingTypeKey.Apollo]
       : Object.values(BUILDING_CONFIGS).find((b) => b.isWonder && canBuild(b.key));
     const garrison = this.garrisonAt(city);
     const threat = this.threatNear(city.x, city.y, player.id, 7);
     const defender = this.bestUnit(player, 'defense');
-    // Змішана армія: швидких ударних (кіннота, броня) — не менше, ніж повільних облогових
-    const strikers = myUnits.filter((u) => UNIT_CONFIGS[u.type].domain === 'land' && UNIT_CONFIGS[u.type].attack > UNIT_CONFIGS[u.type].defense);
-    const fast = strikers.filter((u) => UNIT_CONFIGS[u.type].moves >= 2).length;
-    const usual = this.bestUnit(player, fast < strikers.length - fast ? 'mobile' : 'attack');
+    // Змішана армія: облога, рухливі й лінійна піхота — порівну; будуємо роль, якої найменше
+    const roleCount: Record<StrikeRole, number> = { siege: 0, mobile: 0, line: 0 };
+    for (const u of myUnits) {
+      const cfg = UNIT_CONFIGS[u.type];
+      if (cfg.domain === 'land' && cfg.attack > cfg.defense) roleCount[strikeRole(cfg)]++;
+    }
+    const role = (Object.keys(roleCount) as StrikeRole[])
+      .filter((r) => this.bestUnit(player, r) !== undefined)
+      .sort((x, y) => roleCount[x] - roleCount[y])[0];
+    const usual = (role && this.bestUnit(player, role, roleCount[role])) ?? this.bestUnit(player, 'attack');
     // Ворожі мури поруч — облога тим, хто їх не помічає (таран, гаубиця): мури втричі слабшать решту
     const walled = [...w.cities.values()].some((c) => c.playerId !== player.id && c.buildings.includes(BuildingTypeKey.CityWalls)
       && w.distance(c.x, c.y, city.x, city.y) <= 10 && w.diplomacy.atWar(player.id, c.playerId));
@@ -187,7 +214,9 @@ export class AiController {
       .filter((u) => u.domain === 'land' && (u.ignoresWalls || u.key === UnitTypeKey.Howitzer) && unitForCiv(u, player.civ)
         && (!u.prereqTech || player.knownTechs.includes(u.prereqTech)))
       .sort((a, b) => b.attack - a.attack)[0] : undefined;
-    const attacker = breaker && breaker.attack * 3 >= UNIT_CONFIGS[usual].attack ? breaker.key : usual;
+    // Рушій мурів — поки звичайна облога не вдвічі сильніша, і не більше шостої частини від кількості міст (інакше AI клепав сотні таранів)
+    const attacker = breaker && breaker.attack * 2 >= UNIT_CONFIGS[usual].attack && count(breaker.key) < Math.ceil(cities / 6) ? breaker.key : usual;
+    const strikersTotal = roleCount.siege + roleCount.mobile + roleCount.line;
     const hostile = this.isHostilePhase(player);
 
     if (garrison < 1) {
@@ -260,6 +289,8 @@ export class AiController {
     // Фабрика з понад 20 щитами вже димить
     if (has(BuildingTypeKey.Factory) && yields.shieldsGross > 20 && canBuild(BuildingTypeKey.RecyclingCenter)) return set(true, BuildingTypeKey.RecyclingCenter);
     if (wonder && has(BuildingTypeKey.Palace) && !threat && garrison >= 2 && city.size >= 3 && cities >= 3) return set(true, wonder.key);
+    // Войовничі не кидають війну заради космосу: ударна армія — хоча б по загону на місто
+    if (warlike && hostile && !armyFull && yields.shields >= 3 && strikersTotal < cities && !threat) return set(false, attacker);
     // Космічна гонка: столиця й продуктивні міста (від 10 щитів) будують частини корабля
     if ((has(BuildingTypeKey.Palace) || yields.shields >= 10) && city.size >= 5 && !threat) {
       const part = this.nextSpacePart(player, city);
@@ -290,7 +321,7 @@ export class AiController {
     if (canUpkeep && city.size >= 3 && player.knownTechs.includes('writing') && count(UnitTypeKey.Diplomat) < 1 && (this.needEmbassy(player).length || bribe)) {
       return set(false, agent);
     }
-    if (hostile && !armyFull && canUpkeep && count(attacker as UnitTypeKey) < Math.ceil(cities / 2)) return set(false, attacker);
+    if (hostile && !armyFull && canUpkeep && count(attacker as UnitTypeKey) < Math.ceil(cities / (warlike ? 1 : 2))) return set(false, attacker);
     // Флот і авіація для войовничих і тих, кому загрожують
     const ships = myUnits.filter((u) => this.isWarship(u.type)).length;
     const ports = allCities.filter((c) => this.isCoastal(c)).length;
@@ -313,6 +344,28 @@ export class AiController {
     }
     if (hostile && canUpkeep && city.size >= 8 && player.knownTechs.includes('rocketry') && count(UnitTypeKey.CruiseMissile) < Math.ceil(cities / 4)) {
       return set(false, UnitTypeKey.CruiseMissile);
+    }
+    // Вузькі ролі своїх епох: бронеавтомобілі — рухливий резерв до танків, реактивна артилерія — вогонь до гаубиць
+    if (hostile && canUpkeep && city.size >= 6 && player.knownTechs.includes('automobile') && !player.knownTechs.includes('mobile_warfare')
+      && count(UnitTypeKey.ArmoredCar) < Math.ceil(cities / 6)) {
+      return set(false, UnitTypeKey.ArmoredCar);
+    }
+    if (hostile && canUpkeep && city.size >= 6 && player.knownTechs.includes('rocketry') && !player.knownTechs.includes('robotics')
+      && count(UnitTypeKey.RocketArtillery) < Math.ceil(cities / 6)) {
+      return set(false, UnitTypeKey.RocketArtillery);
+    }
+    // Дешевий удар з неба: цепеліни до реактивної авіації, дрони — після мініатюризації
+    if (hostile && canUpkeep && city.size >= 6 && player.knownTechs.includes('combustion') && !player.knownTechs.includes('advanced_flight')
+      && count(UnitTypeKey.Zeppelin) < Math.ceil(cities / 4)) {
+      return set(false, UnitTypeKey.Zeppelin);
+    }
+    if (hostile && canUpkeep && city.size >= 6 && player.knownTechs.includes('miniaturization') && count(UnitTypeKey.Drone) < Math.ceil(cities / 3)) {
+      return set(false, UnitTypeKey.Drone);
+    }
+    // Повітряна куля — розвідка на війні до літаків ДРЛО
+    if (hostile && canUpkeep && city.size >= 4 && player.knownTechs.includes('physics') && !player.knownTechs.includes('advanced_flight')
+      && count(UnitTypeKey.Balloon) < 1 && !allCities.some((c) => c !== city && c.currentProduction.key === UnitTypeKey.Balloon)) {
+      return set(false, UnitTypeKey.Balloon);
     }
     if (hostile && canUpkeep && city.size >= 8 && player.knownTechs.includes('advanced_flight') && count(UnitTypeKey.Bomber) < Math.ceil(cities / 4)) {
       return set(false, player.knownTechs.includes('stealth') ? UnitTypeKey.StealthBomber : UnitTypeKey.Bomber);
@@ -419,25 +472,33 @@ export class AiController {
   private bestShip(player: Player, kind: 'ferry' | 'war'): UnitTypeKey | undefined {
     const ships = Object.values(UNIT_CONFIGS).filter((u) => u.domain === 'sea' && (!u.prereqTech || player.knownTechs.includes(u.prereqTech)));
     const list = kind === 'ferry'
-      ? ships.filter((u) => (u.capacity ?? 0) > 0).sort((a, b) => (b.capacity ?? 0) - (a.capacity ?? 0) || b.moves - a.moves)
+      ? ships.filter((u) => (u.capacity ?? 0) > 0).sort((a, b) => (b.capacity ?? 0) - (a.capacity ?? 0) || b.moves - a.moves || b.defense - a.defense)
       : ships.filter((u) => this.isWarship(u.key) && u.key !== UnitTypeKey.Submarine).sort((a, b) => b.attack - a.attack);
     return list[0]?.key;
   }
 
-  /** Найкращий доступний сухопутний юніт за атакою або обороною. */
-  private bestUnit(player: Player, by: 'attack' | 'defense' | 'mobile'): UnitTypeKey {
+  /** Найкращий доступний сухопутний юніт: за обороною, за атакою чи для ролі в армії (для ролі — undefined, якщо нема). */
+  private bestUnit(player: Player, by: 'defense' | 'attack'): UnitTypeKey;
+  private bestUnit(player: Player, by: StrikeRole, variant?: number): UnitTypeKey | undefined;
+  private bestUnit(player: Player, by: 'defense' | 'attack' | StrikeRole, variant = 0): UnitTypeKey | undefined {
     const units = Object.values(UNIT_CONFIGS).filter(
       (u) => u.domain === 'land' && u.attack > 0 && (!u.prereqTech || player.knownTechs.includes(u.prereqTech))
         && (!u.requiresGovernment || u.requiresGovernment === player.government) && unitForCiv(u, player.civ)
     );
-    const pool = units.filter((u) => (by === 'defense' ? u.defense >= u.attack : u.attack > u.defense && (by === 'attack' || u.moves >= 2)));
+    const pool = units.filter((u) => (by === 'defense' ? u.defense >= u.attack : u.attack > u.defense && (by === 'attack' || (strikeRole(u) === by && !u.ignoresWalls))));
+    if (!pool.length && by !== 'defense' && by !== 'attack') return undefined;
     const list = pool.length ? pool : units;
     // Рівні за обороною — беремо Пікінерів (бонус проти вершників)
     const def = (u: { key: UnitTypeKey; defense: number }) => u.defense + (u.key === UnitTypeKey.Pikemen || u.key === UnitTypeKey.ChuKoNu ? 0.5 : 0);
     // Рівні за атакою — беремо міцнішого (Танки, а не Артилерію)
     // Свій унікальний юніт — гордість нації: AI бере його, поки він не надто відстав від новітніх
     const atk = (u: { attack: number; civ?: string }) => u.attack + (u.civ ? 2.5 : 0);
-    list.sort((a, b) => (by !== 'defense' ? atk(b) - atk(a) || b.defense - a.defense : def(b) + (b.civ ? 1 : 0) - def(a) - (a.civ ? 1 : 0)) || a.cost - b.cost);
+    list.sort((a, b) => (by !== 'defense' ? atk(b) - atk(a) || (by === 'mobile' ? b.moves - a.moves : 0) || b.defense - a.defense : def(b) + (b.civ ? 1 : 0) - def(a) - (a.civ ? 1 : 0)) || a.cost - b.cost);
+    // У ролі — по черзі два найкращі, якщо другий не набагато слабший: армії не з самих катапульт
+    if (by !== 'defense' && by !== 'attack') {
+      const pair = list.filter((u) => atk(u) >= atk(list[0]) * 0.75).slice(0, 2);
+      return pair[variant % pair.length].key;
+    }
     return list[0]?.key ?? UnitTypeKey.Militia;
   }
 
@@ -773,7 +834,8 @@ export class AiController {
       const empty = this.garrisonAt(city) === 0;
       const odds = empty ? 1 : this.odds(unit, city.x, city.y);
       if (odds < 0.55) continue;
-      const score = odds * 10 - d + (empty ? 8 : 3); // місто цінніше за загін
+      // Місто цінніше за загін, а столиця — ще цінніша: її падіння розколює імперію
+      const score = odds * 10 - d + (empty ? 8 : 3) + (city.buildings.includes(BuildingTypeKey.Palace) ? 4 : 0);
       if (!best || score > best.score) best = { x: city.x, y: city.y, score };
     }
 
